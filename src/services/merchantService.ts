@@ -6,7 +6,7 @@ import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantA
 
 class MerchantApiService {
   private api: AxiosInstance;
-  private baseURL: string = process.env.REACT_APP_IT_APP_API_URL || 'https://apin.neocloud.ai/';
+  private baseURL: string = process.env.IT_APP_BASE_URL || 'https://apin.neocloud.ai/';
 
   constructor() {
     this.api = axios.create({
@@ -232,16 +232,16 @@ class MerchantApiService {
     switch (clusterId?.toLowerCase()) {
       case 'app6':
       case 'app6a':
-        return process.env.REACT_APP_APP6A_API_URL || 'https://api6a.neocloud.ai/';
+        return process.env.APP6A_BASE_URL || 'https://api6a.neocloud.ai/';
       case 'app6e':
-        return process.env.REACT_APP_APP6E_API_URL || 'https://api6e.neocloud.ai/';
+        return process.env.APP6E_BASE_URL || 'https://api6e.neocloud.ai/';
       case 'app30a':
-        return process.env.REACT_APP_APP30a_API_URL || 'https://api30a.neocloud.ai/';
+        return process.env.APP30A_BASE_URL || 'https://api30a.neocloud.ai/';
       case 'app30b':
-        return process.env.REACT_APP_APP30b_API_URL || 'https://api30b.neocloud.ai/';
+        return process.env.APP30B_BASE_URL || 'https://api30b.neocloud.ai/';
       case 'it-app':
       default:
-        return process.env.REACT_APP_IT_APP_API_URL || 'https://apin.neocloud.ai/';
+        return process.env.IT_APP_BASE_URL || 'https://apin.neocloud.ai/';
     }
   }
 
@@ -260,7 +260,7 @@ class MerchantApiService {
   // Cluster operations
   async getClusters(): Promise<Cluster[]> {
     try {
-      const envConfig = process.env.REACT_APP_CLUSTERS_CONFIG;
+      const envConfig = process.env.CLUSTERS_CONFIG;
       if (envConfig) {
         // Remove potential single quotes if they were included in the env value 
         // (some shells/loaders might keep them)
@@ -268,7 +268,7 @@ class MerchantApiService {
         return JSON.parse(sanitizedConfig);
       }
     } catch (err) {
-      console.error('Failed to parse REACT_APP_CLUSTERS_CONFIG from env:', err);
+      console.error('Failed to parse CLUSTERS_CONFIG from env:', err);
     }
 
     // Fallback to hardcoded clusters if env is missing or invalid

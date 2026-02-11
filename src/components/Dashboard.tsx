@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
   // Set initial global tab when clusters are loaded
   React.useEffect(() => {
     if (viewMode === 'overall' && clusters.length > 0 && !activeGlobalTab) {
-      const defaultClusterId = process.env.REACT_APP_DEFAULT_CLUSTER_ID || 'it-app';
+      const defaultClusterId = process.env.DEFAULT_CLUSTER_ID || 'it-app';
       const defaultCluster = clusters.find(c => c.id === defaultClusterId);
       setActiveGlobalTab(defaultCluster ? defaultCluster.id : clusters[0].id);
     }
