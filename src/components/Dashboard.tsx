@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
   // Set initial global tab when clusters are loaded
   React.useEffect(() => {
     if (viewMode === 'overall' && clusters.length > 0 && !activeGlobalTab) {
-      const defaultClusterId = process.env.DEFAULT_CLUSTER_ID || 'it-app';
+      const defaultClusterId = process.env.REACT_APP_DEFAULT_CLUSTER_ID || 'it-app';
       const defaultCluster = clusters.find(c => c.id === defaultClusterId);
       setActiveGlobalTab(defaultCluster ? defaultCluster.id : clusters[0].id);
     }
@@ -438,12 +438,26 @@ const Dashboard: React.FC = () => {
                 <h1 className="text-2xl font-bold text-neutral-text-main tracking-tight leading-tight">Executive Dashboard</h1>
 
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-2 px-2 py-0.5 bg-green-50 text-green-600 rounded-md border border-green-100/50 shadow-sm">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                    <span className="text-[10px] font-bold uppercase tracking-wider">Live Fetching</span>
+                  <div className={`flex items-center gap-2 px-2 py-0.5 rounded-md border shadow-sm transition-all ${autoRefresh
+                    ? 'bg-green-50 text-green-600 border-green-100/50'
+                    : 'bg-orange-50 text-orange-600 border-orange-100/50'
+                    }`}>
+                    {autoRefresh ? (
+                      <>
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Live Fetching</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="relative flex h-2 w-2">
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider">Live Fetch Paused</span>
+                      </>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-2 px-2 py-0.5 bg-neutral-bg text-neutral-text-muted rounded-md border border-neutral-border/50">

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
-const AUTH_API_URL = `${process.env.IT_APP_BASE_URL}ecloudbl/auth/token`;
+const AUTH_API_URL = `${process.env.REACT_APP_IT_APP_BASE_URL}ecloudbl/auth/token`;
 
 export interface LoginResponse {
     token: {
