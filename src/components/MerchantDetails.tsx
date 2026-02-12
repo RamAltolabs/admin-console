@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { FiArrowLeft, FiUser, FiMail, FiPhone, FiHash, FiActivity, FiMapPin, FiGlobe, FiCalendar, FiClock, FiShield, FiFileText, FiBook, FiUsers, FiPackage, FiRadio, FiLayout, FiUserCheck, FiEdit2, FiServer, FiLayers, FiZap, FiTerminal, FiSettings, FiMessageSquare, FiBarChart2, FiGrid, FiShoppingCart, FiTag, FiSend, FiLock, FiCpu, FiPlay, FiBox, FiFolder } from 'react-icons/fi';
+import { FiArrowLeft, FiUser, FiMail, FiPhone, FiHash, FiActivity, FiMapPin, FiGlobe, FiCalendar, FiClock, FiShield, FiFileText, FiBook, FiUsers, FiPackage, FiRadio, FiLayout, FiUserCheck, FiEdit2, FiServer, FiLayers, FiZap, FiTerminal, FiSettings, FiMessageSquare, FiBarChart2, FiGrid, FiShoppingCart, FiTag, FiSend, FiLock, FiCpu, FiPlay, FiBox, FiFolder, FiCreditCard } from 'react-icons/fi';
 import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantAttributesPayload } from '../types/merchant';
 import merchantService from '../services/merchantService';
 import MerchantFormModal from './MerchantFormModal';
@@ -26,6 +26,7 @@ import OnlineVisitorsCard from './OnlineVisitorsCard';
 import VisitHistoryCard from './VisitHistoryCard';
 import ProductsCard from './ProductsCard';
 import OrdersCard from './OrdersCard';
+import PaymentDetailsCard from './PaymentDetailsCard';
 import CampaignsCard from './CampaignsCard';
 
 const MerchantDetails: React.FC = () => {
@@ -74,8 +75,6 @@ const MerchantDetails: React.FC = () => {
             items: [
                 { id: 'agenti-ai', label: 'Agentic AI', icon: FiZap },
                 { id: 'ai-agents', label: 'AI Agents', icon: FiLayers },
-                { id: 'prompts', label: 'Prompts', icon: FiFileText },
-                { id: 'knowledge', label: 'Knowledge Base', icon: FiBook },
                 { id: 'artifacts', label: 'AI Artifacts', icon: FiPackage },
             ]
         },
@@ -100,6 +99,7 @@ const MerchantDetails: React.FC = () => {
                 { id: 'channels', label: 'Channels', icon: FiRadio },
                 { id: 'products', label: 'Products', icon: FiShoppingCart },
                 { id: 'orders', label: 'Orders', icon: FiTag },
+                { id: 'payments', label: 'Payments', icon: FiCreditCard },
                 { id: 'campaigns', label: 'Campaigns', icon: FiSend },
             ]
         },
@@ -298,6 +298,7 @@ const MerchantDetails: React.FC = () => {
                                 key={section.id}
                                 onClick={() => {
                                     setMainTab(section.id as any);
+                                    // Reset to first item of the section
                                     if (section.items.length > 0) {
                                         setActiveTab(section.items[0].id);
                                     }
@@ -457,7 +458,7 @@ const MerchantDetails: React.FC = () => {
                                             <button
                                                 key={item.id}
                                                 onClick={() => setActiveTab(item.id)}
-                                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left ${activeTab === item.id
+                                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left ${activeTab === item.id || (mainTab === section.id && activeTab === item.id)
                                                     ? 'bg-blue-50 text-blue-600 font-bold shadow-sm'
                                                     : 'text-gray-600 hover:bg-gray-50 font-medium'
                                                     }`}
@@ -485,7 +486,7 @@ const MerchantDetails: React.FC = () => {
 
                                     {/* Content for each tab */}
                                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
-                                        {activeTab === 'users' && <UsersCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {(activeTab === 'users' || (mainTab === 'general' && activeTab === 'users')) && <UsersCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'departments' && <DepartmentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'contacts' && <ContactsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'agenti-ai' && <AgentiAICard merchantId={merchant.id} cluster={merchant.cluster} />}
@@ -497,6 +498,7 @@ const MerchantDetails: React.FC = () => {
                                         {activeTab === 'channels' && <ChannelsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'products' && <ProductsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'orders' && <OrdersCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'payments' && <PaymentDetailsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'campaigns' && <CampaignsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'visit-history' && <VisitHistoryCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'config' && <CustomConfigCard merchantId={merchant.id} cluster={merchant.cluster} />}

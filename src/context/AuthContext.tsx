@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import authService from '../services/authService';
 
 export interface User {
@@ -27,6 +27,8 @@ interface AuthContextType {
     error: string | null;
 }
 
+const TIMEOUT_DURATION = 20 * 60 * 1000; // 20 minutes in milliseconds
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -35,12 +37,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    // To properly handle cleanup of interval and event listeners
+    const activityIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    const logout = useCallback(() => {
+        authService.logout();
+        setIsAuthenticated(false);
+        setUser(null);
+        localStorage.removeItem('last_activity');
+    }, []);
+
+    const checkSession = useCallback(() => {
+        const lastActivity = localStorage.getItem('last_activity');
+        if (lastActivity) {
+            const timeSinceLastActivity = Date.now() - parseInt(lastActivity, 10);
+            if (timeSinceLastActivity > TIMEOUT_DURATION) {
+                console.log('Session timed out due to inactivity');
+                logout();
+                return false;
+            }
+        }
+        return true;
+    }, [logout]);
+
+    const updateActivity = useCallback(() => {
+        // Throttle updates to local storage to avoid excessive writes
+        const lastActivity = localStorage.getItem('last_activity');
+        if (!lastActivity || Date.now() - parseInt(lastActivity, 10) > 60 * 1000) { // Update at most once per minute
+            localStorage.setItem('last_activity', Date.now().toString());
+        }
+    }, []);
+
     useEffect(() => {
         const token = authService.getToken();
         const userInfoStr = localStorage.getItem('user_info');
 
-        if (token) {
+        // Check session validity immediately
+        const isSessionValid = checkSession();
+
+        if (token && isSessionValid) {
             setIsAuthenticated(true);
+            // Ensure last_activity is set if it's missing but we have a token (legacy session or fresh load)
+            if (!localStorage.getItem('last_activity')) {
+                localStorage.setItem('last_activity', Date.now().toString());
+            }
+
             if (userInfoStr) {
                 try {
                     setUser(JSON.parse(userInfoStr));
@@ -48,9 +89,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     console.error('Failed to parse user info', e);
                 }
             }
+        } else if (token && !isSessionValid) {
+            // Token exists but session expired
+            logout();
         }
+
         setIsLoading(false);
-    }, []);
+    }, [checkSession, logout]);
+
+    // Setup activity listeners and periodic checks when authenticated
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        // Initialize activity timestamp if not present
+        if (!localStorage.getItem('last_activity')) {
+            localStorage.setItem('last_activity', Date.now().toString());
+        }
+
+        const events = ['mousedown', 'keydown', 'scroll', 'touchstart'];
+
+        const handleActivity = () => {
+            updateActivity();
+        };
+
+        // Add event listeners
+        events.forEach(event => {
+            window.addEventListener(event, handleActivity);
+        });
+
+        // Periodic check for timeout (every 1 minute)
+        activityIntervalRef.current = setInterval(() => {
+            checkSession();
+        }, 60 * 1000);
+
+        return () => {
+            events.forEach(event => {
+                window.removeEventListener(event, handleActivity);
+            });
+            if (activityIntervalRef.current) {
+                clearInterval(activityIntervalRef.current);
+            }
+        };
+    }, [isAuthenticated, checkSession, updateActivity]);
 
     const login = useCallback(async (userName: string, password: string) => {
         setIsLoading(true);
@@ -68,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             }
 
             setIsAuthenticated(true);
+            localStorage.setItem('last_activity', Date.now().toString()); // Initialize activity on login
             if (response.user) {
                 setUser(response.user as User);
                 localStorage.setItem('user_info', JSON.stringify(response.user));
@@ -99,6 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // We accept any valid Google user and assign them to a default context if needed
 
             setIsAuthenticated(true);
+            localStorage.setItem('last_activity', Date.now().toString()); // Initialize activity upon Google login
             if (response.user) {
                 setUser(response.user as User);
             }
@@ -111,11 +195,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
     }, []);
 
-    const logout = useCallback(() => {
-        authService.logout();
-        setIsAuthenticated(false);
-        setUser(null);
-    }, []);
+    // logout is already defined above with useCallback to break circular dependency
+    // removing the duplicate definition here
+
 
     return (
         <AuthContext.Provider value={{ isAuthenticated, isLoading, user, login, loginWithGoogle, logout, error }}>

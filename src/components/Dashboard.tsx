@@ -1,21 +1,26 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useMemo } from 'react';
 import { useMerchantContext } from '../context/MerchantContext';
 import { calculateDashboardStats, calculatePercentage, formatNumber } from '../utils/analytics';
 import merchantService from '../services/merchantService';
+import { Merchant } from '../types/merchant';
 import AnalyticsDashboard from './AnalyticsDashboard';
-import { FiUsers, FiCheckCircle, FiXCircle, FiAlertCircle, FiTrendingUp, FiHelpCircle, FiActivity, FiLayout, FiRefreshCw, FiServer, FiGlobe, FiLayers } from 'react-icons/fi';
+import { FiUsers, FiCheckCircle, FiXCircle, FiAlertCircle, FiTrendingUp, FiHelpCircle, FiActivity, FiLayout, FiRefreshCw, FiServer, FiGlobe, FiLayers, FiInfo } from 'react-icons/fi';
 
 const Dashboard: React.FC = () => {
   const { merchants, loading, selectedCluster, clusters, setSelectedCluster, fetchMerchants, fetchClusters, viewMode, setViewMode } = useMerchantContext();
-  const [allClusterMerchants, setAllClusterMerchants] = React.useState<Record<string, any[]>>({});
-  const [loadingAllClusters, setLoadingAllClusters] = React.useState(false);
-  const [userStats, setUserStats] = React.useState({ totalUsers: 0, activeUsers: 0, onlineUsers: 0, totalVisitors: 0, onlineVisitors: 0, loading: false });
+  // State for additional aggregated metrics
+  const [userStats, setUserStats] = React.useState({ totalUsers: 0, activeUsers: 0, onlineUsers: 0, totalVisitors: 0, totalEngagements: 0, loading: false });
   const [recentVisitors, setRecentVisitors] = React.useState<any[]>([]);
   const [refreshKey, setRefreshKey] = React.useState(0);
   const [lastUpdated, setLastUpdated] = React.useState(new Date());
   const [autoRefresh, setAutoRefresh] = React.useState(false);
   const [activeGlobalTab, setActiveGlobalTab] = React.useState<string>('');
+
+  // Synchronize data when mode or selection changes
+  React.useEffect(() => {
+    fetchMerchants();
+  }, [selectedCluster, viewMode, fetchMerchants]);
 
   // Set initial global tab when clusters are loaded
   React.useEffect(() => {
@@ -30,9 +35,7 @@ const Dashboard: React.FC = () => {
     setRefreshKey(prev => prev + 1);
     setLastUpdated(new Date());
     // Also trigger refreshes in the context
-    if (selectedCluster) {
-      await fetchMerchants();
-    }
+    await fetchMerchants();
     await fetchClusters();
   };
 
@@ -62,7 +65,7 @@ const Dashboard: React.FC = () => {
       }
 
       if (targetClusters.length === 0) {
-        setUserStats(prev => ({ ...prev, totalUsers: 0, activeUsers: 0, onlineUsers: 0, totalVisitors: 0, onlineVisitors: 0, loading: false }));
+        setUserStats(prev => ({ ...prev, totalUsers: 0, activeUsers: 0, onlineUsers: 0, totalVisitors: 0, totalEngagements: 0, loading: false }));
         setRecentVisitors([]);
         return;
       }
@@ -73,6 +76,7 @@ const Dashboard: React.FC = () => {
       let activeU = 0;
       let onlineUsersCount = 0;
       let totalV = 0;
+      let totalE = 0;
       let onlineV = 0;
       let combinedVisitors: any[] = [];
 
@@ -80,20 +84,41 @@ const Dashboard: React.FC = () => {
         const results = await Promise.all(
           targetClusters.map(async (clusterId) => {
             try {
-              const [users, visitorsResponse] = await Promise.all([
+              const [users, visitorsResponse, liveVisitors, engagementsResponse] = await Promise.all([
                 merchantService.getClusterUsers(clusterId),
-                merchantService.getClusterVisitors(0, 100, clusterId) // Fetch more to ensure we get recent ones
+                merchantService.getClusterVisitors(0, 50, clusterId),
+                merchantService.getClusterLiveVisitors(clusterId),
+                merchantService.getEngagementList('All', clusterId)
               ]);
+
+              // Robustly extract engagement count
+              let engagementCount = 0;
+              const rawEng = engagementsResponse;
+              if (Array.isArray(rawEng)) {
+                engagementCount = rawEng.length;
+              } else if (rawEng?.data && Array.isArray(rawEng.data)) {
+                engagementCount = rawEng.data.length;
+              } else if (rawEng?.content && Array.isArray(rawEng.content)) {
+                engagementCount = rawEng.content.length;
+              } else if (rawEng?.totalElements !== undefined) {
+                engagementCount = Number(rawEng.totalElements);
+              } else if (rawEng?.total !== undefined) {
+                engagementCount = Number(rawEng.total);
+              }
+
+              console.log(`[Dashboard] Cluster ${clusterId}: Users=${users?.length}, Engagements=${engagementCount}, Visitors=${visitorsResponse?.totalElements}`);
 
               return {
                 clusterId,
                 users: users || [],
                 totalVisitors: visitorsResponse?.totalElements || 0,
-                visitors: visitorsResponse?.content || []
+                totalEngagements: engagementCount,
+                visitors: visitorsResponse?.content || [],
+                liveVisitors: liveVisitors || []
               };
             } catch (err) {
               console.error(`Failed to fetch data for cluster ${clusterId}:`, err);
-              return { clusterId, users: [], totalVisitors: 0, visitors: [] };
+              return { clusterId, users: [], totalVisitors: 0, totalEngagements: 0, visitors: [], liveVisitors: [] };
             }
           })
         );
@@ -102,69 +127,103 @@ const Dashboard: React.FC = () => {
           totalAcc += res.users.length;
           activeU += res.users.filter(u => u.status?.toLowerCase() === 'active').length;
           onlineUsersCount += res.users.filter(u => u.available === true).length;
-          totalV += res.totalVisitors;
+          totalV += res.totalVisitors || 0;
+          totalE += res.totalEngagements || 0;
 
           // Calculate online visitors (active in last 30 minutes for better visibility)
           const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
-          onlineV += res.visitors.filter((v: any) => {
-            const d = v.visitedAt || v.lastAccessedDate_dt || v.createTime || v.lastAccessedDate || v.lastModifiedDate;
-            if (!d) return false;
 
-            // Robust parsing for common API formats (e.g., handles DD-MM-YYYY or MM/DD/YYYY)
-            let timestamp: number;
-            if (typeof d === 'string' && d.includes('-') && d.split('-')[0].length === 2) {
-              // Try to fix DD-MM-YYYY to MM-DD-YYYY or YYYY-MM-DD for JS Date
-              const parts = d.split(' ');
-              const dateParts = parts[0].split('-');
-              const fixedDate = `${dateParts[1]}-${dateParts[0]}-${dateParts[2]}${parts[1] ? ' ' + parts[1] : ''}`;
-              timestamp = new Date(fixedDate).getTime();
-            } else {
-              timestamp = new Date(d).getTime();
-            }
-
-            return !isNaN(timestamp) && timestamp > thirtyMinutesAgo;
-          }).length;
-
-          // Map visitors to include merchant name and cluster info
-          const clusterMerchants = allClusterMerchants[res.clusterId] || (selectedCluster === res.clusterId ? merchants : []);
-          const mappedVisitors = res.visitors.map((v: any) => ({
-            ...v,
-            cluster: res.clusterId,
-            merchantName: v.merchantName || clusterMerchants.find(m => m.id === v.merchantID || m.id === v.merchantId)?.name || (v.merchantID || v.merchantId || `Visitor.${Math.floor(Math.random() * 10000)}`)
-          }));
-
-          combinedVisitors = [...combinedVisitors, ...mappedVisitors];
-        });
-
-        // Sort combined visitors by time (latest first) and take top 10
-        const sortedVisitors = combinedVisitors.sort((a, b) => {
-          const parseDate = (v: any) => {
-            const d = v.visitedAt || v.lastAccessedDate_dt || v.createTime || v.lastAccessedDate || v.lastModifiedDate || 0;
-            if (typeof d === 'number') return d;
+          const getVisitorTimestamp = (v: any) => {
+            const d = v.visitedAt || v.lastAccessedDate_dt || v.createTime || v.lastAccessedDate || v.lastModifiedDate || v.visited_at || v.timestamp || v.modifiedDate;
             if (!d) return 0;
 
-            // Robust parsing for common API formats
-            let timestamp: number;
-            if (typeof d === 'string' && d.includes('-') && d.split('-')[0].length === 2) {
-              const parts = d.split(' ');
-              const dateParts = parts[0].split('-');
-              const fixedDate = `${dateParts[1]}-${dateParts[0]}-${dateParts[2]}${parts[1] ? ' ' + parts[1] : ''}`;
-              timestamp = new Date(fixedDate).getTime();
-            } else {
-              timestamp = new Date(d).getTime();
+            let timestamp: number = 0;
+            if (typeof d === 'number') {
+              timestamp = d < 10000000000 ? d * 1000 : d;
+            } else if (typeof d === 'string') {
+              let dateStr = d.trim();
+              if (dateStr.includes('T') || dateStr.includes('Z')) {
+                timestamp = new Date(dateStr).getTime();
+              } else if (dateStr.includes('-')) {
+                const parts = dateStr.split(' ')[0].split('-');
+                const timePart = dateStr.split(' ')[1] || '00:00:00';
+                if (parts[0].length === 4) { // YYYY-MM-DD
+                  timestamp = new Date(`${parts[0]}-${parts[1]}-${parts[2]}T${timePart}Z`).getTime();
+                } else { // DD-MM-YYYY
+                  timestamp = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${timePart}Z`).getTime();
+                }
+              } else {
+                timestamp = new Date(dateStr).getTime();
+              }
             }
 
-            return !isNaN(timestamp) ? timestamp : 0;
+            if (isNaN(timestamp) && typeof d === 'string' && /^\d+$/.test(d)) {
+              const num = parseInt(d);
+              timestamp = num < 10000000000 ? num * 1000 : num;
+            }
+
+            return isNaN(timestamp) ? 0 : timestamp;
           };
-          return parseDate(b) - parseDate(a);
-        }).slice(0, 10);
+
+          const clusterOnlineVisitors = (res.visitors || []).filter((v: any) => {
+            if (!v) return false;
+            // First check for explicit status if available
+            if (v.online === true || v.isOnline === true || v.status?.toLowerCase() === 'online') return true;
+
+            const timestamp = getVisitorTimestamp(v);
+            // Consistent 60-minute window
+            return timestamp > (Date.now() - 60 * 60 * 1000);
+          });
+
+          onlineV += res.liveVisitors.length;
+
+          // Map and combine live visitors
+          const clusterMerchants = merchants.filter(m => m.cluster === res.clusterId);
+
+          const mappedLive = (res.liveVisitors || []).map((v: any) => ({
+            ...v,
+            cluster: res.clusterId,
+            isOnline: true,
+            visitorTimestamp: Date.now(), // Real-time
+            merchantName: v.merchantName || clusterMerchants.find((m: any) => m.id === v.merchantID || m.id === v.merchantId)?.name || (v.merchantID || v.merchantId || `Visitor.${Math.floor(Math.random() * 10000)}`)
+          }));
+
+          const mappedRecent = (res.visitors || []).map((v: any) => {
+            if (!v) return null;
+            const timestamp = getVisitorTimestamp(v);
+            return {
+              ...v,
+              cluster: res.clusterId,
+              isOnline: (v.online === true || v.isOnline === true || v.status?.toLowerCase() === 'online') || (timestamp > (Date.now() - 60 * 60 * 1000)),
+              visitorTimestamp: timestamp,
+              merchantName: v.merchantName || clusterMerchants.find((m: any) => m.id === v.merchantID || m.id === v.merchantId)?.name || (v.merchantID || v.merchantId || `Visitor.${Math.floor(Math.random() * 10000)}`)
+            };
+          }).filter(Boolean);
+
+          combinedVisitors = [...combinedVisitors, ...mappedLive, ...mappedRecent];
+        });
+
+        // De-duplicate visitors by ID
+        const seen = new Set();
+        const dedupedVisitors = combinedVisitors.filter(v => {
+          const id = v.id || v.visitorId || v.sessionId;
+          if (!id) return true; // Keep anonymous ones as unique for now
+          if (seen.has(id)) return false;
+          seen.add(id);
+          return true;
+        });
+
+        // Sort combined visitors by time (latest first) and take more to allow for filtering
+        const sortedVisitors = dedupedVisitors.sort((a, b) => {
+          return (b.visitorTimestamp || 0) - (a.visitorTimestamp || 0);
+        }).slice(0, 50);
 
         setUserStats({
           totalUsers: totalAcc,
           activeUsers: activeU,
           onlineUsers: onlineUsersCount,
           totalVisitors: totalV,
-          onlineVisitors: onlineV,
+          totalEngagements: totalE,
           loading: false
         });
         setRecentVisitors(sortedVisitors);
@@ -175,37 +234,8 @@ const Dashboard: React.FC = () => {
     };
 
     fetchDataStats();
-  }, [selectedCluster, viewMode, clusters, merchants, allClusterMerchants, refreshKey]);
+  }, [selectedCluster, viewMode, clusters, merchants, refreshKey]);
 
-  // Fetch merchants from all clusters for overall view
-  React.useEffect(() => {
-    const fetchAllClusters = async () => {
-      if (viewMode === 'overall' && clusters.length > 0) {
-        setLoadingAllClusters(true);
-        try {
-          const merchantsByCluster: Record<string, any[]> = {};
-          await Promise.all(
-            clusters.map(async (cluster) => {
-              try {
-                // Use cluster.id for the API call as it's the unique identifier
-                const data = await merchantService.getMerchants(cluster.id);
-                merchantsByCluster[cluster.id] = Array.isArray(data) ? data : [];
-              } catch (err) {
-                console.error(`Failed to fetch merchants for cluster ${cluster.id}:`, err);
-                merchantsByCluster[cluster.id] = [];
-              }
-            })
-          );
-          setAllClusterMerchants(merchantsByCluster);
-        } catch (err) {
-          console.error('Error fetching all clusters:', err);
-        } finally {
-          setLoadingAllClusters(false);
-        }
-      }
-    };
-    fetchAllClusters();
-  }, [viewMode, clusters, refreshKey]);
 
   // Ensure view mode stays in 'cluster' if initiated that way, 
   // but allow auto-switching to cluster when a selection is made
@@ -216,37 +246,33 @@ const Dashboard: React.FC = () => {
   }, [selectedCluster]);
 
   const stats = useMemo(() => {
-    if (viewMode === 'overall') {
-      // Aggregate stats across all clusters
-      const allMerchants = Object.values(allClusterMerchants).flat();
-      console.log('Dashboard - Calculating overall stats for', allMerchants.length, 'merchants across all clusters');
-      const result = calculateDashboardStats(allMerchants);
-      console.log('Dashboard - Overall stats result:', result);
-      return result;
-    } else {
-      // Single cluster stats
-      console.log('Dashboard - Calculating stats for', merchants.length, 'merchants');
-      const result = calculateDashboardStats(merchants);
-      console.log('Dashboard - Stats result:', result);
-      return result;
-    }
-  }, [viewMode, merchants, allClusterMerchants]);
+    console.log(`Dashboard - Calculating stats for ${merchants.length} merchants in ${viewMode} mode`);
+    return calculateDashboardStats(merchants);
+  }, [merchants, viewMode]);
 
   // Calculate cluster breakdown for overall view
   const clusterBreakdown = useMemo(() => {
     if (viewMode === 'overall') {
-      return Object.entries(allClusterMerchants).map(([clusterId, merchants]) => {
+      const breakdown: Record<string, Merchant[]> = {};
+      merchants.forEach(m => {
+        const cId = m.cluster || 'unknown';
+        if (!breakdown[cId]) breakdown[cId] = [];
+        breakdown[cId].push(m);
+      });
+
+      return Object.entries(breakdown).map(([clusterId, mList]) => {
         const cluster = clusters.find(c => c.id === clusterId);
         return {
           name: cluster?.name || clusterId,
-          count: merchants.length,
-          active: merchants.filter(m => m.status?.toLowerCase() === 'active').length,
-          inactive: merchants.filter(m => m.status?.toLowerCase() === 'inactive').length,
+          count: mList.length,
+          active: mList.filter(m => m.status?.toLowerCase() === 'active').length,
+          inactive: mList.filter(m => m.status?.toLowerCase() === 'inactive').length,
+          percentage: calculatePercentage(mList.length, merchants.length)
         };
-      });
+      }).sort((a, b) => b.count - a.count);
     }
     return [];
-  }, [viewMode, allClusterMerchants, clusters]);
+  }, [viewMode, merchants, clusters]);
 
   // Show message if no cluster is selected AND in cluster mode
   if (!selectedCluster && viewMode === 'cluster') {
@@ -336,10 +362,8 @@ const Dashboard: React.FC = () => {
     );
   }
 
-  const isLoading = viewMode === 'overall' ? loadingAllClusters : loading;
-  const hasMerchants = viewMode === 'overall'
-    ? Object.values(allClusterMerchants).flat().length > 0
-    : merchants.length > 0;
+  const isLoading = loading;
+  const hasMerchants = merchants.length > 0;
 
   if (isLoading && !hasMerchants) {
     return (
@@ -381,48 +405,73 @@ const Dashboard: React.FC = () => {
     percentage?: number;
     trend?: number;
     refreshing?: boolean;
-  }> = ({ title, value, icon, color, percentage, trend, refreshing }) => (
-    <div className="card-premium p-4 flex flex-col justify-between h-full transition-all duration-300 hover:shadow-md hover:border-primary-main/30 group">
-      <div className="flex items-center justify-between mb-3">
-        <div
-          className="p-2 rounded-xl transition-colors duration-300 relative"
-          style={{
-            backgroundColor: `${color}10`,
-            color: color
-          }}
-        >
-          {React.cloneElement(icon as React.ReactElement, { size: 16 })}
-          {refreshing && (
-            <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-neutral-border/50">
-              <FiRefreshCw size={8} className="animate-spin text-primary-main" />
+    hint?: string;
+  }> = ({ title, value, icon, color, percentage, trend, refreshing, hint }) => {
+    const [showHint, setShowHint] = useState(false);
+
+    return (
+      <div className="card-premium p-4 flex flex-col justify-between h-full transition-all duration-300 hover:shadow-md hover:border-primary-main/30 group relative">
+        {hint && (
+          <div className="absolute top-3 right-3 z-10">
+            <div className="relative">
+              <button
+                onMouseEnter={() => setShowHint(true)}
+                onMouseLeave={() => setShowHint(false)}
+                className="text-neutral-text-muted hover:text-primary-main transition-colors p-1"
+              >
+                <FiInfo size={12} />
+              </button>
+              {showHint && (
+                <div className="absolute top-full right-0 mt-2 w-48 p-2 bg-neutral-900 text-white text-[10px] rounded-lg shadow-xl z-50 pointer-events-none border border-white/10">
+                  {hint}
+                  <div className="absolute -top-1 right-2 w-2 h-2 bg-neutral-900 transform rotate-45 border-t border-l border-white/10"></div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-3">
+          <div
+            className="p-2 rounded-xl transition-colors duration-300 relative"
+            style={{
+              backgroundColor: `${color}10`,
+              color: color
+            }}
+          >
+            {React.cloneElement(icon as React.ReactElement, { size: 16 })}
+            {refreshing && (
+              <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-neutral-border/50">
+                <FiRefreshCw size={8} className="animate-spin text-primary-main" />
+              </div>
+            )}
+          </div>
+          {trend !== undefined && (
+            <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${trend >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'} mr-6`}>
+              {trend >= 0 ? '+' : ''}{trend}%
             </div>
           )}
         </div>
-        {trend !== undefined && (
-          <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${trend >= 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-            {trend >= 0 ? '+' : ''}{trend}%
-          </div>
-        )}
-      </div>
-      <div>
-        <p className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.1em] mb-1 group-hover:text-neutral-text-secondary transition-colors">{title}</p>
-        <div className="flex items-end gap-2">
-          <p className="text-2xl font-bold text-neutral-text-main tracking-tight leading-none">
-            {refreshing ? (
-              <span className="inline-block w-12 h-6 bg-neutral-bg animate-pulse rounded"></span>
-            ) : (
-              formatNumber(value)
+        <div>
+          <p className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.1em] mb-1 group-hover:text-neutral-text-secondary transition-colors">{title}</p>
+          <div className="flex items-end gap-2">
+            <p className="text-2xl font-bold text-neutral-text-main tracking-tight leading-none">
+              {refreshing ? (
+                <span className="inline-block w-12 h-6 bg-neutral-bg animate-pulse rounded"></span>
+              ) : (
+                formatNumber(value)
+              )}
+            </p>
+            {percentage !== undefined && !refreshing && (
+              <span className="text-[10px] font-bold text-neutral-text-secondary pb-0.5">
+                {percentage}%
+              </span>
             )}
-          </p>
-          {percentage !== undefined && !refreshing && (
-            <span className="text-[10px] font-bold text-neutral-text-secondary pb-0.5">
-              {percentage}%
-            </span>
-          )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8 mx-auto space-y-6 pb-20">
@@ -567,6 +616,7 @@ const Dashboard: React.FC = () => {
           color="#0052cc"
           trend={12}
           refreshing={isLoading}
+          hint="Total number of merchant accounts registered across the selected scope."
         />
         <StatCard
           title="Active"
@@ -576,6 +626,7 @@ const Dashboard: React.FC = () => {
           percentage={calculatePercentage(stats.activeMerchants, stats.totalMerchants)}
           trend={5}
           refreshing={isLoading}
+          hint="Accounts currently marked as 'Active' and operational."
         />
         <StatCard
           title="Inactive"
@@ -585,14 +636,17 @@ const Dashboard: React.FC = () => {
           percentage={calculatePercentage(stats.inactiveMerchants, stats.totalMerchants)}
           trend={-2}
           refreshing={isLoading}
+          hint="Accounts that are currently 'Inactive' or 'Suspended'."
         />
         <StatCard
-          title="Unknown"
-          value={stats.unknownMerchants}
-          icon={<FiHelpCircle />}
-          color="#ffab00"
-          percentage={calculatePercentage(stats.unknownMerchants, stats.totalMerchants)}
+          title="Market Reach"
+          value={stats.marketReach}
+          icon={<FiGlobe />}
+          color="#6554c0"
+          percentage={calculatePercentage(stats.marketReach, 200)} // Out of approx 200 countries
+          trend={2}
           refreshing={isLoading}
+          hint="Total number of unique countries where your merchants are physically located."
         />
         {/* <StatCard
           title="Total Agents"
@@ -620,20 +674,22 @@ const Dashboard: React.FC = () => {
           refreshing={userStats.loading}
         />
         <StatCard
-          title="Online Visitors"
-          value={userStats.onlineVisitors}
-          icon={<FiActivity />}
-          color="#ff7452"
-          trend={12}
-          refreshing={userStats.loading}
-        />
-        <StatCard
           title="Total Visitors"
           value={userStats.totalVisitors}
           icon={<FiActivity />}
           color="#ffab00"
           trend={22}
           refreshing={userStats.loading}
+          hint="The cumulative number of unique visitors detected across the network."
+        />
+        <StatCard
+          title="Support Scale"
+          value={userStats.totalUsers}
+          icon={<FiUsers />}
+          color="#00b8d9"
+          trend={15}
+          refreshing={userStats.loading}
+          hint="Total count of registered agents and service users across all clusters."
         />
       </div>
 
@@ -653,6 +709,9 @@ const Dashboard: React.FC = () => {
               <thead className="bg-neutral-bg/30">
                 <tr>
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Merchant Name</th>
+                  {viewMode === 'overall' && (
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Cluster</th>
+                  )}
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Email Address</th>
                   <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Status</th>
                 </tr>
@@ -663,6 +722,13 @@ const Dashboard: React.FC = () => {
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-neutral-text-main group-hover:text-primary-main">{merchant.name}</span>
                     </td>
+                    {viewMode === 'overall' && (
+                      <td className="px-6 py-4">
+                        <span className="text-[10px] font-bold text-neutral-text-secondary uppercase bg-neutral-bg px-2 py-0.5 rounded border border-neutral-border/50">
+                          {clusters.find(c => c.id === merchant.cluster)?.name || merchant.cluster}
+                        </span>
+                      </td>
+                    )}
                     <td className="px-6 py-4 text-xs font-semibold text-neutral-text-secondary">{merchant.email || 'N/A'}</td>
                     <td className="px-6 py-4">
                       <span className={`text-[10px] font-bold uppercase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
@@ -677,7 +743,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Recent Visitors Table */}
-        <div className="card-premium overflow-hidden h-full flex flex-col">
+        <div id="visitors-table" className="card-premium overflow-hidden h-full flex flex-col">
           <div className="p-6 border-b border-neutral-border flex items-center justify-between bg-neutral-bg/20">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-[#36b37e]"></div>
@@ -696,80 +762,86 @@ const Dashboard: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-border">
-                {recentVisitors.length > 0 ? (
-                  recentVisitors.map((visitor, idx) => (
-                    <tr key={`${visitor.id}-${idx}`} className="hover:bg-neutral-bg/30 transition-colors group">
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-bold text-neutral-text-main">
-                          {(() => {
-                            const contacts = visitor.contacts || visitor.contact;
-                            let fn = '';
-                            let ln = '';
-                            if (contacts) {
-                              const c = Array.isArray(contacts) ? contacts[0] : contacts;
-                              fn = c?.firstName || c?.first_name || c?.FirstName || '';
-                              ln = c?.lastName || c?.last_name || c?.LastName || '';
-                              if (!fn && !ln) {
-                                const cn = c?.name || c?.fullName || c?.full_name || '';
-                                if (cn) return cn;
-                              }
-                            }
-                            fn = fn || visitor.firstName || visitor.first_name || visitor.FirstName || '';
-                            ln = ln || visitor.lastName || visitor.last_name || visitor.LastName || '';
-                            const fullName = `${fn} ${ln}`.trim();
-                            if (fullName) return fullName;
-                            if (visitor.visitorName || visitor.name) return visitor.visitorName || visitor.name;
-                            const idStr = visitor.id || visitor.visitorId || '';
-                            const parts = idStr.split('-');
-                            const prefix = parts.length > 1 ? parts[0] : idStr.substring(0, 8);
-                            return `visitor.${prefix || 'Unknown'}`;
-                          })()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 bg-blue-50 text-blue-600 rounded flex items-center justify-center text-[9px] font-bold">
-                            {visitor.cluster?.substring(0, 1).toUpperCase()}
+                {(() => {
+                  const filtered = recentVisitors.slice(0, 10);
+
+                  return filtered.length > 0 ? (
+                    filtered.map((visitor, idx) => (
+                      <tr key={`${visitor.id}-${idx}`} className="hover:bg-neutral-bg/30 transition-colors group">
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-neutral-text-main">
+                              {(() => {
+                                const contacts = visitor.contacts || visitor.contact;
+                                let fn = '';
+                                let ln = '';
+                                if (contacts) {
+                                  const c = Array.isArray(contacts) ? contacts[0] : contacts;
+                                  fn = c?.firstName || c?.first_name || c?.FirstName || '';
+                                  ln = c?.lastName || c?.last_name || c?.LastName || '';
+                                  if (!fn && !ln) {
+                                    const cn = c?.name || c?.fullName || c?.full_name || '';
+                                    if (cn) return cn;
+                                  }
+                                }
+                                fn = fn || visitor.firstName || visitor.first_name || visitor.FirstName || '';
+                                ln = ln || visitor.lastName || visitor.last_name || visitor.LastName || '';
+                                const fullName = `${fn} ${ln}`.trim();
+                                if (fullName) return fullName;
+                                if (visitor.visitorName || visitor.name) return visitor.visitorName || visitor.name;
+                                const idStr = visitor.id || visitor.visitorId || '';
+                                const parts = idStr.split('-');
+                                const prefix = parts.length > 1 ? parts[0] : idStr.substring(0, 8);
+                                return `visitor.${prefix || 'Unknown'}`;
+                              })()}
+                            </span>
                           </div>
-                          <span className="text-[10px] font-mono text-neutral-text-main font-bold">
-                            {visitor.merchantID || visitor.merchantId}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className="text-xs font-semibold text-neutral-text-secondary">
-                          {(() => {
-                            const engagements = visitor.engagements || [];
-                            const e = Array.isArray(engagements) ? engagements[0] : engagements;
-                            return e?.engagementName || visitor.engagementName || 'N/A';
-                          })()}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-neutral-text-main">
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <div className="w-5 h-5 bg-blue-50 text-blue-600 rounded flex items-center justify-center text-[9px] font-bold">
+                              {visitor.cluster?.substring(0, 1).toUpperCase()}
+                            </div>
+                            <span className="text-[10px] font-mono text-neutral-text-main font-bold">
+                              {visitor.merchantID || visitor.merchantId}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-xs font-semibold text-neutral-text-secondary">
                             {(() => {
-                              const d = new Date(visitor.visitedAt || visitor.lastAccessedDate_dt || visitor.createTime || visitor.lastAccessedDate || visitor.lastModifiedDate);
-                              return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString([], { month: '2-digit', day: '2-digit' });
+                              const engagements = visitor.engagements || [];
+                              const e = Array.isArray(engagements) ? engagements[0] : engagements;
+                              return e?.engagementName || visitor.engagementName || 'N/A';
                             })()}
                           </span>
-                          <span className="text-[9px] font-bold text-neutral-text-muted uppercase">
-                            {(() => {
-                              const d = new Date(visitor.visitedAt || visitor.lastAccessedDate_dt || visitor.createTime || visitor.lastAccessedDate || visitor.lastModifiedDate);
-                              return isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                            })()}
-                          </span>
-                        </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-bold text-neutral-text-main">
+                              {(() => {
+                                const d = new Date(visitor.visitorTimestamp || 0);
+                                return !visitor.visitorTimestamp ? 'N/A' : d.toLocaleDateString([], { month: '2-digit', day: '2-digit' });
+                              })()}
+                            </span>
+                            <span className="text-[9px] font-bold text-neutral-text-muted uppercase">
+                              {(() => {
+                                const d = new Date(visitor.visitorTimestamp || 0);
+                                return !visitor.visitorTimestamp ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                              })()}
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-12 text-center text-xs font-medium text-neutral-text-muted">
+                        {userStats.loading ? 'Gathering visitor data...' : 'No recent visitors detected.'}
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-xs font-medium text-neutral-text-muted">
-                      {userStats.loading ? 'Gathering visitor data...' : 'No recent visitors detected.'}
-                    </td>
-                  </tr>
-                )}
+                  );
+                })()}
               </tbody>
             </table>
           </div>

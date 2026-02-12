@@ -32,7 +32,9 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
         engagements: 0,
         activeSessions: 0,
         avgResponseTime: '1.2s',
-        webVisitors: [] as any[]
+        webVisitors: [] as any[],
+        newVisitors: 0,
+        returningVisitors: 0
     });
 
     const [pollingCount, setPollingCount] = useState(0);
@@ -69,7 +71,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
         try {
             // Fetch multiple data points to compute summary
             const [visitorsRes, engagementsRes] = await Promise.all([
-                merchantService.getRawVisitors(
+                merchantService.getRawVisitorsList(
                     merchantId,
                     0,
                     1000, // Fetch more for aggregation
@@ -80,15 +82,34 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                 merchantService.getEngagementList(merchantId, cluster)
             ]);
 
+            // Process Traffic Trend (Visitors vs Engagements)
+            const visitors = visitorsRes?.rawVisitors || visitorsRes?.content || [];
+            const engagements = engagementsRes?.engagements || [];
+
+            // Calculate New vs Returning
+            let newV = 0;
+            let retV = 0;
+            visitors.forEach((v: any) => {
+                const type = (v.visitorType || '').toLowerCase();
+                if (type.includes('new')) newV++;
+                else if (type.includes('returning')) retV++;
+            });
+
+            // Adjust for total count if we have partial data
+            const totalV = visitorsRes?.total || visitorsRes?.totalElements || visitors.length || 0;
+            if (visitors.length > 0 && totalV > 0) {
+                const ratio = totalV / visitors.length;
+                newV = Math.floor(newV * ratio);
+                retV = Math.floor(retV * ratio);
+            }
+
             setStats(prev => ({
                 ...prev,
-                totalVisitors: visitorsRes?.totalElements || 0,
+                totalVisitors: totalV,
                 engagements: engagementsRes?.engagements?.length || 0,
+                newVisitors: newV,
+                returningVisitors: retV
             }));
-
-            // Process Traffic Trend (Visitors vs Engagements)
-            const visitors = visitorsRes?.content || [];
-            const engagements = engagementsRes?.engagements || [];
 
             const trafficMap = new Map<string, { visitors: number, engagements: number }>();
 
@@ -362,7 +383,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                             trend="up"
                             trendValue="+12%"
                             colorClass="bg-blue-500"
-                            subtitle={`${stats.activeSessions} currently active • ${Math.floor(stats.totalVisitors * 0.65)} returning`}
+                            subtitle={`${stats.activeSessions} currently active • ${stats.returningVisitors} returning`}
                         />
                         <StatCard
                             title="Total Engagements"
@@ -455,8 +476,8 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
                                         data={[
-                                            { name: 'New', value: Math.floor(stats.totalVisitors * 0.35), color: '#3b82f6' },
-                                            { name: 'Returning', value: Math.floor(stats.totalVisitors * 0.65), color: '#8b5cf6' }
+                                            { name: 'New', value: stats.newVisitors, color: '#3b82f6' },
+                                            { name: 'Returning', value: stats.returningVisitors, color: '#8b5cf6' }
                                         ]}
                                         layout="vertical"
                                         margin={{ top: 0, left: 0, right: 0, bottom: 0 }}
@@ -491,14 +512,14 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                         <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                                         <span className="text-[11px] font-bold text-gray-600 uppercase">New Visitors</span>
                                     </div>
-                                    <span className="text-xs font-black text-gray-900">{Math.floor(stats.totalVisitors * 0.35)} (35%)</span>
+                                    <span className="text-xs font-black text-gray-900">{stats.newVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.newVisitors / stats.totalVisitors) * 100) : 0}%)</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                                         <span className="text-[11px] font-bold text-gray-600 uppercase">Returning</span>
                                     </div>
-                                    <span className="text-xs font-black text-gray-900">{Math.floor(stats.totalVisitors * 0.65)} (65%)</span>
+                                    <span className="text-xs font-black text-gray-900">{stats.returningVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.returningVisitors / stats.totalVisitors) * 100) : 0}%)</span>
                                 </div>
                             </div>
                         </div>

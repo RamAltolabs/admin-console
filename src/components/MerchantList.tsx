@@ -80,39 +80,29 @@ const MerchantList: React.FC<MerchantListProps> = ({
     setIsSearchMode(true);
     setCurrentPage(1);
 
-    try {
-      if (viewMode === 'overall') {
-        // Parallel search across all clusters
-        const results = await Promise.allSettled(
-          clusters.map(cluster => merchantService.searchMerchants(query, undefined, cluster.id))
-        );
+    // Client-side search across multiple fields
+    const searchLower = query.toLowerCase();
 
-        let allResults: Merchant[] = [];
-        results.forEach((result, index) => {
-          if (result.status === 'fulfilled') {
-            const clusterResults = result.value.map((m: Merchant) => ({
-              ...m,
-              cluster: m.cluster || clusters[index].id
-            }));
-            allResults = [...allResults, ...clusterResults];
-          }
-        });
+    const searchResults = filteredMerchants.filter(merchant => {
+      // Search in multiple fields
+      const nameMatch = merchant.name?.toLowerCase().includes(searchLower);
+      const emailMatch = merchant.email?.toLowerCase().includes(searchLower);
+      const idMatch = merchant.id?.toLowerCase().includes(searchLower);
+      const phoneMatch = merchant.phone?.toLowerCase().includes(searchLower);
+      const addressMatch = merchant.address?.toLowerCase().includes(searchLower);
+      const cityMatch = merchant.city?.toLowerCase().includes(searchLower);
+      const stateMatch = merchant.state?.toLowerCase().includes(searchLower);
+      const businessTypeMatch = merchant.businessType?.toLowerCase().includes(searchLower);
+      const clusterMatch = merchant.cluster?.toLowerCase().includes(searchLower);
 
-        // Deduplicate results by ID
-        const uniqueResults = Array.from(new Map(allResults.map(m => [m.id, m])).values());
-        setPaginatedMerchants(uniqueResults);
-      } else {
-        const results = await merchantService.searchMerchants(query, undefined, selectedCluster);
-        console.log('Search results:', results);
-        setPaginatedMerchants(results);
-      }
-    } catch (error) {
-      console.error('Search error:', error);
-      setPaginatedMerchants([]); // Clear the displayed merchants if search fails
-    }
+      return nameMatch || emailMatch || idMatch || phoneMatch ||
+        addressMatch || cityMatch || stateMatch || businessTypeMatch || clusterMatch;
+    });
+
+    setPaginatedMerchants(searchResults);
   };
 
-  const searchHint = 'Search by Merchant ID'; // Added hint for search functionality
+  const searchHint = 'Search by name, email, ID, phone, address, or business type...'; // Updated hint for search functionality
 
   // Format date: MMM DD, YYYY HH:mm
   const formatDate = (dateString: string): string => {
@@ -230,6 +220,30 @@ const MerchantList: React.FC<MerchantListProps> = ({
           )}
         </div>
       </div>
+
+      {/* Search Results Indicator */}
+      {isSearchMode && searchQuery && (
+        <div className="px-6 py-3 bg-blue-50 border-b border-blue-100">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FiSearch className="text-blue-600" size={16} />
+              <span className="text-sm text-blue-900">
+                Found <span className="font-bold">{paginatedMerchants.length}</span> result{paginatedMerchants.length !== 1 ? 's' : ''} for "{searchQuery}"
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setSearchQuery('');
+                setIsSearchMode(false);
+                setCurrentPage(1);
+              }}
+              className="text-xs text-blue-600 hover:text-blue-800 font-medium underline"
+            >
+              Clear Search
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto">

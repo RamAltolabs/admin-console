@@ -4,7 +4,7 @@ export interface DashboardStats {
   totalMerchants: number;
   activeMerchants: number;
   inactiveMerchants: number;
-  unknownMerchants: number;
+  marketReach: number; // Unique countries
   merchantsByCluster: { name: string; count: number }[];
   merchantsByType: { name: string; count: number }[];
   merchantsByStatus: { name: string; count: number; color: string }[];
@@ -70,21 +70,18 @@ const calculateGrowthData = (merchants: Merchant[]): { month: string; count: num
  * Calculate comprehensive analytics from merchant data
  */
 export const calculateDashboardStats = (merchants: Merchant[]): DashboardStats => {
+  console.log(`[calculateDashboardStats] Processing ${merchants.length} merchants`);
   const totalMerchants = merchants.length;
-
-  console.log('calculateDashboardStats - Total merchants:', totalMerchants);
-  console.log('calculateDashboardStats - Sample merchant:', merchants[0]);
-  console.log('calculateDashboardStats - Merchant statuses:', merchants.map(m => m.status));
 
   // Case-insensitive status filtering
   const activeMerchants = merchants.filter(m => m.status?.toLowerCase() === 'active').length;
   const inactiveMerchants = merchants.filter(m => m.status?.toLowerCase() === 'inactive').length;
-  const unknownMerchants = merchants.filter(m => {
-    const status = m.status?.toLowerCase();
-    return !status || (status !== 'active' && status !== 'inactive');
-  }).length;
 
-  console.log('Active:', activeMerchants, 'Inactive:', inactiveMerchants, 'Unknown:', unknownMerchants);
+  // Calculate Market Reach (Unique Countries)
+  const countries = new Set(merchants.map(m => m.country).filter(Boolean));
+  const marketReach = countries.size;
+
+  console.log(`[calculateDashboardStats] Footprint: ${marketReach} countries`);
 
   // Group by cluster
   const clusterMap = new Map<string, number>();
@@ -109,11 +106,10 @@ export const calculateDashboardStats = (merchants: Merchant[]): DashboardStats =
     count,
   }));
 
-  // Status distribution with refined colors matching Dashboard Stat Cards
+  // Status distribution
   const merchantsByStatus = [
-    { name: 'Active', count: activeMerchants, color: '#36b37e' },      // Success Green
-    { name: 'Inactive', count: inactiveMerchants, color: '#ff5630' },  // Error Red
-    { name: 'Unknown', count: unknownMerchants, color: '#ffab00' },    // Warning Orange
+    { name: 'Active', count: activeMerchants, color: '#36b37e' },
+    { name: 'Inactive', count: inactiveMerchants, color: '#ff5630' },
   ].filter(item => item.count > 0);
 
   // Group by country
@@ -127,10 +123,9 @@ export const calculateDashboardStats = (merchants: Merchant[]): DashboardStats =
   const merchantsByCountry = Array.from(countryMap.entries())
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 10); // Top 10 countries
+    .slice(0, 10);
 
-  // Recent merchants (last 10) - taking the tail of the array and reversing it
-  // This ensures the absolute latest items from the API response are shown first
+  // Recent merchants (last 10)
   const recentMerchants = [...merchants].slice(-10).reverse();
 
   // Growth data by month (last 6 months)
@@ -140,7 +135,7 @@ export const calculateDashboardStats = (merchants: Merchant[]): DashboardStats =
     totalMerchants,
     activeMerchants,
     inactiveMerchants,
-    unknownMerchants,
+    marketReach,
     merchantsByCluster,
     merchantsByType,
     merchantsByStatus,

@@ -244,6 +244,12 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                                 const timestamp = log.timestamp || log.createdDate || log.createdAt || log.startTime || log.createDate || log.executionDate;
                                 const name = log.botName || log.name || log.engagementName || log.flowName || log.agentName || 'Unknown Bot';
 
+                                // Robust message extraction
+                                const message = log.message || log.botMessage || log.appMessage || log.userInput || log.text || log.content ||
+                                    (log.botRequest && typeof log.botRequest === 'object' ? (log.botRequest.message || log.botRequest.text) : null) ||
+                                    (log.botResponse && typeof log.botResponse === 'object' ? (log.botResponse.message || log.botResponse.text || log.botResponse.summary) : null) ||
+                                    (log.response && typeof log.response === 'object' ? (log.response.message || log.response.text) : null);
+
                                 // Robust request payload extraction: try many possible field names
                                 const requestPayload = log.botRequest || log.request || log.payload || log.requestParams ||
                                     log.input || log.requestPayload || log.requestBody || log.req || log.params || log.inputPayload;
@@ -285,8 +291,8 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                                                 {log.botId && <span className="block text-xs text-gray-400 font-mono mt-0.5">{log.botId}</span>}
                                             </td>
                                             {logType === 'agent' && (
-                                                <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={log.message}>
-                                                    {log.message || <span className="text-gray-300 italic">No message</span>}
+                                                <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={message}>
+                                                    {message || <span className="text-gray-300 italic">No message</span>}
                                                 </td>
                                             )}
                                             <td className="px-6 py-4 font-mono text-xs text-gray-500 max-w-xs truncate">

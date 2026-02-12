@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 // Ensure axios is installed in the project
 // Run `npm install axios` if not already installed
 
-import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantAttributesPayload, ApiResponse, Cluster, UpdateStatusRequest, MerchantResponse, Prompt, PageResponsePrompt, KnowledgeBase, PageResponseKnowledgeBase, RawVisitor, PageResponseRawVisitor, MerchantAttribute, PageResponseMerchantAttribute, AIArtifact, PageResponseAIArtifact, Engagement, PageResponseEngagement, MerchantUser } from '../types/merchant';
+import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantAttributesPayload, ApiResponse, Cluster, UpdateStatusRequest, MerchantResponse, Prompt, PageResponsePrompt, KnowledgeBase, PageResponseKnowledgeBase, RawVisitor, PageResponseRawVisitor, MerchantAttribute, PageResponseMerchantAttribute, AIArtifact, PageResponseAIArtifact, Engagement, PageResponseEngagement, MerchantUser, PageResponseMerchantUser } from '../types/merchant';
 
 class MerchantApiService {
   private api: AxiosInstance;
@@ -780,6 +780,31 @@ class MerchantApiService {
     }
   }
 
+  async getClusterLiveVisitors(cluster?: string): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const randId = Math.floor(Math.random() * 10000000000000000);
+      // Try fetching cluster-wide live visitors with merchantId=All
+      const url = `${baseURL}v6/webchnl/visitors?merchantId=All&randId=${randId}`;
+
+      const response = await this.api.get(url, {
+        headers: {
+          'accept': '*/*',
+          'accept-language': 'en-US,en;q=0.9',
+        }
+      });
+
+      const rawData = response.data;
+      if (Array.isArray(rawData)) return rawData;
+      if (rawData?.data && Array.isArray(rawData.data)) return rawData.data;
+      if (rawData?.onlineVisitors && Array.isArray(rawData.onlineVisitors)) return rawData.onlineVisitors;
+      return [];
+    } catch (error) {
+      console.error(`Failed to fetch cluster live visitors for cluster ${cluster}:`, error);
+      return [];
+    }
+  }
+
   // Knowledge Bases
   async getKnowledgeBases(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<PageResponseKnowledgeBase> {
     try {
@@ -812,7 +837,8 @@ class MerchantApiService {
         content = responseData;
       } else if (responseData && typeof responseData === 'object') {
         // Check for common array properties
-        if (Array.isArray(responseData.knowledgeBase)) content = responseData.knowledgeBase;
+        if (Array.isArray(responseData.knowledgeBases)) content = responseData.knowledgeBases;
+        else if (Array.isArray(responseData.knowledgeBase)) content = responseData.knowledgeBase;
         else if (Array.isArray(responseData.content)) content = responseData.content;
         else if (Array.isArray(responseData.data)) content = responseData.data;
       }
@@ -867,12 +893,42 @@ class MerchantApiService {
       return response.data;
     } catch (error) {
       console.error(`Failed to fetch documents for merchant ${merchantId}:`, error);
-      return {
-        content: [],
-        totalElements: 0
-      };
+      return {};
     }
   }
+
+  // Ontologies
+  async getOntologies(merchantId: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/entity/getEntityByMerchantId/${merchantId}?type=ontology`;
+
+      const response = await this.api.get<any>(url);
+      console.log(`[getOntologies] API response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch ontologies for merchant ${merchantId}:`, error);
+      return [];
+    }
+  }
+
+  // Intents
+  async getIntents(merchantId: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/knowledgeBaseDocIntent/get`;
+
+      const response = await this.api.get<any>(url, {
+        params: { merchantId }
+      });
+      console.log(`[getIntents] API response:`, response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch intents for merchant ${merchantId}:`, error);
+      return [];
+    }
+  }
+
 
   // Raw Visitors by Merchant (Legacy)
   async getRawVisitors(merchantId: string, page: number = 0, size: number = 20, cluster?: string, startDate?: string, endDate?: string): Promise<PageResponseRawVisitor> {
@@ -895,8 +951,8 @@ class MerchantApiService {
         access_token: this.getAccessToken()
       };
 
-      console.log(`[getRawVisitors] Calling API / chimes / visitorsList with params: `, params);
-      const url = `${baseURL} chimes / visitorsList`;
+      console.log(`[getRawVisitors] Calling API /chimes/visitorsList with params: `, params);
+      const url = `${baseURL}chimes/visitorsList`;
 
       const response = await this.api.get<any>(url, { params });
 
@@ -1023,7 +1079,7 @@ class MerchantApiService {
   async getRawVisitorsList(merchantId: string, pageIndex: number = 0, pageCount: number = 50, cluster?: string, startDate?: string, endDate?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL} chimes / rawVisitorsList`;
+      const url = `${baseURL}chimes/rawVisitorsList`;
 
       const params: any = {
         merchantID: merchantId,
@@ -1052,7 +1108,7 @@ class MerchantApiService {
 
       // Legacy API pattern: chimes/getMerchantAttributes?access_token=...&merchantId=...
       // Ensuring it uses the exact requested structure
-      const url = `${baseURL} chimes / getMerchantAttributes ? access_token = ${this.getAccessToken()}& merchantId=${merchantId} `;
+      const url = `${baseURL}chimes/getMerchantAttributes?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
 
       const response = await this.api.get<any>(url);
 
@@ -1105,40 +1161,40 @@ class MerchantApiService {
   // Merchant Channels by Merchant
   async getMerchantChannels(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<any> {
     try {
-      console.log(`[getMerchantChannels] Request: /channels/by - merchant / ${merchantId}/paginated cluster=${cluster}`);
+      console.log(`[getMerchantChannels] Request: /curo/channels/getChannels merchantId=${merchantId} cluster=${cluster}`);
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}channels/by-merchant/${merchantId}/paginated`;
+      const url = `${baseURL}curo/channels/getChannels`;
 
+      // The new API endpoint provided by user seems generic.
+      // Assuming it accepts merchantId to filter, otherwise it might return all or context-based.
+      // We will pass merchantId as a query param.
       const response = await this.api.get<any>(url, {
-        params: { page, size }
+        params: { merchantId, page, size }
       });
 
       console.log(`[getMerchantChannels] API response:`, response.data);
 
       const rawData = response.data;
-      const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
-
       let content: any[] = [];
-      if (Array.isArray(responseData)) {
-        content = responseData;
-      } else if (responseData && typeof responseData === 'object') {
-        const potentialArrays = ['content', 'items', 'list', 'channels', 'results', 'data'];
-        for (const key of potentialArrays) {
-          if (Array.isArray(responseData[key])) {
-            content = responseData[key];
-            break;
-          }
-        }
+
+      // The user provided sample response is a flat array of objects
+      if (Array.isArray(rawData)) {
+        content = rawData;
+      } else if (rawData && typeof rawData === 'object' && 'data' in rawData) {
+        // Fallback for wrapped data
+        content = Array.isArray(rawData.data) ? rawData.data : [];
       }
 
+      // Since the API returns a flat list (all channels), we can simulate pagination or just return all
+      // The UI expects a paginated structure
       return {
         content: content,
-        pageNumber: responseData?.pageNumber ?? responseData?.number ?? page,
-        pageSize: responseData?.pageSize ?? responseData?.size ?? size,
-        totalElements: responseData?.totalElements ?? responseData?.total ?? content.length,
-        totalPages: responseData?.totalPages ?? responseData?.pages ?? 1,
-        last: responseData?.last ?? true,
-        first: responseData?.first ?? true,
+        pageNumber: 0,
+        pageSize: content.length,
+        totalElements: content.length,
+        totalPages: 1, // All channels returned in one go
+        last: true,
+        first: true,
       };
     } catch (error) {
       console.error(`Failed to fetch merchant channels for merchant ${merchantId}:`, error);
@@ -1589,7 +1645,62 @@ class MerchantApiService {
     }
   }
 
-  // Users
+  // Paginated Users (New)
+  async getUsers(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<PageResponseMerchantUser> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}curo/userDetails?merchantId=${merchantId}&pageIndex=${page}&pageCount=${size}`;
+      const response = await this.api.get<any>(url);
+
+      const rawData = response.data;
+      const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
+
+      let content: any[] = [];
+      if (Array.isArray(responseData)) {
+        content = responseData;
+      } else if (responseData && typeof responseData === 'object' && Array.isArray(responseData.content)) {
+        content = responseData.content;
+      } else if (responseData && typeof responseData === 'object') {
+        // Fallback: search for any array property
+        for (const key in responseData) {
+          if (Array.isArray(responseData[key])) {
+            content = responseData[key];
+            break;
+          }
+        }
+      }
+
+      // If no array found, check if responseData itself is an object (single user?) unlikely for getAll but just in case
+      if (content.length === 0 && !Array.isArray(responseData) && typeof responseData === 'object' && responseData !== null) {
+        // Check if it's a pagination object with empty content or something else
+      }
+
+      const users = content.map(user => this.normalizeUser(user));
+
+      return {
+        content: users,
+        pageNumber: responseData?.pageNumber ?? responseData?.pageIndex ?? page,
+        pageSize: responseData?.pageSize ?? responseData?.pageCount ?? size,
+        totalElements: responseData?.totalElements ?? responseData?.total ?? users.length,
+        totalPages: responseData?.totalPages ?? responseData?.pages ?? 1,
+        last: responseData?.last ?? true,
+        first: responseData?.first ?? true,
+      };
+    } catch (error) {
+      console.error('Failed to fetch merchant users:', error);
+      return {
+        content: [],
+        pageNumber: page,
+        pageSize: size,
+        totalElements: 0,
+        totalPages: 0,
+        last: true,
+        first: true
+      };
+    }
+  }
+
+  // Users (Legacy)
   async getAllUsers(merchantId: string, cluster?: string): Promise<MerchantUser[]> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
@@ -2061,6 +2172,34 @@ class MerchantApiService {
     }
   }
 
+  async updateProduct(merchantId: string, product: any, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/updateProduct?access_token=${this.getAccessToken()}`;
+
+      const payload = {
+        merchant: {
+          id: merchantId,
+          products: [product]
+        }
+      };
+
+      console.log(`[updateProduct] Request: ${url}`, payload);
+
+      const response = await this.api.post(url, payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'context': 'Chimes'
+        }
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update product for merchant ${merchantId}:`, error);
+      throw error;
+    }
+  }
+
   // Orders by Merchant
   async getOrders(
     merchantId: string,
@@ -2079,24 +2218,102 @@ class MerchantApiService {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(now.getDate() - 7);
 
-      const payload = {
-        merchantId,
-        startDate: startDate || sevenDaysAgo.toISOString(),
-        endDate: endDate || now.toISOString(),
-        pageIndex,
-        pageCount
+      // Function to format date as YYYY-MM-DDTHH:mm:00Z (seconds zeroed)
+      const toIsoStringNoMs = (date: Date) => {
+        const pad = (n: number) => n < 10 ? '0' + n : n;
+        return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}T${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:00Z`;
       };
+
+      const start = startDate ? new Date(startDate) : sevenDaysAgo;
+      const end = endDate ? new Date(endDate) : now;
+
+      const payload = {
+        merchantId: String(merchantId).trim(),
+        startDate: toIsoStringNoMs(start),
+        endDate: toIsoStringNoMs(end),
+        pageIndex: Number(pageIndex),
+        pageCount: Number(pageCount)
+      };
+
+      console.log(`[getOrders] Requesting: ${url}`);
+      console.log('[getOrders] Payload:', JSON.stringify(payload));
 
       const response = await this.api.post(url, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'context': 'Chimes'
+          'context': 'Chimes',
+          'Authorization': undefined,
+          'auth': ''
         }
       });
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to fetch orders for merchant ${merchantId}:`, error);
+      if (error.response) {
+        console.error('[getOrders] Error Details:', JSON.stringify(error.response.data));
+        console.error('[getOrders] Error Status:', error.response.status);
+      }
+      return [];
+    }
+  }
+
+  // Payment Details
+  async getPaymentDetails(merchantId: string, startDate?: string, endDate?: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+
+      const formatDate = (date: Date) => {
+        return date.toLocaleString('en-US', {
+          month: '2-digit',
+          day: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true
+        }).replace(',', '');
+      };
+
+      const now = new Date();
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(now.getDate() - 7);
+
+      const start = startDate ? new Date(startDate) : sevenDaysAgo;
+      const end = endDate ? new Date(endDate) : now;
+
+      // Format: MM/DD/YYYY HH:MM:SS AM/PM
+      const startStr = formatDate(start);
+      const endStr = formatDate(end);
+
+      const url = `${baseURL}chimes/paymentDetails/${merchantId}?access_token=${this.getAccessToken()}&startDate=${encodeURIComponent(startStr)}&endDate=${encodeURIComponent(endStr)}`;
+
+      const response = await this.api.get<any>(url, {
+        headers: {
+          'Authorization': undefined
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch payment details for merchant ${merchantId}:`, error);
+      return [];
+    }
+  }
+
+  async getCampaigns(merchantId: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}jelloBroadcast/broadcast/messages/${merchantId}`;
+
+      const response = await this.api.get<any>(url, {
+        headers: {
+          'accept': '*/*',
+          'context': 'Chimes'
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch campaigns for merchant ${merchantId}:`, error);
       return [];
     }
   }

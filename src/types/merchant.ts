@@ -161,6 +161,7 @@ export interface Prompt {
   merchantInfo?: any;
   version?: number;
   requestParams?: any;
+  knowledgeBaseId?: number;
   [key: string]: any; // Allow for additional properties from API
 }
 
@@ -176,14 +177,19 @@ export interface PageResponsePrompt {
 
 // Knowledge Base types
 export interface KnowledgeBase {
-  id: string;
+  knowledgeBaseId: number;
+  knowledgeBaseName: string;
+  knowledgeBaseDesc?: string;
+  modelId?: string;
+  modelName?: string;
+  status?: string;
+  aiTrainingStatus?: string;
+  createdDate?: string;
+  modifiedDate?: string;
+  // Backward compatibility/fallbacks
+  id?: string;
   title?: string;
   content?: string;
-  category?: string;
-  tags?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-  status?: string;
   [key: string]: any;
 }
 
@@ -195,6 +201,33 @@ export interface PageResponseKnowledgeBase {
   totalPages: number;
   last: boolean;
   first: boolean;
+}
+
+// Ontology types
+export interface Ontology {
+  id: string;
+  name: string;
+  description?: string;
+  merchantId: string;
+  type?: string;
+  status?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  [key: string]: any;
+}
+
+// Intent types
+export interface Intent {
+  id: string;
+  name: string;
+  description?: string;
+  merchantId: string;
+  utterances?: string[];
+  slots?: any[];
+  createdAt?: string;
+  updatedAt?: string;
+  status?: string;
+  [key: string]: any;
 }
 
 // Raw Visitor types
@@ -366,4 +399,14 @@ export interface MerchantUser {
   available: boolean;
   authType: string;
   supervisorId?: string | number;
+}
+
+export interface PageResponseMerchantUser {
+  content: MerchantUser[];
+  pageNumber: number;
+  pageSize: number;
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  first: boolean;
 }

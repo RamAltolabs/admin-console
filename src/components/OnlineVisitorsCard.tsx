@@ -85,11 +85,30 @@ const OnlineVisitorsCard: React.FC<OnlineVisitorsCardProps> = ({ merchantId, clu
                                     <td className="px-6 py-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-xs font-bold text-blue-600 border border-blue-100">
-                                                {visitor.contacts?.firstName?.charAt(0).toUpperCase() || visitor.name?.charAt(0).toUpperCase() || 'V'}
+                                                {(() => {
+                                                    const contacts = visitor.contacts || visitor.contact;
+                                                    const c = Array.isArray(contacts) ? contacts[0] : contacts;
+                                                    const firstChar = c?.firstName?.charAt(0) || c?.first_name?.charAt(0) || visitor.name?.charAt(0) || visitor.visitorName?.charAt(0) || 'V';
+                                                    return firstChar.toUpperCase();
+                                                })()}
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="text-sm font-bold text-gray-700 group-hover:text-blue-600 truncate max-w-[150px] transition-colors">
-                                                    {visitor.contacts?.firstName || visitor.name || 'Anonymous'}
+                                                    {(() => {
+                                                        const contacts = visitor.contacts || visitor.contact;
+                                                        let fn = '';
+                                                        let ln = '';
+                                                        if (contacts) {
+                                                            const c = Array.isArray(contacts) ? contacts[0] : contacts;
+                                                            fn = c?.firstName || c?.first_name || c?.FirstName || '';
+                                                            ln = c?.lastName || c?.last_name || c?.LastName || '';
+                                                        }
+                                                        fn = fn || visitor.firstName || visitor.first_name || visitor.visitorName || visitor.name || '';
+                                                        ln = ln || visitor.lastName || visitor.last_name || '';
+                                                        const fullName = `${fn} ${ln}`.trim();
+                                                        if (fullName) return fullName;
+                                                        return visitor.id?.split('-')[0] || visitor.visitorId?.substring(0, 8) || 'Anonymous';
+                                                    })()}
                                                 </span>
                                                 <div className="flex items-center gap-1.5">
                                                     <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>

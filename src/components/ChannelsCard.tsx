@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiRadio, FiSearch, FiPhoneCall, FiMessageSquare, FiMessageCircle, FiPlayCircle, FiStar, FiMapPin, FiMic, FiInstagram, FiFacebook, FiSend, FiTwitter, FiMail, FiVideo, FiZap, FiGlobe, FiUsers, FiLinkedin, FiSlack, FiEye } from 'react-icons/fi';
+import { FiRadio, FiSearch, FiPhoneCall, FiMessageSquare, FiMessageCircle, FiPlayCircle, FiStar, FiMapPin, FiMic, FiInstagram, FiFacebook, FiSend, FiTwitter, FiMail, FiVideo, FiZap, FiGlobe, FiUsers, FiLinkedin, FiSlack, FiEye, FiGrid } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 import ChannelViewModal from './ChannelViewModal';
 
@@ -43,41 +43,46 @@ const ChannelsCard: React.FC<ChannelsCardProps> = ({ merchantId, cluster }) => {
     };
 
     const getChannelIcon = (channel: any) => {
-        const provider = (channel.provider || '').toLowerCase();
-        const name = (channel.name || '').toLowerCase();
+        const title = (channel.channelName || channel.displayOption || channel.name || '').toLowerCase();
+        const category = (channel.channelCategory || '').toLowerCase();
 
-        if (provider.includes('avaya') || name.includes('voice')) return <FiPhoneCall size={24} className="text-blue-600" />;
-        if (provider.includes('twilio') || name.includes('sms')) return <FiMessageSquare size={24} className="text-red-500" />;
-        if (provider.includes('whatsapp') || name.includes('whatsapp')) return <FiMessageCircle size={24} className="text-green-500" />;
-        if (provider.includes('googleplaystorereview') || name.includes('googleplaystore') || name.includes('playstore')) return <FiPlayCircle size={24} className="text-emerald-500" />;
-        if (name.includes('googlebusinessreview') || (name.includes('googlebusiness') && name.includes('review'))) return <FiStar size={24} className="text-amber-500" />;
-        if (provider.includes('googlebusiness') || name.includes('googlebusiness')) return <FiMapPin size={24} className="text-blue-600" />;
-        if (name.includes('review') || name.includes('rating')) return <FiStar size={24} className="text-amber-500" />;
-        if (provider.includes('alexa') || name.includes('alexa')) return <FiMic size={24} className="text-blue-500" />;
-        if (provider.includes('instagram') || name.includes('instagram')) return <FiInstagram size={24} className="text-pink-600" />;
-        if (provider.includes('facebook') || name.includes('facebook') || name.includes('messenger') || provider.includes('fb ') || name.includes('fb ') || provider === 'fb' || name === 'fb') return <FiFacebook size={24} className="text-blue-700" />;
-        if (provider.includes('telegram') || name.includes('telegram')) return <FiSend size={24} className="text-sky-500" />;
-        if (provider.includes('twitter') || name.includes('twitter') || name.includes(' X ')) return <FiTwitter size={24} className="text-gray-900" />;
-        if (provider.includes('email') || name.includes('email')) return <FiMail size={24} className="text-indigo-500" />;
-        if (provider.includes('video') || name.includes('video')) return <FiVideo size={24} className="text-purple-500" />;
-        if (provider.includes('zapier') || name.includes('zapier')) return <FiZap size={24} className="text-orange-500" />;
-        if (provider.includes('web') || name.includes('web')) return <FiGlobe size={24} className="text-emerald-500" />;
-        if (provider.includes('teams') || name.includes('teams')) return <FiUsers size={24} className="text-indigo-600" />;
-        if (name.includes('chat')) return <FiMessageSquare size={24} className="text-teal-500" />;
-        if (provider.includes('linkedin') || name.includes('linkedin')) return <FiLinkedin size={24} className="text-blue-800" />;
-        if (provider.includes('slack') || name.includes('slack')) return <FiSlack size={24} className="text-purple-600" />;
+        if (title.includes('voice') || title.includes('avaya') || title.includes('phone')) return <FiPhoneCall size={24} className="text-blue-600" />;
+        if (title.includes('sms')) return <FiMessageSquare size={24} className="text-red-500" />;
+        if (title.includes('whatsapp')) return <FiMessageCircle size={24} className="text-green-500" />;
+        if (title.includes('google play') || title.includes('play store')) return <FiPlayCircle size={24} className="text-emerald-500" />;
+        if (title.includes('google business review') || title.includes('rating')) return <FiStar size={24} className="text-amber-500" />;
+        if (title.includes('google business')) return <FiMapPin size={24} className="text-blue-600" />;
+        if (title.includes('alexa')) return <FiMic size={24} className="text-blue-500" />;
+        if (title.includes('instagram')) return <FiInstagram size={24} className="text-pink-600" />;
+        if (title.includes('facebook') || title.includes('fb') || title.includes('messenger')) return <FiFacebook size={24} className="text-blue-700" />;
+        if (title.includes('telegram')) return <FiSend size={24} className="text-sky-500" />;
+        if (title.includes('twitter') || title.includes(' x ')) return <FiTwitter size={24} className="text-gray-900" />;
+        if (title.includes('email')) return <FiMail size={24} className="text-indigo-500" />;
+        if (title.includes('video') || title.includes('youtube')) return <FiVideo size={24} className="text-red-600" />;
+        if (title.includes('zapier')) return <FiZap size={24} className="text-orange-500" />;
+        if (title.includes('web') || title.includes('site')) return <FiGlobe size={24} className="text-emerald-500" />;
+        if (title.includes('teams')) return <FiUsers size={24} className="text-indigo-600" />;
+        if (title.includes('chat')) return <FiMessageSquare size={24} className="text-teal-500" />;
+        if (title.includes('linkedin')) return <FiLinkedin size={24} className="text-blue-800" />;
+        if (title.includes('slack')) return <FiSlack size={24} className="text-purple-600" />;
+        if (title.includes('viber')) return <FiPhoneCall size={24} className="text-purple-500" />;
+        if (title.includes('snapchat')) return <FiSend size={24} className="text-yellow-400" />;
+        if (title.includes('pinterest')) return <FiGrid size={24} className="text-red-600" />;
+        if (title.includes('tiktok')) return <FiVideo size={24} className="text-black" />;
 
         return <FiRadio size={24} className="text-indigo-600" />;
     };
 
     const getChannelBg = (channel: any) => {
-        const provider = (channel.provider || '').toLowerCase();
-        const name = (channel.name || '').toLowerCase();
+        const title = (channel.channelName || channel.displayOption || channel.name || '').toLowerCase();
 
         // Simplified Logic: check a few common ones
-        if (provider.includes('sms')) return 'bg-red-50';
-        if (provider.includes('whatsapp')) return 'bg-green-50';
-        if (provider.includes('facebook')) return 'bg-blue-50';
+        if (title.includes('sms') || title.includes('youtube') || title.includes('pinterest')) return 'bg-red-50';
+        if (title.includes('whatsapp') || title.includes('web')) return 'bg-green-50';
+        if (title.includes('facebook') || title.includes('linkedin') || title.includes('twitter') || title.includes('teams')) return 'bg-blue-50';
+        if (title.includes('instagram')) return 'bg-pink-50';
+        if (title.includes('snapchat') || title.includes('star')) return 'bg-yellow-50';
+        if (title.includes('slack') || title.includes('viber')) return 'bg-purple-50';
 
         return 'bg-gray-50';
     };
@@ -109,8 +114,8 @@ const ChannelsCard: React.FC<ChannelsCardProps> = ({ merchantId, cluster }) => {
                                         {getChannelIcon(channel)}
                                     </div>
                                     <div>
-                                        <h4 className="font-bold text-sm text-gray-900">{channel.name || 'Unnamed Channel'}</h4>
-                                        <p className="text-xs text-gray-500 font-medium uppercase">{channel.provider || 'Unknown Provider'}</p>
+                                        <h4 className="font-bold text-sm text-gray-900">{channel.channelName || channel.displayOption || channel.name || 'Unnamed Channel'}</h4>
+                                        <p className="text-xs text-gray-500 font-medium uppercase">{channel.channelCategory || channel.provider || 'Unknown Category'}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 mt-auto pt-2 border-t border-gray-200/50">

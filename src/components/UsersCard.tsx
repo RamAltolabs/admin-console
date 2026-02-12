@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FiUser, FiUserCheck, FiUserPlus, FiRefreshCw, FiTrash2, FiToggleLeft, FiToggleRight, FiLock, FiAlertTriangle, FiCheck, FiX, FiMail, FiClock, FiSettings, FiPower } from 'react-icons/fi';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FiUser, FiUserCheck, FiUserPlus, FiRefreshCw, FiTrash2, FiToggleLeft, FiToggleRight, FiLock, FiAlertTriangle, FiCheck, FiX, FiMail, FiClock, FiSettings, FiPower, FiSearch, FiChevronLeft, FiChevronRight, FiFilter } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface UsersCardProps {
@@ -26,17 +26,33 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
     const [error, setError] = useState<string | null>(null);
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+    // Pagination State
+    const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(20);
+    const [serverTotalElements, setServerTotalElements] = useState(0);
+    const [serverTotalPages, setServerTotalPages] = useState(0);
+
+    // Filters State
+    const [searchTerm, setSearchTerm] = useState('');
+    const [roleFilter, setRoleFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState('ALL');
+
     // Invite User State
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteData, setInviteData] = useState({ email: '', role: 'ADMIN', authType: 'PG' });
     const [inviting, setInviting] = useState(false);
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (pageIndex = 0, size = pageSize) => {
         setLoading(true);
         setError(null);
         try {
-            const data = await merchantService.getAllUsers(merchantId, cluster);
-            setUsers(Array.isArray(data) ? data : []);
+            const response = await merchantService.getUsers(merchantId, pageIndex, size, cluster);
+            console.log('[UsersCard] fetchUsers response:', response);
+            const userList = response.content || [];
+            setUsers(userList);
+            setPage(response.pageNumber);
+            setServerTotalElements(response.totalElements || userList.length);
+            setServerTotalPages(response.totalPages || 1);
         } catch (err) {
             console.error('Error fetching users:', err);
             setError('Failed to load users');
@@ -47,9 +63,63 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
 
     useEffect(() => {
         if (merchantId) {
-            fetchUsers();
+            fetchUsers(0, pageSize);
         }
-    }, [merchantId, cluster]);
+    }, [merchantId, cluster, pageSize]);
+
+    const handlePageChange = (newPage: number) => {
+        if (newPage >= 0 && newPage < effectiveTotalPages) {
+            // If we have all data locally, just change page state
+            if (filteredUsers.length > pageSize) {
+                setPage(newPage);
+            } else {
+                fetchUsers(newPage, pageSize);
+            }
+        }
+    };
+
+    const handlePageSizeChange = (newSize: number) => {
+        setPageSize(newSize);
+        fetchUsers(0, newSize);
+    };
+
+    // Client-side filtering logic
+    const filteredUsers = useMemo(() => {
+        return users.filter(user => {
+            const matchesSearch = searchTerm === '' ||
+                (user.userName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (user.firstName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (user.lastName?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                (user.email?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
+            const matchesStatus = statusFilter === 'ALL' ||
+                (statusFilter === 'Active' ? user.status.toLowerCase() === 'active' : user.status.toLowerCase() !== 'active');
+
+            return matchesSearch && matchesRole && matchesStatus;
+        });
+    }, [users, searchTerm, roleFilter, statusFilter]);
+
+    // Derived pagination values
+    const effectiveTotalElements = useMemo(() => {
+        // If filtered list is larger than page, use its length (means server returned all)
+        // Otherwise use server total Elements (means server is paginating)
+        return filteredUsers.length > pageSize ? filteredUsers.length : serverTotalElements;
+    }, [filteredUsers, serverTotalElements, pageSize]);
+
+    const effectiveTotalPages = useMemo(() => {
+        return Math.ceil(effectiveTotalElements / pageSize);
+    }, [effectiveTotalElements, pageSize]);
+
+    // List of users that fit in the current page view
+    const displayedUsers = useMemo(() => {
+        // If we have more filtered users than page size, slice locally
+        if (filteredUsers.length > pageSize) {
+            const start = page * pageSize;
+            return filteredUsers.slice(start, start + pageSize);
+        }
+        return filteredUsers;
+    }, [filteredUsers, page, pageSize]);
 
     const handleToggleStatus = async (user: User) => {
         if (!window.confirm(`Are you sure you want to ${user.status === 'Active' ? 'deactivate' : 'activate'} this user?`)) return;
@@ -142,12 +212,14 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     </div>
                     <div>
                         <h3 className="font-semibold text-gray-900">User Management</h3>
-                        <p className="text-sm text-gray-500">Manage access, passwords, and status</p>
+                        <p className="text-sm text-gray-500">
+                            {effectiveTotalElements > 0 ? `${effectiveTotalElements} total users` : 'Manage access, passwords, and status'}
+                        </p>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <button
-                        onClick={fetchUsers}
+                        onClick={() => fetchUsers(page)}
                         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Refresh"
                     >
@@ -161,6 +233,59 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                         <span className="text-sm font-medium">Invite User</span>
                     </button>
                 </div>
+            </div>
+
+            {/* Filters Bar */}
+            <div className="bg-gray-50/50 border-b border-gray-100 p-4 flex flex-wrap gap-4 items-center">
+                <div className="relative flex-1 min-w-[240px]">
+                    <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+                    />
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <FiFilter className="text-gray-400" size={14} />
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value)}
+                        className="bg-white border border-gray-200 rounded-lg text-xs font-bold py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700 cursor-pointer"
+                    >
+                        <option value="ALL">All Roles</option>
+                        <option value="ADMIN">Admin</option>
+                        <option value="USER">User</option>
+                        <option value="SUPPORT">Support</option>
+                    </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="bg-white border border-gray-200 rounded-lg text-xs font-bold py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700 cursor-pointer"
+                    >
+                        <option value="ALL">All Status</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+
+                {(searchTerm || roleFilter !== 'ALL' || statusFilter !== 'ALL') && (
+                    <button
+                        onClick={() => {
+                            setSearchTerm('');
+                            setRoleFilter('ALL');
+                            setStatusFilter('ALL');
+                        }}
+                        className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 tracking-widest transition-colors"
+                    >
+                        Clear Filters
+                    </button>
+                )}
             </div>
 
             {/* Notifications */}
@@ -178,8 +303,8 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                {users.length > 0 ? (
-                    users.map((user, index) => {
+                {displayedUsers.length > 0 ? (
+                    displayedUsers.map((user, index) => {
                         const isProcessing = actionLoading === user.userName;
                         const isActive = user.status.toLowerCase() === 'active';
 
@@ -241,14 +366,76 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                         );
                     })
                 ) : (
-                    <div className="p-8 text-center col-span-2">
-                        <div className="inline-flex justify-center items-center w-12 h-12 bg-gray-100 rounded-full mb-3 text-gray-400">
-                            <FiUser size={24} />
-                        </div>
-                        <p className="text-gray-500 font-medium">No users found</p>
-                        <p className="text-sm text-gray-400 mt-1">Invite team members to collaborate</p>
+                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-gray-400 bg-gray-50/30 rounded-xl border border-dashed border-gray-100">
+                        <FiUser size={40} className="mb-3 opacity-20" />
+                        <p className="text-sm font-medium">No users found matching filters</p>
+                        {(searchTerm || roleFilter !== 'ALL' || statusFilter !== 'ALL') && (
+                            <button
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setRoleFilter('ALL');
+                                    setStatusFilter('ALL');
+                                }}
+                                className="mt-2 text-xs text-blue-600 font-bold hover:underline"
+                            >
+                                Reset filters
+                            </button>
+                        )}
                     </div>
                 )}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center bg-gray-50/50 gap-4">
+                <div className="flex items-center gap-4">
+                    <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                        Showing <span className="text-gray-900 font-bold">{displayedUsers.length}</span> of <span className="text-gray-900 font-bold">{effectiveTotalElements}</span>
+                    </span>
+                    <div className="h-4 w-[1px] bg-gray-200 hidden sm:block"></div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per Page:</span>
+                        <select
+                            value={pageSize}
+                            onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                            className="bg-white border border-gray-200 rounded-md text-[10px] font-black py-1 px-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-gray-700 cursor-pointer shadow-sm"
+                        >
+                            <option value={10}>10</option>
+                            <option value={20}>20</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => handlePageChange(page - 1)}
+                        disabled={page === 0 || loading}
+                        className="p-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+                        title="Previous Page"
+                    >
+                        <FiChevronLeft size={16} />
+                    </button>
+
+                    <div className="flex items-center gap-1">
+                        <span className="text-xs font-black text-blue-600 px-3 py-1.5 bg-white border border-blue-100 rounded-lg shadow-sm min-w-[36px] text-center">
+                            {page + 1}
+                        </span>
+                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-tighter px-0.5">of</span>
+                        <span className="text-xs font-black text-gray-900 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm min-w-[36px] text-center">
+                            {effectiveTotalPages || 1}
+                        </span>
+                    </div>
+
+                    <button
+                        onClick={() => handlePageChange(page + 1)}
+                        disabled={page >= effectiveTotalPages - 1 || loading}
+                        className="p-2 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm active:scale-95"
+                        title="Next Page"
+                    >
+                        <FiChevronRight size={16} />
+                    </button>
+                </div>
             </div>
 
             {/* Invite User Modal */}
