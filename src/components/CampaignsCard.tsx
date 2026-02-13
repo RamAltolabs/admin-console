@@ -14,6 +14,7 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [pageIndex, setPageIndex] = useState(0);
+    const [showFilters, setShowFilters] = useState(false);
     const [isViewing, setIsViewing] = useState(false);
     const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
     const pageSize = 10;
@@ -245,9 +246,9 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
             {/* Header Section from Screenshot */}
             <div className="p-6 border-b border-gray-50 text-left">
-                <h2 className="text-xl font-bold text-gray-900">Broadcast</h2>
-                <p className="text-sm text-gray-500 flex items-start gap-2 mt-2">
-                    <FiSend className="mt-1 text-blue-400 shrink-0" size={14} />
+                <h2 className="text-xl font-bold text-gray-900 tracking-tight">Broadcast</h2>
+                <p className="text-sm text-gray-500 flex items-start gap-2 mt-2 leading-relaxed">
+                    <FiSend className="mt-1 text-blue-900 shrink-0" size={14} />
                     <span>Broadcasts are personalized messages delivered to visitors through multiple channels. Easily create and send a new broadcast to engage with visitors using the 'Create Broadcast' feature.</span>
                 </p>
             </div>
@@ -269,31 +270,55 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                         />
                     </div>
                     <div className="relative">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setPageIndex(0);
-                            }}
-                            className="appearance-none pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white text-gray-600 font-medium cursor-pointer"
+                        <button
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                            onClick={() => setShowFilters(!showFilters)}
                         >
-                            <option value="all">All Status</option>
-                            <option value="completed">Completed</option>
-                            <option value="processing">Processing</option>
-                            <option value="failed">Failed</option>
-                        </select>
-                        <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                            <FiFilter size={16} />
+                            {statusFilter === 'all' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1).toLowerCase()}
+                        </button>
+                        {showFilters && (
+                            <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                                <div className="text-xs font-bold text-gray-500 uppercase mb-3">Filter by Status</div>
+                                <div className="space-y-2">
+                                    {['all', 'completed', 'processing', 'failed'].map(status => (
+                                        <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors">
+                                            <input
+                                                type="radio"
+                                                name="statusFilter"
+                                                value={status}
+                                                checked={statusFilter === status}
+                                                onChange={(e) => {
+                                                    setStatusFilter(e.target.value);
+                                                    setPageIndex(0);
+                                                }}
+                                                className="text-blue-900 focus:ring-blue-900 h-4 w-4"
+                                            />
+                                            <span className="text-sm text-gray-700 titlecase font-bold">
+                                                {status === 'all' ? 'All Status' : status}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <button
-                    onClick={fetchCampaigns}
-                    disabled={loading}
-                    className="p-2 text-gray-500 hover:bg-white hover:shadow-sm border border-transparent hover:border-gray-200 rounded-lg transition-all"
-                    title="Refresh Data"
-                >
-                    <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                </button>
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-gray-100 px-2 py-1 rounded">
+                        {filteredCampaigns.length} Results
+                    </span>
+                    <button
+                        onClick={fetchCampaigns}
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        title="Refresh Data"
+                    >
+                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                </div>
             </div>
 
             {/* Table Section */}
@@ -301,32 +326,32 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr className="bg-gray-50/80 border-b border-gray-100">
-                            <th className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider w-24">Action</th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-500 group">
+                            <th className="px-6 py-4 text-[11px] font-black text-gray-400 titlecase tracking-wider w-24">Action</th>
+                            <th className="px-6 py-4 text-[11px] font-black text-gray-400 titlecase tracking-wider cursor-pointer hover:text-blue-900 group">
                                 <div className="flex items-center gap-1.5">
                                     Broadcast Name
                                     <span className="opacity-0 group-hover:opacity-100 transition-opacity">↕</span>
                                 </div>
                             </th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-500 group">
+                            <th className="px-6 py-4 text-[11px] font-black text-gray-400 titlecase tracking-wider cursor-pointer hover:text-blue-900 group">
                                 <div className="flex items-center gap-1.5">
                                     Created By
                                     <span className="opacity-0 group-hover:opacity-100 transition-opacity">↕</span>
                                 </div>
                             </th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-500 group">
+                            <th className="px-6 py-4 text-[11px] font-black text-gray-400 titlecase tracking-wider cursor-pointer hover:text-blue-900 group">
                                 <div className="flex items-center gap-1.5">
                                     Created Date
                                     <span className="opacity-0 group-hover:opacity-100 transition-opacity">↕</span>
                                 </div>
                             </th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-500 group">
+                            <th className="px-6 py-4 text-[11px] font-black text-gray-400 titlecase tracking-wider cursor-pointer hover:text-blue-900 group">
                                 <div className="flex items-center gap-1.5">
                                     Description
                                     <span className="opacity-0 group-hover:opacity-100 transition-opacity">↕</span>
                                 </div>
                             </th>
-                            <th className="px-6 py-4 text-[11px] font-bold text-gray-500 uppercase tracking-wider cursor-pointer hover:text-blue-500 group">
+                            <th className="px-6 py-4 text-[11px] font-black text-gray-400 titlecase tracking-wider cursor-pointer hover:text-blue-900 group">
                                 <div className="flex items-center gap-1.5">
                                     Status
                                     <span className="opacity-0 group-hover:opacity-100 transition-opacity">↕</span>
@@ -338,17 +363,22 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                         {loading ? (
                             <tr>
                                 <td colSpan={6} className="py-20 text-center">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-500 rounded-full animate-spin" />
-                                        <span className="text-sm font-medium text-gray-400">Loading broadcasts...</span>
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                                        <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading broadcasts...</p>
                                     </div>
                                 </td>
                             </tr>
                         ) : paginatedCampaigns.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="py-20 text-center text-gray-400">
-                                    <FiSend size={40} className="mx-auto mb-3 opacity-20" />
-                                    <p className="text-sm font-medium">No records found</p>
+                                    <div className="flex flex-col items-center py-10">
+                                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
+                                            <FiSend className="text-gray-300" size={28} />
+                                        </div>
+                                        <h4 className="text-sm font-bold text-gray-600 mb-1">No Broadcasts Found</h4>
+                                        <p className="text-xs text-gray-400">No records match your current filters.</p>
+                                    </div>
                                 </td>
                             </tr>
                         ) : (
@@ -357,7 +387,7 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                                     <td className="px-6 py-4">
                                         <button
                                             onClick={() => handleView(camp)}
-                                            className="tile-btn-view"
+                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100"
                                             title="View Details"
                                         >
                                             <FiEye size={14} />
@@ -393,47 +423,40 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
             </div>
 
             {/* Pagination bar from Screenshot */}
-            <div className="px-6 py-4 border-t border-gray-50 flex items-center justify-between bg-white text-sm">
-                <div className="text-gray-600 font-bold">
-                    {filteredCampaigns.length > 0 ? (
-                        <span>{pageIndex * pageSize + 1} to {Math.min((pageIndex + 1) * pageSize, filteredCampaigns.length)} of {filteredCampaigns.length}</span>
-                    ) : '0 to 0 of 0'}
-                </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50/30">
+                <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
+                    Page {pageIndex + 1} of {totalPages || 1}
+                </p>
 
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1">
-                        <button
-                            onClick={() => setPageIndex(0)}
-                            disabled={pageIndex === 0}
-                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
-                        >
-                            <FiChevronsLeft size={18} />
-                        </button>
-                        <button
-                            onClick={() => setPageIndex(prev => Math.max(0, prev - 1))}
-                            disabled={pageIndex === 0}
-                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
-                        >
-                            <FiChevronLeft size={18} />
-                        </button>
-                        <span className="mx-2 px-3 py-1 bg-gray-50 rounded text-gray-600 font-bold">
-                            Page <span className="text-gray-900">{pageIndex + 1}</span> of {totalPages || 1}
-                        </span>
-                        <button
-                            onClick={() => setPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
-                            disabled={pageIndex >= totalPages - 1}
-                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
-                        >
-                            <FiChevronRight size={18} />
-                        </button>
-                        <button
-                            onClick={() => setPageIndex(totalPages - 1)}
-                            disabled={pageIndex >= totalPages - 1}
-                            className="p-1 text-gray-400 hover:text-blue-600 disabled:opacity-30 transition-colors"
-                        >
-                            <FiChevronsRight size={18} />
-                        </button>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setPageIndex(0)}
+                        disabled={pageIndex === 0}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                    >
+                        <FiChevronsLeft size={16} />
+                    </button>
+                    <button
+                        onClick={() => setPageIndex(prev => Math.max(0, prev - 1))}
+                        disabled={pageIndex === 0}
+                        className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => setPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
+                        disabled={pageIndex >= totalPages - 1}
+                        className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                    >
+                        Next
+                    </button>
+                    <button
+                        onClick={() => setPageIndex(totalPages - 1)}
+                        disabled={pageIndex >= totalPages - 1}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                    >
+                        <FiChevronsRight size={16} />
+                    </button>
                 </div>
             </div>
         </div>

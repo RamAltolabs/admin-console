@@ -27,6 +27,7 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
     });
     const [selectedPreset, setSelectedPreset] = useState('7d');
     const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
 
     const handlePresetChange = (preset: string) => {
         setSelectedPreset(preset);
@@ -135,8 +136,8 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
     return (
         <div className="space-y-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-right justify-between gap-4 mb-2">
+                <div className="flex items-right gap-3">
                     <div className="relative flex-1 sm:w-72">
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
                         <input
@@ -150,21 +151,41 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
 
                     {/* Status Filter */}
                     <div className="relative">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="appearance-none pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white text-gray-600 font-medium cursor-pointer hover:bg-gray-50 transition-colors"
+                        <button
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                            onClick={() => setShowFilters(!showFilters)}
                         >
-                            <option value="all">All Status</option>
-                            <option value="completed">Completed</option>
-                            <option value="processing">Processing</option>
-                            <option value="shipped">Shipped</option>
-                            <option value="cancelled">Cancelled</option>
-                        </select>
-                        <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                            <FiFilter size={16} />
+                            {statusFilter === 'all' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1).toLowerCase()}
+                        </button>
+                        {showFilters && (
+                            <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="text-[10px] font-black text-gray-400 titlecase tracking-widest mb-3">Filter by Status</div>
+                                <div className="space-y-2">
+                                    {['all', 'completed', 'processing', 'shipped', 'cancelled'].map(status => (
+                                        <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors">
+                                            <input
+                                                type="radio"
+                                                name="statusFilter"
+                                                value={status}
+                                                checked={statusFilter === status}
+                                                onChange={(e) => {
+                                                    setStatusFilter(e.target.value);
+                                                    setPageIndex(0);
+                                                }}
+                                                className="text-blue-900 focus:ring-blue-900 h-4 w-4"
+                                            />
+                                            <span className="text-sm text-gray-700 titlecase font-bold">
+                                                {status === 'all' ? 'All Status' : status}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
                         {[
                             { id: '7d', label: '7D' },
                             { id: '30d', label: '30D' },
@@ -173,9 +194,9 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                             <button
                                 key={preset.id}
                                 onClick={() => handlePresetChange(preset.id)}
-                                className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedPreset === preset.id
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-400 hover:text-gray-600'
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black titlecase tracking-widest transition-all duration-200 ${selectedPreset === preset.id
+                                    ? 'bg-blue-900 text-white shadow-md'
+                                    : 'text-gray-500 hover:text-blue-900 hover:bg-white'
                                     }`}
                             >
                                 {preset.label}
@@ -183,34 +204,35 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                         ))}
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase">
-                        Showing {filteredOrders.length} of {totalRecords} orders
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-gray-100 px-2 py-1 rounded">
+                        {filteredOrders.length} Results
                     </span>
                     <button
                         onClick={fetchOrders}
                         disabled={loading}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
-                        <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
             </div>
 
             {/* Orders List */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-transparent">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-16">
-                        <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-500 border-t-transparent mb-4"></div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Loading orders...</p>
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
+                        <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                        <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading orders...</p>
                     </div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-                            <FiShoppingBag className="text-gray-300" size={28} />
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200 text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 text-gray-300">
+                            <FiShoppingBag size={32} />
                         </div>
-                        <h4 className="text-sm font-bold text-gray-600 mb-1">No Orders Found</h4>
+                        <h4 className="text-base font-bold text-gray-600 mb-1">No Orders Found</h4>
                         <p className="text-xs text-gray-400 max-w-[240px]">
                             {searchQuery
                                 ? 'No orders match your search query.'
@@ -219,38 +241,38 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                         </p>
                     </div>
                 ) : (
-                    <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {filteredOrders.map((order: any, index: number) => {
                             const statusConfig = getStatusConfig(order);
                             const StatusIcon = statusConfig.icon;
                             const orderId = order.details?.orderNo || order.details?.id || order.id || index + 1;
 
                             return (
-                                <div key={orderId} className="standard-tile flex-col items-stretch group relative gap-3">
-                                    {/* Header: ID and Date */}
-                                    <div className="flex justify-between items-start">
+                                <div key={orderId} className="standard-tile flex-col items-stretch group relative gap-3 !p-4 bg-white hover:border-blue-900/30 transition-all duration-300 shadow-sm hover:shadow-md animate-in fade-in zoom-in-95 duration-300">
+                                    {/* Header: ID and Status */}
+                                    <div className="flex justify-between items-start mb-1">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-xs">
-                                                <FiShoppingBag />
+                                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-900 flex items-center justify-center font-bold">
+                                                <FiShoppingBag size={14} />
                                             </div>
                                             <div>
-                                                <h3 className="text-sm font-bold text-gray-900">#{orderId}</h3>
-                                                <p className="text-[10px] text-gray-400 font-medium">
+                                                <h3 className="text-xs font-black text-gray-900 tracking-tight">#{orderId}</h3>
+                                                <p className="text-[9px] text-gray-400 font-black titlecase tracking-widest">
                                                     {formatDate(order.details?.order_creation_date || order.orderDate || order.createdDate)}
                                                 </p>
                                             </div>
                                         </div>
-                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${statusConfig.color}`}>
-                                            <StatusIcon size={8} /> {statusConfig.label}
+                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black titlecase tracking-wider ${statusConfig.color}`}>
+                                            <StatusIcon size={10} /> {statusConfig.label}
                                         </span>
                                     </div>
 
                                     {/* Customer Info */}
-                                    <div className="border-t border-b border-gray-50 py-3 flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400">
+                                    <div className="py-2.5 border-t border-b border-gray-50 flex items-center gap-2.5">
+                                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 shadow-inner">
                                             <FiUser size={10} />
                                         </div>
-                                        <span className="text-xs font-semibold text-gray-700 truncate">
+                                        <span className="text-xs font-bold text-gray-700 truncate">
                                             {(() => {
                                                 const contact = order.customer?.contact;
                                                 if (contact) {
@@ -262,29 +284,30 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                                         </span>
                                     </div>
 
-                                    {/* Footer: Amount and Action */}
-                                    <div className="flex justify-between items-center mt-auto pt-1">
-                                        <div>
-                                            <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Total</p>
-                                            <p className="text-sm font-bold text-gray-900">
-                                                {(() => {
-                                                    const amount = order.details?.total_amount || order.details?.order_amount || order.totalAmount || 0;
-                                                    const currency = order.details?.currency || order.currency || 'INR';
-                                                    try {
-                                                        return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount);
-                                                    } catch {
-                                                        return `${currency} ${amount}`;
-                                                    }
-                                                })()}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() => setSelectedOrder(order)}
-                                            className="tile-btn-view ml-auto"
-                                        >
-                                            <FiEye size={12} /> View Details
-                                        </button>
+                                    {/* Footer: Amount */}
+                                    <div className="mt-auto">
+                                        <p className="text-[9px] text-gray-400 titlecase font-black tracking-widest">Grand Total</p>
+                                        <p className="text-base font-black text-blue-900 tracking-tight">
+                                            {(() => {
+                                                const amount = order.details?.total_amount || order.details?.order_amount || order.totalAmount || 0;
+                                                const currency = order.details?.currency || order.currency || 'INR';
+                                                try {
+                                                    return new Intl.NumberFormat('en-IN', { style: 'currency', currency }).format(amount);
+                                                } catch {
+                                                    return `${currency} ${amount}`;
+                                                }
+                                            })()}
+                                        </p>
                                     </div>
+
+                                    {/* Absolute Action Button */}
+                                    <button
+                                        onClick={() => setSelectedOrder(order)}
+                                        className="absolute bottom-4 right-4 w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 group-hover:shadow-md"
+                                        title="View Details"
+                                    >
+                                        <FiEye size={18} />
+                                    </button>
                                 </div>
                             );
                         })}
@@ -293,22 +316,22 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase">
-                            Page {pageIndex + 1} of {totalPages}
+                    <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+                        <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
+                            Page {pageIndex + 1} of {Math.ceil(filteredOrders.length / 50) || 1}
                         </p>
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
                                 disabled={pageIndex === 0}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                className="px-4 py-2 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                             >
                                 Previous
                             </button>
                             <button
                                 onClick={() => setPageIndex(pageIndex + 1)}
                                 disabled={pageIndex >= totalPages - 1}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                                className="px-4 py-2 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
                             >
                                 Next
                             </button>
@@ -338,13 +361,13 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                             {/* Summary Grid */}
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Status</p>
-                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${getStatusConfig(selectedOrder).color}`}>
+                                    <p className="text-[10px] text-gray-400 titlecase font-bold tracking-wider mb-1">Status</p>
+                                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold titlecase ${getStatusConfig(selectedOrder).color}`}>
                                         {getStatusConfig(selectedOrder).label}
                                     </span>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Amount</p>
+                                    <p className="text-[10px] text-gray-400 titlecase font-bold tracking-wider mb-1">Amount</p>
                                     <p className="text-sm font-bold text-gray-900">
                                         {(() => {
                                             const amount = selectedOrder.details?.total_amount || selectedOrder.details?.order_amount || selectedOrder.totalAmount || 0;
@@ -358,11 +381,11 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                                     </p>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Date</p>
+                                    <p className="text-[10px] text-gray-400 titlecase font-bold tracking-wider mb-1">Date</p>
                                     <p className="text-xs font-semibold text-gray-700">{formatDate(selectedOrder.details?.order_creation_date || selectedOrder.createdDate)}</p>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider mb-1">Customer</p>
+                                    <p className="text-[10px] text-gray-400 titlecase font-bold tracking-wider mb-1">Customer</p>
                                     <p className="text-xs font-semibold text-gray-700 truncate">
                                         {(() => {
                                             const contact = selectedOrder.customer?.contact;
@@ -399,7 +422,7 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                                                     </span>
                                                 </div>
                                                 <p className="text-xs text-gray-500 mt-1 line-clamp-2">{item.description || item.menuItem?.description}</p>
-                                                {item.quantity && <span className="text-[10px] font-bold text-gray-400 uppercase mt-2 block">Qty: {item.quantity}</span>}
+                                                {item.quantity && <span className="text-[10px] font-bold text-gray-400 titlecase mt-2 block">Qty: {item.quantity}</span>}
                                             </div>
                                         </div>
                                     ))}

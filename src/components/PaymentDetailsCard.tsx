@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiDollarSign, FiRefreshCw, FiCalendar, FiCreditCard, FiCheckCircle, FiXCircle, FiClock, FiSearch, FiShoppingCart, FiTag, FiFilter } from 'react-icons/fi';
+import { FiDollarSign, FiRefreshCw, FiCalendar, FiCreditCard, FiCheckCircle, FiXCircle, FiClock, FiSearch, FiShoppingCart, FiTag, FiFilter, FiEye, FiInfo } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface PaymentDetailsCardProps {
@@ -12,6 +12,8 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState<any | null>(null);
     const [pageIndex, setPageIndex] = useState(0);
     const pageCount = 10;
 
@@ -76,7 +78,7 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
         const status = (payment.statusMessage || payment.status || payment.paymentStatus || 'unknown').toString().toLowerCase();
 
         if (status.includes('success') || status.includes('paid') || status.includes('complet') || status.includes('captured')) {
-            return { label: 'Success', color: 'bg-green-50 text-green-600', icon: FiCheckCircle };
+            return { label: 'Success', color: 'bg-emerald-50 text-emerald-600', icon: FiCheckCircle };
         }
         if (status.includes('fail') || status.includes('declin') || status.includes('error')) {
             return { label: 'Failed', color: 'bg-red-50 text-red-600', icon: FiXCircle };
@@ -134,7 +136,7 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
     return (
         <div className="space-y-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div className="flex items-center gap-3">
                     <div className="relative flex-1 sm:w-72">
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -146,29 +148,46 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                                 setSearchQuery(e.target.value);
                                 setPageIndex(0);
                             }}
-                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white"
+                            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-white"
                         />
                     </div>
 
-                    {/* Status Filter */}
+                    {/* Status Filter Dropdown */}
                     <div className="relative">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => {
-                                setStatusFilter(e.target.value);
-                                setPageIndex(0);
-                            }}
-                            className="appearance-none pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white text-gray-600 font-medium cursor-pointer hover:bg-gray-50 transition-colors"
+                        <button
+                            onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors shadow-sm min-w-[120px] justify-center"
                         >
-                            <option value="all">All Status</option>
-                            <option value="success">Success</option>
-                            <option value="processing">Processing</option>
-                            <option value="failed">Failed</option>
-                        </select>
-                        <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                            <FiFilter size={14} />
+                            {statusFilter === 'all' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                        </button>
+
+                        {showStatusDropdown && (
+                            <div className="absolute left-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="text-[10px] font-black text-gray-400 titlecase tracking-widest mb-2 px-1">Filter by Status</div>
+                                <div className="space-y-1">
+                                    {['all', 'success', 'processing', 'failed'].map(status => (
+                                        <button
+                                            key={status}
+                                            onClick={() => {
+                                                setStatusFilter(status);
+                                                setShowStatusDropdown(false);
+                                                setPageIndex(0);
+                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors ${statusFilter === status
+                                                ? 'bg-blue-50 text-blue-900'
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-1 bg-gray-100/50 p-1 rounded-lg border border-gray-200">
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
                         {[
                             { id: '7d', label: '7D' },
                             { id: '30d', label: '30D' },
@@ -177,9 +196,9 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                             <button
                                 key={preset.id}
                                 onClick={() => handlePresetChange(preset.id)}
-                                className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${selectedPreset === preset.id
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-400 hover:text-gray-600'
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black titlecase tracking-widest transition-all duration-200 ${selectedPreset === preset.id
+                                    ? 'bg-blue-900 text-white shadow-md'
+                                    : 'text-gray-500 hover:text-blue-900 hover:bg-white'
                                     }`}
                             >
                                 {preset.label}
@@ -187,31 +206,32 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                         ))}
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase">
-                        Showing {Math.min(filteredPayments.length, pageIndex * pageCount + 1)}-{Math.min(filteredPayments.length, (pageIndex + 1) * pageCount)} of {filteredPayments.length} transactions
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-gray-100 px-2 py-1 rounded">
+                        {filteredPayments.length} Results
                     </span>
                     <button
                         onClick={fetchPayments}
                         disabled={loading}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
-                        <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
             </div>
 
             {/* Payments List */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="min-h-[400px]">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-16">
-                        <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-500 border-t-transparent mb-4"></div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Loading payments...</p>
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
+                        <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                        <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading payments...</p>
                     </div>
                 ) : filteredPayments.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200 text-center">
+                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
                             <FiCreditCard className="text-gray-300" size={28} />
                         </div>
                         <h4 className="text-sm font-bold text-gray-600 mb-1">No Payments Found</h4>
@@ -223,96 +243,168 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                         </p>
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="bg-gray-50/80 border-b border-gray-100">
-                                    <th className="text-left px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">Transaction ID</th>
-                                    <th className="text-left px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">Order Ref</th>
-                                    <th className="text-left px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">Date</th>
-                                    <th className="text-left px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">Method</th>
-                                    <th className="text-left px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">Amount</th>
-                                    <th className="text-left px-4 py-3 text-[10px] font-black text-gray-400 uppercase tracking-wider">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {paginatedPayments.map((payment: any, index: number) => {
-                                    const statusConfig = getStatusConfig(payment);
-                                    const StatusIcon = statusConfig.icon;
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {paginatedPayments.map((payment: any, index: number) => {
+                            const statusConfig = getStatusConfig(payment);
+                            const StatusIcon = statusConfig.icon;
+                            const txnId = payment.transactionId || payment.txnId || payment.id || 'N/A';
 
-                                    return (
-                                        <tr key={payment.id || index} className="hover:bg-gray-50/50 transition-colors group">
-                                            <td className="px-4 py-3">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
-                                                        <FiDollarSign size={14} />
-                                                    </div>
-                                                    <div className="flex flex-col">
-                                                        <span className="text-xs font-bold text-gray-800 font-mono">
-                                                            {payment.transactionId || payment.txnId || payment.id || 'N/A'}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-xs font-medium text-gray-600 font-mono">
-                                                    {payment.orderNumber || payment.orderId || '—'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-xs text-gray-500 font-medium">
-                                                    {formatDate(payment.createdTime || payment.transactionDate || payment.date || payment.createdDate || payment.createdAt)}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-xs font-bold text-gray-700 uppercase tracking-wide">
-                                                    {payment.gatewayId || payment.paymentMethod || payment.method || 'Unknown'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className="text-sm font-bold text-gray-900">
-                                                    {getAmount(payment)}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${statusConfig.color}`}>
-                                                    <StatusIcon size={10} />
-                                                    {statusConfig.label}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                            return (
+                                <div key={payment.id || index} className="standard-tile flex-col items-stretch group relative gap-3 !p-4 bg-white hover:border-blue-900/30 transition-all duration-300 shadow-sm hover:shadow-md animate-in fade-in zoom-in-95 duration-300">
+                                    {/* Header: Icon and Status */}
+                                    <div className="flex justify-between items-start mb-1">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-900 flex items-center justify-center font-bold">
+                                                <FiDollarSign size={14} />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-[10px] font-black text-gray-900 tracking-tight font-mono truncate max-w-[100px]" title={txnId}>#{txnId}</h3>
+                                                <p className="text-[9px] text-gray-400 font-black titlecase tracking-widest">
+                                                    {formatDate(payment.createdTime || payment.transactionDate || payment.date || payment.createdTime)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-black titlecase tracking-wider ${statusConfig.color}`}>
+                                            <StatusIcon size={10} /> {statusConfig.label}
+                                        </span>
+                                    </div>
 
-                {/* Pagination */}
-                {!loading && totalPages > 1 && (
-                    <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 bg-gray-50/50">
-                        <p className="text-[10px] font-bold text-gray-400 uppercase">
-                            Page {pageIndex + 1} of {totalPages}
-                        </p>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => setPageIndex(Math.max(0, pageIndex - 1))}
-                                disabled={pageIndex === 0}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                            >
-                                Previous
-                            </button>
-                            <button
-                                onClick={() => setPageIndex(pageIndex + 1)}
-                                disabled={pageIndex >= totalPages - 1}
-                                className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                            >
-                                Next
-                            </button>
-                        </div>
+                                    {/* Content: Order Ref and Method */}
+                                    <div className="space-y-2 py-2 border-y border-gray-50">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 titlecase tracking-widest uppercase">Order Ref</span>
+                                            <span className="text-[10px] font-bold text-gray-700 font-mono">
+                                                {payment.orderNumber || payment.orderId || '—'}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[9px] font-black text-gray-400 titlecase tracking-widest uppercase">Method</span>
+                                            <span className="text-[10px] font-black text-gray-600 titlecase">
+                                                {payment.gatewayId || payment.paymentMethod || 'Unknown'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Footer: Amount */}
+                                    <div className="mt-auto">
+                                        <p className="text-[9px] text-gray-400 titlecase font-black tracking-widest">Amount Paid</p>
+                                        <p className="text-base font-black text-blue-900 tracking-tight">
+                                            {getAmount(payment)}
+                                        </p>
+                                    </div>
+
+                                    {/* Absolute Action Button */}
+                                    <button
+                                        onClick={() => setSelectedPayment(payment)}
+                                        className="absolute bottom-4 right-4 w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 group-hover:shadow-md"
+                                        title="View Details"
+                                    >
+                                        <FiEye size={18} />
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>
+
+            {/* View Details Modal */}
+            {selectedPayment && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h2 className="text-lg font-black text-blue-900 tracking-tight">Payment Details</h2>
+                                <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest">Transaction Ref: {selectedPayment.transactionId || selectedPayment.id}</p>
+                            </div>
+                            <button
+                                onClick={() => setSelectedPayment(null)}
+                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-white rounded-xl transition-all shadow-sm border border-transparent hover:border-gray-200"
+                            >
+                                <FiXCircle size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 titlecase font-black tracking-widest mb-1">Status</p>
+                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold titlecase ${getStatusConfig(selectedPayment).color}`}>
+                                        {React.createElement(getStatusConfig(selectedPayment).icon, { size: 12 })}
+                                        {getStatusConfig(selectedPayment).label}
+                                    </span>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 titlecase font-black tracking-widest mb-1">Amount</p>
+                                    <p className="text-base font-black text-blue-900">{getAmount(selectedPayment)}</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 titlecase font-black tracking-widest mb-1">Order Ref</p>
+                                    <p className="text-xs font-bold text-gray-700 font-mono">{selectedPayment.orderNumber || selectedPayment.orderId || '—'}</p>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <p className="text-[10px] text-gray-400 titlecase font-black tracking-widest mb-1">Method</p>
+                                    <p className="text-xs font-bold text-gray-700">{selectedPayment.gatewayId || selectedPayment.paymentMethod || '—'}</p>
+                                </div>
+                            </div>
+
+                            <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100/50">
+                                <h3 className="text-xs font-black text-blue-900 titlecase tracking-widest mb-3 flex items-center gap-2">
+                                    <FiInfo size={14} /> Transaction Information
+                                </h3>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-black text-gray-400 titlecase">Date</span>
+                                        <span className="text-xs font-bold text-gray-700">{formatDate(selectedPayment.createdTime || selectedPayment.transactionDate || selectedPayment.date)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-black text-gray-400 titlecase">Reference</span>
+                                        <span className="text-xs font-bold text-gray-700 font-mono italic">{selectedPayment.transactionId || 'N/A'}</span>
+                                    </div>
+                                    {selectedPayment.gatewayDesc && (
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-[10px] font-black text-gray-400 titlecase">Gateway</span>
+                                            <span className="text-xs font-bold text-gray-700">{selectedPayment.gatewayDesc}</span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <button
+                                onClick={() => setSelectedPayment(null)}
+                                className="px-6 py-2 bg-blue-900 text-white rounded-xl text-xs font-bold hover:bg-blue-800 transition-all shadow-md"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Pagination */}
+            {!loading && totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
+                        Page {pageIndex + 1} of {totalPages}
+                    </p>
+                    <button
+                        onClick={() => setPageIndex(prev => Math.max(0, prev - 1))}
+                        disabled={pageIndex === 0}
+                        className="px-4 py-2 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                    >
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => setPageIndex(prev => Math.min(totalPages - 1, prev + 1))}
+                        disabled={pageIndex >= totalPages - 1}
+                        className="px-4 py-2 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

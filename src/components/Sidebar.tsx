@@ -77,14 +77,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
                 title={isMinimized ? "Home" : ""}
                 className={({ isActive }) =>
                   `flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all font-bold text-[12px] relative group ${isActive && !selectedCluster && expandedMenu !== 'dashboard'
-                    ? 'bg-[#172b4d] text-white shadow-md active-nav-indicator'
-                    : 'text-neutral-text-secondary hover:bg-primary-main/5 hover:text-primary-main'
+                    ? 'bg-blue-900 text-white shadow-md active-nav-indicator'
+                    : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isActive && !selectedCluster && expandedMenu !== 'dashboard' ? 'bg-white/10' : 'bg-neutral-bg'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isActive && !selectedCluster && expandedMenu !== 'dashboard' ? 'bg-white/10' : 'bg-gray-100'}`}>
                       <FiGrid size={18} />
                     </div>
                     {!isMinimized && <span>Home</span>}
@@ -129,7 +129,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
           </div>
 
           {/* Bottom Actions Fixed Area */}
-          <div className={`mt-auto ${isMinimized ? 'px-2' : 'px-4'} pt-6 pb-6 space-y-1.5 border-t border-neutral-border bg-neutral-bg/5`}>
+          <div className={`mt-auto ${isMinimized ? 'px-2' : 'px-4'} pt-6 pb-6 space-y-1.5 border-t border-gray-200 bg-gray-50/50`}>
             <NavItem
               icon={<FiSettings size={18} />}
               label="Settings"
@@ -141,9 +141,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
             <button
               onClick={logout}
               title={isMinimized ? "Logout" : ""}
-              className={`w-full flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-4'} py-3 rounded-xl transition-all font-bold text-[13px] text-neutral-text-secondary hover:bg-rose-50 hover:text-rose-600 group`}
+              className={`w-full flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-4'} py-3 rounded-xl transition-all font-bold text-[13px] text-gray-500 hover:bg-red-50 hover:text-red-600 group`}
             >
-              <div className="w-8 h-8 rounded-lg bg-neutral-bg flex items-center justify-center group-hover:bg-rose-100 transition-colors flex-shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-red-100 transition-colors flex-shrink-0">
                 <FiLogOut size={16} />
               </div>
               {!isMinimized && <span>Logout</span>}
@@ -170,14 +170,14 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, to, onClose, isMinimized
     title={isMinimized ? label : ""}
     className={({ isActive }) =>
       `flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all font-bold text-[12px] relative group ${isActive
-        ? 'bg-[#172b4d] text-white shadow-md active-nav-indicator'
-        : 'text-neutral-text-secondary hover:bg-primary-main/5 hover:text-primary-main'
+        ? 'bg-blue-900 text-white shadow-md active-nav-indicator'
+        : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
       }`
     }
   >
     {({ isActive }) => (
       <>
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isActive ? 'bg-white/10' : 'bg-neutral-bg'}`}>
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isActive ? 'bg-white/10' : 'bg-gray-100'}`}>
           {icon}
         </div>
         {!isMinimized && <span>{label}</span>}
@@ -243,11 +243,11 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
           onClick={handleMenuClick}
           title={isMinimized ? label : ""}
           className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all flex-1 text-left font-bold text-[12px] ${isExpanded && !selectedCluster
-            ? 'bg-[#172b4d] text-white shadow-md'
-            : 'text-neutral-text-secondary hover:bg-primary-main/5 hover:text-primary-main'
+            ? 'bg-blue-900 text-white shadow-md'
+            : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
             }`}
         >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isExpanded && !selectedCluster ? 'bg-white/10' : 'bg-neutral-bg'
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isExpanded && !selectedCluster ? 'bg-white/10' : 'bg-gray-100'
             }`}>
             {icon}
           </div>
@@ -256,7 +256,7 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
         {!isMinimized && (
           <button
             onClick={() => toggleMenu(menuKey)}
-            className={`p-2 rounded-lg transition-all ${isExpanded ? 'text-primary-main bg-primary-main/5' : 'text-neutral-text-secondary hover:text-primary-main hover:bg-neutral-bg'
+            className={`p-2 rounded-lg transition-all ${isExpanded ? 'text-blue-900 bg-blue-50' : 'text-neutral-text-secondary hover:text-blue-900 hover:bg-gray-100'
               }`}
           >
             {isExpanded ? <FiChevronDown size={12} /> : <FiChevronRight size={12} />}
@@ -266,7 +266,7 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
 
       {/* Clusters Submenu */}
       {isExpanded && !isMinimized && (
-        <div className="ml-8 pl-4 border-l-2 border-primary-main/10 space-y-1 py-1 animate-in slide-in-from-left-2 duration-300">
+        <div className="ml-8 pl-4 border-l-2 border-blue-100 space-y-1 py-1 animate-in slide-in-from-left-2 duration-300">
           {clusters.map(cluster => {
             const getClusterIcon = (id: string) => {
               switch (id.toLowerCase()) {
@@ -275,7 +275,7 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
                 case 'app30a': return <FiDatabase size={12} />;
                 case 'app30b': return <FiCpu size={12} />;
                 case 'app6e': return <FiTerminal size={12} />;
-                default: return <div className={`w-1.5 h-1.5 rounded-full ${selectedCluster === cluster.id ? 'bg-white' : 'bg-neutral-border group-hover/cluster:bg-primary-main'}`} />;
+                default: return <div className={`w-1.5 h-1.5 rounded-full ${selectedCluster === cluster.id ? 'bg-white' : 'bg-gray-300 group-hover/cluster:bg-blue-600'}`} />;
               }
             };
 
@@ -284,12 +284,12 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
                 key={cluster.id}
                 onClick={() => handleClusterSelect(cluster.id)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all flex items-center justify-between group/cluster ${selectedCluster === cluster.id
-                  ? 'bg-[#172b4d] text-white shadow-sm'
-                  : 'text-neutral-text-secondary hover:text-primary-main hover:bg-primary-main/5'
+                  ? 'bg-blue-900 text-white shadow-sm'
+                  : 'text-gray-500 hover:text-blue-900 hover:bg-blue-50'
                   }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className={`transition-all duration-300 ${selectedCluster === cluster.id ? 'text-white' : 'text-neutral-text-muted group-hover/cluster:text-primary-main'}`}>
+                  <div className={`transition-all duration-300 ${selectedCluster === cluster.id ? 'text-white' : 'text-gray-400 group-hover/cluster:text-blue-600'}`}>
                     {getClusterIcon(cluster.id)}
                   </div>
                   <span className="truncate">{cluster.name}</span>

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiMail, FiPhone, FiAlertCircle, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiAlertCircle, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEdit2, FiTrash2, FiEye } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
-interface Contact {
+interface Customer {
     id?: string;
     contactFirstName?: string;
     contactLastName?: string;
@@ -18,10 +18,10 @@ interface ContactsCardProps {
 }
 
 const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
-    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [customers, setCustomers] = useState<Customer[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
     // Pagination states
     const [pageIndex, setPageIndex] = useState(0);
@@ -74,17 +74,20 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                     phone = item.phone_number;
                 }
 
+                const rawRole = item.role || (item.deleted ? 'Deleted' : '');
+                const finalRole = rawRole.toLowerCase() === 'contact' ? '' : rawRole;
+
                 return {
                     ...item,
                     contactFirstName: firstName,
                     contactLastName: lastName,
                     emailAddress: email,
                     phone: phone,
-                    role: item.role || (item.deleted ? 'Deleted' : 'Contact')
+                    role: finalRole
                 };
             });
 
-            setContacts(normalizedContacts);
+            setCustomers(normalizedContacts);
             setTotalElements(total);
             setTotalPages(pages);
         } catch (err) {
@@ -102,16 +105,16 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
         }
     }, [merchantId, cluster]);
 
-    const handleEditContact = (e: React.MouseEvent, contact: Contact) => {
+    const handleEditCustomer = (e: React.MouseEvent, customer: Customer) => {
         e.stopPropagation();
-        setSelectedContact(contact);
+        setSelectedCustomer(customer);
         // In a real app, this would open an edit modal
         alert('Edit functionality would open here');
     };
 
-    const handleDeleteContact = (e: React.MouseEvent, contact: Contact) => {
+    const handleDeleteCustomer = (e: React.MouseEvent, customer: Customer) => {
         e.stopPropagation();
-        if (window.confirm(`Are you sure you want to delete contact "${contact.contactFirstName} ${contact.contactLastName}"?`)) {
+        if (window.confirm(`Are you sure you want to delete customer "${customer.contactFirstName} ${customer.contactLastName}"?`)) {
             // In a real app, this would call merchantService.deleteContact
             alert('Delete functionality would trigger here');
         }
@@ -160,7 +163,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                         <span className="p-2 bg-purple-50 text-purple-600 rounded-lg">
                             <FiUser size={20} />
                         </span>
-                        Contacts
+                        Customers
                         <span className="text-xs font-normal text-gray-500 bg-gray-100 px-3 py-1 rounded-full ml-2">
                             {totalElements > 0 ? (
                                 <>
@@ -175,59 +178,61 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                             )}
                         </span>
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">Manage merchant contact points</p>
                 </div>
-                <button
-                    onClick={() => fetchContacts()}
-                    className="p-2 text-gray-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50"
-                    title="Refresh Contacts"
-                >
-                    <FiRefreshCw size={18} />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => fetchContacts()}
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm"
+                        title="Refresh Customers"
+                    >
+                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
+                    </button>
+                </div>
             </div>
 
-            {contacts.length === 0 ? (
+            {customers.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                     <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
                         <FiUser className="text-gray-400" size={24} />
                     </div>
-                    <h3 className="text-sm font-medium text-gray-900">No contacts found</h3>
-                    <p className="text-sm text-gray-500 mt-1">This merchant has no additional contacts listed.</p>
+                    <h3 className="text-sm font-medium text-gray-900">No customers found</h3>
+                    <p className="text-sm text-gray-500 mt-1">This merchant has no additional customers listed.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contacts.map((contact, index) => (
+                    {customers.map((customer, index) => (
                         <div
                             key={index}
-                            onClick={() => setSelectedContact(contact)}
-                            className="standard-tile group relative !p-4 cursor-pointer"
+                            className="standard-tile group relative !p-4"
                         >
                             <div className="standard-tile-avatar !w-12 !h-12 !bg-purple-100 text-purple-600">
-                                {(contact.contactFirstName || contact.contactLastName)
-                                    ? (contact.contactFirstName?.[0] || '') + (contact.contactLastName?.[0] || '')
+                                {(customer.contactFirstName || customer.contactLastName)
+                                    ? (customer.contactFirstName?.[0] || '') + (customer.contactLastName?.[0] || '')
                                     : <FiUser size={20} />}
                             </div>
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                     <h4 className="font-bold text-gray-900 text-sm truncate">
-                                        {contact.contactFirstName} {contact.contactLastName}
+                                        {customer.contactFirstName} {customer.contactLastName}
                                     </h4>
-                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700">
-                                        {contact.role || 'Contact'}
-                                    </span>
+                                    {customer.role && (
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700">
+                                            {customer.role}
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex flex-col gap-1 text-xs text-gray-500">
-                                    {contact.emailAddress && (
+                                    {customer.emailAddress && (
                                         <div className="flex items-center gap-1.5">
                                             <FiMail size={12} className="text-gray-400" />
-                                            <span className="truncate">{contact.emailAddress}</span>
+                                            <span className="truncate">{customer.emailAddress}</span>
                                         </div>
                                     )}
-                                    {contact.phone && (
+                                    {customer.phone && (
                                         <div className="flex items-center gap-1.5">
                                             <FiPhone size={12} className="text-gray-400" />
-                                            <span className="truncate">{contact.phone}</span>
+                                            <span className="truncate">{customer.phone}</span>
                                         </div>
                                     )}
                                 </div>
@@ -235,16 +240,16 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
 
                             <div className="flex items-center gap-1.5 opacity-100 transition-all shrink-0">
                                 <button
-                                    onClick={(e) => handleEditContact(e, contact)}
-                                    className="tile-btn-edit h-8 w-8 flex items-center justify-center"
-                                    title="Edit Contact"
+                                    onClick={(e) => { e.stopPropagation(); setSelectedCustomer(customer); }}
+                                    className="tile-btn-view h-8 w-8 flex items-center justify-center"
+                                    title="View Customer"
                                 >
-                                    <FiEdit2 size={12} />
+                                    <FiEye size={12} />
                                 </button>
                                 <button
-                                    onClick={(e) => handleDeleteContact(e, contact)}
+                                    onClick={(e) => handleDeleteCustomer(e, customer)}
                                     className="tile-btn-delete h-8 w-8 flex items-center justify-center"
-                                    title="Delete Contact"
+                                    title="Delete Customer"
                                 >
                                     <FiTrash2 size={12} />
                                 </button>
@@ -254,9 +259,9 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
 
                     {/* Pagination Controls */}
                     {totalPages > 1 && (
-                        <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-6">
+                        <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-6 col-span-1 md:col-span-2">
                             <div className="text-sm text-gray-500">
-                                Showing <span className="font-bold text-gray-900">{pageIndex * pageSize + 1}</span> to <span className="font-bold text-gray-900">{Math.min((pageIndex + 1) * pageSize, totalElements)}</span> of <span className="font-bold text-gray-900">{totalElements}</span> contacts
+                                Showing <span className="font-bold text-gray-900">{pageIndex * pageSize + 1}</span> to <span className="font-bold text-gray-900">{Math.min((pageIndex + 1) * pageSize, totalElements)}</span> of <span className="font-bold text-gray-900">{totalElements}</span> customers
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
@@ -270,8 +275,6 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
 
                                 <div className="flex items-center gap-1">
                                     {[...Array(totalPages)].map((_, i) => {
-                                        // Simple logic to show current, first, last and surrounding pages if needed
-                                        // For now just show all if totalPages is small, else truncate (simplified for now)
                                         if (totalPages > 7) {
                                             if (i === 0 || i === totalPages - 1 || (i >= pageIndex - 1 && i <= pageIndex + 1)) {
                                                 return (
@@ -315,23 +318,25 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                 </div>
             )}
 
-            {/* Contact Details Modal */}
-            {selectedContact && (
+            {/* Customer Details Modal */}
+            {selectedCustomer && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden scale-in-center animate-in zoom-in-95 duration-200">
                         {/* Modal Header */}
                         <div className="bg-purple-600 p-6 text-white flex justify-between items-center">
                             <div className="flex items-center gap-4">
                                 <div className="w-14 h-14 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-bold">
-                                    {(selectedContact.contactFirstName?.[0] || '') + (selectedContact.contactLastName?.[0] || '') || <FiUser />}
+                                    {(selectedCustomer.contactFirstName?.[0] || '') + (selectedCustomer.contactLastName?.[0] || '') || <FiUser />}
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-bold">{selectedContact.contactFirstName} {selectedContact.contactLastName}</h3>
-                                    <span className="text-sm bg-white/20 px-2 py-0.5 rounded-full">{selectedContact.role || 'Contact'}</span>
+                                    <h3 className="text-xl font-bold">{selectedCustomer.contactFirstName} {selectedCustomer.contactLastName}</h3>
+                                    {selectedCustomer.role && (
+                                        <span className="text-sm bg-white/20 px-2 py-0.5 rounded-full">{selectedCustomer.role}</span>
+                                    )}
                                 </div>
                             </div>
                             <button
-                                onClick={() => setSelectedContact(null)}
+                                onClick={() => setSelectedCustomer(null)}
                                 className="p-2 hover:bg-white/10 rounded-full transition-colors"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -349,14 +354,14 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><FiMail size={18} /></div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Email Address</p>
-                                            <p className="text-gray-900 font-medium">{selectedContact.emailAddress || 'N/A'}</p>
+                                            <p className="text-gray-900 font-medium">{selectedCustomer.emailAddress || 'N/A'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                                         <div className="p-2 bg-green-50 text-green-600 rounded-lg"><FiPhone size={18} /></div>
                                         <div>
                                             <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Phone Number</p>
-                                            <p className="text-gray-900 font-medium">{selectedContact.phone || 'N/A'}</p>
+                                            <p className="text-gray-900 font-medium">{selectedCustomer.phone || 'N/A'}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -369,25 +374,25 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                     </h4>
                                     <div className="bg-gray-50 rounded-xl p-4 space-y-3">
                                         <div className="flex justify-between text-sm">
-                                            <span className="text-gray-500">Contact ID</span>
-                                            <span className="text-gray-900 font-mono font-medium">{selectedContact.id || selectedContact.customerId || 'N/A'}</span>
+                                            <span className="text-gray-500">Customer ID</span>
+                                            <span className="text-gray-900 font-mono font-medium">{selectedCustomer.id || selectedCustomer.customerId || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Merchant ID</span>
-                                            <span className="text-gray-900 font-medium">{selectedContact.merchantId || merchantId}</span>
+                                            <span className="text-gray-900 font-medium">{selectedCustomer.merchantId || merchantId}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Created On</span>
-                                            <span className="text-gray-900 font-medium">{selectedContact.createdDate || 'N/A'}</span>
+                                            <span className="text-gray-900 font-medium">{selectedCustomer.createdDate || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Last Modified</span>
-                                            <span className="text-gray-900 font-medium">{selectedContact.lastModifiedDate || 'N/A'}</span>
+                                            <span className="text-gray-900 font-medium">{selectedCustomer.lastModifiedDate || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Deletion Status</span>
-                                            <span className={`font-bold ${selectedContact.deleted ? 'text-red-500' : 'text-green-500'}`}>
-                                                {selectedContact.deleted ? 'Deleted' : 'Active'}
+                                            <span className={`font-bold ${selectedCustomer.deleted ? 'text-red-500' : 'text-green-500'}`}>
+                                                {selectedCustomer.deleted ? 'Deleted' : 'Active'}
                                             </span>
                                         </div>
                                     </div>
@@ -398,7 +403,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                         {/* Modal Footer */}
                         <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
                             <button
-                                onClick={() => setSelectedContact(null)}
+                                onClick={() => setSelectedCustomer(null)}
                                 className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold rounded-xl transition-all"
                             >
                                 Close

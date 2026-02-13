@@ -96,91 +96,98 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-2xl">
-            <div className="p-8 border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-white">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {/* Header Section */}
+            <div className="p-6 border-b border-gray-50 bg-white">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200">
+                        <div className="p-3 bg-blue-50 text-blue-900 rounded-2xl border border-blue-100">
                             <FiLayout size={24} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900 tracking-tight">Landing Pages</h3>
-                            <p className="text-sm text-gray-500 font-medium">Create and manage your campaign templates</p>
+                            <h3 className="text-lg font-black text-blue-900 tracking-tight">Landing Pages</h3>
+                            <p className="text-xs font-medium text-gray-400">Create and manage your campaign templates</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <div className="relative group">
-                            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" />
+                            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-900 transition-colors" />
                             <input
                                 type="text"
                                 placeholder="Search pages..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-2 bg-gray-100/50 border-none rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white transition-all w-full md:w-64"
+                                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500/20 focus:border-blue-900 transition-all w-full md:w-64"
                             />
                         </div>
-                        <button
-                            onClick={fetchPages}
-                            className={`p-2.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all duration-300 ${loading ? 'animate-spin-slow text-indigo-500 bg-indigo-50' : ''}`}
-                            title="Refresh"
-                        >
-                            <FiRefreshCw size={20} />
-                        </button>
-                        <button
-                            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 active:scale-95 transition-all shadow-lg shadow-indigo-200"
-                        >
-                            <FiPlus size={18} className="stroke-[3]" />
-                            <span className="text-sm font-bold tracking-wide uppercase">New Page</span>
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-gray-100 px-2 py-1 rounded">
+                                {filteredPages.length} Results
+                            </span>
+                            <button
+                                onClick={fetchPages}
+                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                                title="Refresh"
+                            >
+                                <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                                {loading ? 'Refreshing...' : 'Refresh'}
+                            </button>
+                            <button
+                                className="flex items-center gap-2 px-5 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors shadow-sm"
+                            >
+                                <FiPlus size={18} />
+                                <span className="titlecase">New Page</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <div className="p-2">
                 {filteredPages.length > 0 ? (
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-1 gap-1">
                         {filteredPages.map((page, index) => (
-                            <div key={page.pageId || index} className="p-5 hover:bg-indigo-50/30 rounded-2xl transition-all duration-300 group relative border border-transparent hover:border-indigo-100">
+                            <div key={page.pageId || index} className="p-5 hover:bg-gray-50 rounded-2xl transition-all duration-300 group relative border border-transparent hover:border-gray-100">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-3 mb-2 flex-wrap">
-                                            <h4 className="font-bold text-gray-900 text-lg truncate" title={page.pageName}>
+                                            <h4 className="font-bold text-gray-900 text-sm truncate" title={page.pageName}>
                                                 {page.pageName || 'Unnamed Page'}
                                             </h4>
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider flex items-center border ${getStatusStyle(page.status)}`}>
+                                            <span className={`px-2 py-0.5 rounded-md text-[9px] font-black titlecase tracking-widest flex items-center border ${getStatusStyle(page.status).replace('emerald', 'emerald').replace('amber', 'amber').replace('indigo', 'blue')}`}>
                                                 {getStatusIcon(page.status)}
                                                 {page.status || 'Active'}
                                             </span>
-                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500 border border-gray-200 uppercase tracking-wider">
+                                            <span className="px-2 py-0.5 rounded-md text-[9px] font-black text-gray-400 titlecase tracking-widest bg-gray-50 border border-gray-100">
                                                 {page.pageType || 'custom-template'}
                                             </span>
                                         </div>
 
-                                        <div className="flex flex-wrap items-center gap-5 text-gray-500 text-xs font-medium">
-                                            <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                                                <FiUser className="text-indigo-400" size={14} />
-                                                <span className="truncate max-w-[150px]">{page.createdBy || 'System'}</span>
+                                        <div className="flex flex-wrap items-center gap-5 text-gray-500 text-[10px] font-medium">
+                                            <div className="flex items-center gap-1.5 bg-gray-50/50 px-2 py-1 rounded-md border border-gray-100">
+                                                <FiUser className="text-blue-900/40" size={14} />
+                                                <span className="truncate max-w-[150px] titlecase">{page.createdBy || 'System'}</span>
                                             </div>
-                                            <div className="flex items-center gap-1.5 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                                                <FiCalendar className="text-indigo-400" size={14} />
+                                            <div className="flex items-center gap-1.5 bg-gray-50/50 px-2 py-1 rounded-md border border-gray-100">
+                                                <FiCalendar className="text-blue-900/40" size={14} />
                                                 <span>{page.createdDate ? new Date(page.createdDate).toLocaleDateString() : 'N/A'}</span>
                                             </div>
-                                            <div className="text-[10px] font-mono text-gray-400">
-                                                ID: {page.pageId}
+                                            <div className="text-[10px] font-mono text-gray-300">
+                                                Ref: {page.pageId}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                                        <button className="p-3 text-gray-500 hover:text-indigo-600 hover:bg-indigo-100 bg-white shadow-sm border border-gray-200 rounded-xl transition-all active:scale-95" title="Preview">
-                                            <FiExternalLink size={18} />
+                                        <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100" title="Preview">
+                                            <FiExternalLink size={16} />
                                         </button>
-                                        <button className="p-3 text-gray-500 hover:text-blue-600 hover:bg-blue-100 bg-white shadow-sm border border-gray-200 rounded-xl transition-all active:scale-95" title="Edit">
-                                            <FiEdit2 size={18} />
+                                        <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100" title="Edit">
+                                            <FiEdit2 size={16} />
                                         </button>
-                                        <button className="p-3 text-gray-500 hover:text-rose-600 hover:bg-rose-100 bg-white shadow-sm border border-gray-200 rounded-xl transition-all active:scale-95" title="Delete">
-                                            <FiTrash2 size={18} />
+                                        <button className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm border border-gray-100" title="Delete">
+                                            <FiTrash2 size={16} />
                                         </button>
                                     </div>
                                 </div>
@@ -188,18 +195,18 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
                         ))}
                     </div>
                 ) : (
-                    <div className="p-20 text-center">
-                        <div className="inline-flex justify-center items-center w-20 h-20 bg-indigo-50 text-indigo-400 rounded-3xl mb-6 shadow-inner">
-                            <FiLayout size={36} />
+                    <div className="flex flex-col items-center py-20 text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 shadow-sm border border-gray-100">
+                            <FiLayout className="text-gray-300" size={32} />
                         </div>
-                        <h4 className="text-xl font-bold text-gray-800">No pages discovered</h4>
-                        <p className="text-sm text-gray-400 mt-2 max-w-xs mx-auto">
+                        <h4 className="text-sm font-bold text-gray-600 mb-2">No Pages Discovered</h4>
+                        <p className="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
                             {searchTerm ? `No results matching "${searchTerm}". Try a different term.` : "Your landing pages and templates will appear here once created."}
                         </p>
                         {searchTerm && (
                             <button
                                 onClick={() => setSearchTerm('')}
-                                className="mt-6 text-indigo-600 font-bold text-sm hover:underline"
+                                className="mt-6 text-blue-900 font-black text-[10px] titlecase tracking-widest hover:underline"
                             >
                                 Clear search
                             </button>
@@ -209,11 +216,13 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
             </div>
 
             {pages.length > 0 && (
-                <div className="p-6 bg-gray-50/50 border-t border-gray-100 flex justify-between items-center text-xs text-gray-500 font-medium">
-                    <div>Showing {filteredPages.length} of {pages.length} pages</div>
-                    <div className="flex items-center gap-1.5">
+                <div className="px-6 py-4 bg-gray-50/30 border-t border-gray-100 flex justify-between items-center">
+                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
+                        Showing {filteredPages.length} of {pages.length} Pages
+                    </p>
+                    <div className="flex items-center gap-1.5 bg-white px-3 py-1.5 rounded-full border border-gray-100 shadow-sm transition-all hover:shadow-md">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                        Live system
+                        <span className="text-[10px] font-black text-emerald-600 titlecase tracking-widest">Live System</span>
                     </div>
                 </div>
             )}

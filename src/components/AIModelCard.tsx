@@ -7,6 +7,7 @@ import {
 } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 import CreateKBModal from './CreateKBModal';
+import CreateModelModal from './CreateModelModal';
 
 interface AIModelCardProps {
     merchantId: string;
@@ -32,6 +33,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
 
     // Modal state
     const [isKBModalOpen, setIsKBModalOpen] = useState(false);
+    const [isModelModalOpen, setIsModelModalOpen] = useState(false);
 
     const tabs = [
         'Model Management', 'Private LLM', 'ML Models',
@@ -158,7 +160,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
     };
 
     const handleCreateModel = () => {
-        alert('Opening Create Model Modal (To be implemented)');
+        setIsModelModalOpen(true);
     };
 
     const handleAddKB = () => {
@@ -213,21 +215,21 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                     <div className="flex items-center gap-2">
                         <button
                             onClick={handleAddKB}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-[#1a365d] text-white rounded-md text-xs font-bold hover:bg-[#152c4d] transition-all shadow-sm"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
                         >
-                            <FiPlus /> Add Knowledge Base
+                            <FiPlus size={16} /> Add Knowledge Base
                         </button>
                         <button
                             onClick={handleCreateModel}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-[#1a365d] text-white rounded-md text-xs font-bold hover:bg-[#152c4d] transition-all shadow-sm"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
                         >
-                            <FiPlus /> Create Model
+                            <FiPlus size={16} /> Create Model
                         </button>
                         <button
                             onClick={fetchData}
-                            className="flex items-center gap-2 px-3 py-1.5 bg-white text-gray-600 border border-gray-300 rounded-md text-xs font-bold hover:bg-gray-50 transition-all shadow-sm"
+                            className="px-4 py-2 bg-white text-gray-600 border border-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center gap-2 shadow-sm"
                         >
-                            <FiRefreshCw className={loading ? 'animate-spin' : ''} /> Refresh
+                            <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
                         </button>
                     </div>
                 </div>
@@ -462,6 +464,15 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                 merchantId={merchantId}
                 cluster={cluster}
                 models={modelsList}
+                onSuccess={fetchData}
+            />
+            {/* Create Model Modal */}
+            <CreateModelModal
+                isOpen={isModelModalOpen}
+                onClose={() => setIsModelModalOpen(false)}
+                merchantId={merchantId}
+                cluster={cluster}
+                modelType={activeTab === 'Private LLM' ? 'PRIVATE_LLM' : 'PUBLIC_LLM'}
                 onSuccess={fetchData}
             />
         </div>

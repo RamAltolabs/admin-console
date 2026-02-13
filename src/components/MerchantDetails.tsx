@@ -28,6 +28,8 @@ import ProductsCard from './ProductsCard';
 import OrdersCard from './OrdersCard';
 import PaymentDetailsCard from './PaymentDetailsCard';
 import CampaignsCard from './CampaignsCard';
+import OntologiesCard from './OntologiesCard';
+import DocumentsCard from './DocumentsCard';
 
 const MerchantDetails: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -49,18 +51,20 @@ const MerchantDetails: React.FC = () => {
     // Sync tab from URL
     useEffect(() => {
         const tab = queryParams.get('tab');
-        if (tab && tab !== activeTab) {
-            setActiveTab(tab);
-
-            // Auto-switch main tab based on sub-tab
+        if (tab) {
+            // Always check and set main tab when URL has a tab param
             for (const section of managementSections) {
                 if (section.items.some(i => i.id === tab)) {
                     setMainTab(section.id as any);
                     break;
                 }
             }
+
+            if (tab !== activeTab) {
+                setActiveTab(tab);
+            }
         }
-    }, [location.search, activeTab]);
+    }, [location.search]);
 
     // Top-Level Tab State
     const [mainTab, setMainTab] = useState<'details' | 'overview' | 'analytics' | 'general' | 'ai-suite' | 'model-studio' | 'communication' | 'system'>('details');
@@ -82,7 +86,7 @@ const MerchantDetails: React.FC = () => {
             items: [
                 { id: 'users', label: 'Users', icon: FiUserCheck },
                 { id: 'departments', label: 'Departments', icon: FiUsers },
-                { id: 'contacts', label: 'Contacts', icon: FiUser },
+                { id: 'contacts', label: 'Customers', icon: FiUser },
             ]
         },
         {
@@ -232,7 +236,7 @@ const MerchantDetails: React.FC = () => {
                 <Icon size={12} />
             </div>
             <div className="min-w-0 flex-1">
-                <p className="text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">{label}</p>
+                <p className="text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">{label}</p>
                 <p className="text-xs font-semibold text-neutral-text-main mt-0.5 truncate">{value || 'N/A'}</p>
             </div>
         </div>
@@ -276,35 +280,35 @@ const MerchantDetails: React.FC = () => {
                     </div>
 
                     {/* Top Level Tabs */}
-                    <div className="flex flex-wrap gap-1 bg-neutral-bg/50 p-1 rounded-lg w-fit">
+                    <div className="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-xl w-fit border border-gray-200">
                         <button
                             onClick={() => setMainTab('details')}
-                            className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === 'details'
-                                ? 'bg-white text-primary-main shadow-sm'
-                                : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
+                            className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === 'details'
+                                ? 'bg-blue-900 text-white shadow-md'
+                                : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
                                 }`}
                         >
-                            <FiUser className="mr-1.5" size={14} />
+                            <FiUser className="mr-2" size={14} />
                             Info
                         </button>
                         <button
                             onClick={() => setMainTab('overview')}
-                            className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === 'overview'
-                                ? 'bg-white text-primary-main shadow-sm'
-                                : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
+                            className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === 'overview'
+                                ? 'bg-blue-900 text-white shadow-md'
+                                : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
                                 }`}
                         >
-                            <FiUsers className="mr-1.5" size={14} />
+                            <FiUsers className="mr-2" size={14} />
                             Visitors
                         </button>
                         <button
                             onClick={() => setMainTab('analytics')}
-                            className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === 'analytics'
-                                ? 'bg-white text-primary-main shadow-sm'
-                                : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
+                            className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === 'analytics'
+                                ? 'bg-blue-900 text-white shadow-md'
+                                : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
                                 }`}
                         >
-                            <FiBarChart2 className="mr-1.5" size={14} />
+                            <FiBarChart2 className="mr-2" size={14} />
                             Analytics
                         </button>
 
@@ -319,20 +323,20 @@ const MerchantDetails: React.FC = () => {
                                         setActiveTab(section.items[0].id);
                                     }
                                 }}
-                                className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === section.id
-                                    ? 'bg-white text-primary-main shadow-sm'
-                                    : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
+                                className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === section.id
+                                    ? 'bg-blue-900 text-white shadow-md'
+                                    : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
                                     }`}
                             >
                                 {section.id !== 'general' && section.id !== 'system' && (
-                                    <div className="mr-1.5">
+                                    <div className="mr-2">
                                         {section.id === 'ai-suite' && <FiZap size={14} />}
                                         {section.id === 'model-studio' && <FiCpu size={14} />}
                                         {section.id === 'communication' && <FiMessageSquare size={14} />}
                                     </div>
                                 )}
-                                {section.id === 'general' && <FiGrid className="mr-1.5" size={14} />}
-                                {section.id === 'system' && <FiSettings className="mr-1.5" size={14} />}
+                                {section.id === 'general' && <FiGrid className="mr-2" size={14} />}
+                                {section.id === 'system' && <FiSettings className="mr-2" size={14} />}
                                 {section.title}
                             </button>
                         ))}
@@ -346,14 +350,14 @@ const MerchantDetails: React.FC = () => {
                             <div className="space-y-2.5 lg:col-span-2">
                                 <div className="flex items-center justify-between mb-1.5">
                                     <h3 className="text-base font-bold text-gray-800 flex items-center">
-                                        <div className="p-1 bg-genx-50 rounded-lg mr-1.5 text-genx-600">
+                                        <div className="p-1 bg-blue-50 rounded-lg mr-1.5 text-blue-900">
                                             <FiFileText size={16} />
                                         </div>
                                         Merchant Details
                                     </h3>
                                     <button
                                         onClick={() => setIsEditModalOpen(true)}
-                                        className="p-1 px-2 text-xs font-bold text-genx-600 hover:bg-genx-50 rounded-lg transition-all flex items-center gap-1 border border-genx-100 shadow-sm"
+                                        className="p-1 px-2 text-xs font-bold text-blue-900 hover:bg-blue-50 rounded-lg transition-all flex items-center gap-1 border border-blue-100 shadow-sm"
                                     >
                                         <FiEdit2 size={10} /> Edit
                                     </button>
@@ -361,12 +365,12 @@ const MerchantDetails: React.FC = () => {
                                 <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
                                     {/* Merchant Info Section */}
                                     <div className="p-2.5 border-b border-gray-100">
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Contact Information</h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                                            <DetailItem icon={FiUser} label="Primary Contact" value={`${merchant.contactFirstName || ''} ${merchant.contactLastName || ''}`} color="text-genx-500" />
-                                            <DetailItem icon={FiMail} label="Email Address" value={merchant.email} color="text-genx-500" />
-                                            <DetailItem icon={FiPhone} label="Phone Number" value={merchant.phone} color="text-genx-500" />
-                                            <DetailItem icon={FiClock} label="Timezone" value={merchant.timeZone} color="text-genx-500" />
+                                        <h4 className="text-xs font-bold text-gray-400 titlecase tracking-wide mb-1.5">Contact Information</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap -1 ">
+                                            <DetailItem icon={FiUser} label="Primary Contact" value={`${merchant.contactFirstName || ''} ${merchant.contactLastName || ''}`} color="text-blue-500" />
+                                            <DetailItem icon={FiMail} label="Email Address" value={merchant.email} color="text-blue-500" />
+                                            <DetailItem icon={FiPhone} label="Phone Number" value={merchant.phone} color="text-blue-500" />
+                                            <DetailItem icon={FiClock} label="Timezone" value={merchant.timeZone} color="text-blue-500" />
                                         </div>
                                     </div>
 
@@ -374,8 +378,8 @@ const MerchantDetails: React.FC = () => {
                                     <div className="p-2.5 border-b border-gray-100">
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Business Information</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                                            <DetailItem icon={FiFileText} label="Caption" value={merchant.caption} color="text-genx-500" />
-                                            <DetailItem icon={FiGlobe} label="Website" value={merchant.website} color="text-genx-500" />
+                                            <DetailItem icon={FiFileText} label="Caption" value={merchant.caption} color="text-blue-500" />
+                                            <DetailItem icon={FiGlobe} label="Website" value={merchant.website} color="text-blue-500" />
                                         </div>
                                     </div>
 
@@ -383,9 +387,9 @@ const MerchantDetails: React.FC = () => {
                                     <div className="p-2.5">
                                         <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Location</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
-                                            <DetailItem icon={FiMapPin} label="Address" value={merchant.address} color="text-genx-500" />
-                                            <DetailItem icon={FiGlobe} label="Region / Cluster" value={merchant.cluster} color="text-genx-500" />
-                                            <DetailItem icon={FiMapPin} label="City / State" value={`${merchant.city || ''}${merchant.city && merchant.state ? ', ' : ''}${merchant.state || ''}`} color="text-genx-500" />
+                                            <DetailItem icon={FiMapPin} label="Address" value={merchant.address} color="text-blue-500" />
+                                            <DetailItem icon={FiGlobe} label="Region / Cluster" value={merchant.cluster} color="text-blue-500" />
+                                            <DetailItem icon={FiMapPin} label="City / State" value={`${merchant.city || ''}${merchant.city && merchant.state ? ', ' : ''}${merchant.state || ''}`} color="text-blue-500" />
                                         </div>
                                     </div>
                                 </div>
@@ -394,15 +398,15 @@ const MerchantDetails: React.FC = () => {
                             {/* Metadata */}
                             <div className="space-y-2.5">
                                 <h3 className="text-sm font-bold text-gray-800 flex items-center">
-                                    <div className="p-1 bg-genx-50 rounded-lg mr-1.5 text-genx-600">
+                                    <div className="p-1 bg-blue-50 rounded-lg mr-1.5 text-blue-900">
                                         <FiActivity size={16} />
                                     </div>
                                     Metadata
                                 </h3>
                                 <div className="bg-white rounded-xl border border-gray-100 divide-y divide-gray-50 shadow-sm">
-                                    <DetailItem icon={FiShield} label="Tax ID" value={merchant.taxId} color="text-genx-500" />
-                                    <DetailItem icon={FiCalendar} label="Created On" value={new Date(merchant.createdAt).toLocaleDateString()} color="text-genx-500" />
-                                    <DetailItem icon={FiClock} label="Last Updated" value={new Date(merchant.updatedAt).toLocaleDateString()} color="text-genx-500" />
+                                    <DetailItem icon={FiShield} label="Tax ID" value={merchant.taxId} color="text-blue-500" />
+                                    <DetailItem icon={FiCalendar} label="Created On" value={new Date(merchant.createdAt).toLocaleDateString()} color="text-blue-500" />
+                                    <DetailItem icon={FiClock} label="Last Updated" value={new Date(merchant.updatedAt).toLocaleDateString()} color="text-blue-500" />
                                 </div>
                             </div>
                         </div>
@@ -412,18 +416,18 @@ const MerchantDetails: React.FC = () => {
                         <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                             {/* Visitor Sidebar */}
                             <div className="w-48 shrink-0">
-                                <div className="bg-white rounded-xl border border-neutral-border p-2 space-y-0.5 shadow-sm">
+                                <div className="bg-white rounded-xl border border-gray-200 p-2 space-y-1 shadow-sm">
                                     {visitorSections.map((section) => (
                                         <button
                                             key={section.id}
                                             onClick={() => setVisitorSubTab(section.id)}
-                                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${visitorSubTab === section.id
-                                                ? 'bg-primary-main/5 text-primary-main font-bold shadow-sm'
-                                                : 'text-neutral-text-secondary hover:bg-neutral-bg hover:text-primary-main font-bold'
+                                            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left ${visitorSubTab === section.id
+                                                ? 'bg-blue-900 text-white font-bold shadow-md'
+                                                : 'text-gray-500 hover:bg-gray-100 hover:text-blue-900 font-medium'
                                                 }`}
                                         >
-                                            <section.icon size={14} />
-                                            <span className="text-[11px] tracking-wider">{section.label}</span>
+                                            <section.icon size={16} />
+                                            <span className="text-xs font-semibold tracking-wide">{section.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -466,21 +470,21 @@ const MerchantDetails: React.FC = () => {
                             <div key={section.id} className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                 {/* Management Sidebar */}
                                 <div className="w-48 shrink-0">
-                                    <div className="bg-white rounded-xl border border-neutral-border p-2 space-y-0.5 shadow-sm">
-                                        <div className="px-3 py-1.5 mb-1">
-                                            <h3 className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">{section.title}</h3>
+                                    <div className="bg-white rounded-xl border border-gray-200 p-2 space-y-1 shadow-sm">
+                                        <div className="px-3 py-2 mb-1 border-b border-gray-100">
+                                            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{section.title}</h3>
                                         </div>
                                         {section.items.map((item) => (
                                             <button
                                                 key={item.id}
                                                 onClick={() => setActiveTab(item.id)}
-                                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${activeTab === item.id || (mainTab === section.id && activeTab === item.id)
-                                                    ? 'bg-primary-main/5 text-primary-main font-bold shadow-sm'
-                                                    : 'text-neutral-text-secondary hover:bg-neutral-bg hover:text-primary-main font-bold'
+                                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left ${activeTab === item.id || (mainTab === section.id && activeTab === item.id)
+                                                    ? 'bg-blue-900 text-white font-bold shadow-md'
+                                                    : 'text-gray-500 hover:bg-gray-100 hover:text-blue-900 font-medium'
                                                     }`}
                                             >
-                                                <item.icon size={14} />
-                                                <span className="text-[11px] tracking-wider">{item.label}</span>
+                                                <item.icon size={16} />
+                                                <span className="text-xs font-semibold tracking-wide">{item.label}</span>
                                             </button>
                                         ))}
                                     </div>
@@ -514,20 +518,8 @@ const MerchantDetails: React.FC = () => {
                                         {activeTab === 'studio-prompts' && <PromptLab merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'ml-models' && <AIModelCard merchantId={merchant.id} cluster={merchant.cluster} initialTab="ML Models" />}
                                         {activeTab === 'studio-knowledge' && <KnowledgeBasesCard merchantId={merchant.id} cluster={merchant.cluster} />}
-                                        {activeTab === 'documents' && (
-                                            <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-gray-200">
-                                                <FiFolder size={48} className="mx-auto text-gray-300 mb-4" />
-                                                <h3 className="text-lg font-bold text-gray-800">Documents</h3>
-                                                <p className="text-gray-500">Manage vector store documents and source files.</p>
-                                            </div>
-                                        )}
-                                        {activeTab === 'ontologies' && (
-                                            <div className="p-8 text-center bg-white rounded-2xl border border-dashed border-gray-200">
-                                                <FiLayers size={48} className="mx-auto text-gray-300 mb-4" />
-                                                <h3 className="text-lg font-bold text-gray-800">Ontologies</h3>
-                                                <p className="text-gray-500">Define knowledge graphs and relational schemas.</p>
-                                            </div>
-                                        )}
+                                        {activeTab === 'documents' && <DocumentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'ontologies' && <OntologiesCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                     </div>
                                 </div>
                             </div>

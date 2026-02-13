@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
     FiPlus, FiRefreshCw, FiInfo, FiActivity, FiMessageCircle,
     FiMonitor, FiUsers, FiMessageSquare, FiChevronRight,
-    FiEdit2, FiTrash2, FiExternalLink, FiBarChart2, FiArrowLeft, FiPhone
+    FiEdit2, FiTrash2, FiExternalLink, FiBarChart2, FiArrowLeft, FiPhone, FiArrowRight
 } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 import EngagementFormModal from './EngagementFormModal';
@@ -201,38 +201,41 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
+        <div className="space-y-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-4">
                 <div className="flex items-center gap-3">
                     {selectedGroup ? (
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setSelectedGroup(null)}
-                                className="flex items-center text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors group"
+                                className="flex items-center text-xs font-black text-gray-500 hover:text-blue-900 transition-all group titlecase tracking-widest bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200"
                             >
-                                <FiArrowLeft className="mr-1 group-hover:-translate-x-1 transition-transform" /> Back
+                                <FiArrowLeft className="mr-1.5 group-hover:-translate-x-1 transition-transform" /> Back
                             </button>
-                            <h2 className="text-xl font-bold text-[#1a365d]">
-                                My Engagements <span className="text-gray-400 font-normal">»</span> {selectedGroup}
+                            <h2 className="text-lg font-black text-blue-900 tracking-tight">
+                                Engagements <span className="text-gray-300 font-normal mx-1">/</span> <span className="text-gray-500 titlecase">{selectedGroup.toLowerCase()}</span>
                             </h2>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <h2 className="text-xl font-bold text-[#1a365d]">My Engagements</h2>
-                            <FiInfo size={16} className="text-gray-400 cursor-help" />
+                            <h2 className="text-lg font-black text-blue-900 tracking-tight">My Engagements</h2>
+                            <FiInfo size={14} className="text-gray-300 cursor-help" />
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-3 ml-auto">
+                <div className="flex items-center gap-2 ml-auto">
                     <button
                         onClick={() => fetchEngagements(pageIndex)}
-                        className="p-2.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh Data"
                     >
-                        <FiRefreshCw size={20} className={loading ? 'animate-spin' : ''} />
+                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
-                    <button className="bg-[#1a365d] hover:bg-[#2a4a7d] text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-md active:scale-95">
-                        <FiPlus />
+                    <button
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                    >
+                        <FiPlus size={16} />
                         Create
                     </button>
                 </div>
@@ -240,17 +243,17 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
 
             {/* Notifications */}
             {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
-                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
-                        <FiInfo size={16} />
+                <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-lg text-xs font-medium flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                    <div className="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <FiInfo size={12} />
                     </div>
                     {error}
                 </div>
             )}
             {successMessage && (
-                <div className="mb-6 p-4 bg-green-50 border border-green-100 text-green-600 rounded-xl text-sm font-medium flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center shrink-0">
-                        <FiActivity size={16} />
+                <div className="mb-4 p-3 bg-green-50 border border-green-100 text-green-600 rounded-lg text-xs font-medium flex items-center gap-3 animate-in slide-in-from-top-2 duration-300">
+                    <div className="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                        <FiActivity size={12} />
                     </div>
                     {successMessage}
                 </div>
@@ -258,130 +261,130 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
-                    <div className="w-10 h-10 border-4 border-indigo-500/30 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-                    <p className="text-gray-500 font-medium">Loading engagements...</p>
+                    <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                    <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading engagements...</p>
                 </div>
             ) : engagements.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4 text-gray-300">
-                        <FiActivity size={32} />
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200 text-center">
+                    <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
+                        <FiActivity className="text-gray-300" size={28} />
                     </div>
-                    <p className="text-gray-500 font-medium text-lg">No Engagements Found</p>
-                    <p className="text-gray-400 text-sm mt-1">Click "Create" to add your first engagement.</p>
+                    <h4 className="text-sm font-bold text-gray-600 mb-1">No Engagements Found</h4>
+                    <p className="text-xs text-gray-400">Click "Create" to add your first engagement.</p>
                 </div>
             ) : (
                 selectedGroup ? (
-                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
+                    <div className="bg-white rounded-lg border border-gray-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-right-4 duration-300">
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Status</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Action</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Preview</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Analytics</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Channel</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Name</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Chat Bot</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Page Name</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">AI Agent</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Created By</th>
-                                        <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Created Date</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Status</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Action</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Preview</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Analytics</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Channel</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Name</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Chat Bot</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Page Name</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">AI Agent</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Created By</th>
+                                        <th className="px-3 py-3 text-left text-[10px] font-black text-gray-400 titlecase tracking-wider">Created Date</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
+                                <tbody className="bg-white divide-y divide-gray-100">
                                     {engagements
                                         .find(g => g.type === selectedGroup)
                                         ?.examples.map((item: any) => {
                                             const isActive = item.status?.toLowerCase() === 'active';
                                             return (
-                                                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="flex items-center gap-3">
+                                                <tr key={item.id} className="hover:bg-gray-50 transition-colors titlecase">
+                                                    <td className="px-3 py-2 whitespace-nowrap">
+                                                        <div className="flex items-center gap-2">
                                                             <button
                                                                 onClick={() => handleToggleStatus(item)}
                                                                 disabled={actionLoading === item.id}
-                                                                className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${isActive ? 'bg-green-500' : 'bg-gray-300'} ${actionLoading === item.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                                className={`relative inline-flex h-4 w-8 items-center rounded-full transition-colors focus:outline-none focus:ring-1 focus:ring-blue-900 focus:ring-offset-1 ${isActive ? 'bg-emerald-500' : 'bg-gray-300'} ${actionLoading === item.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                                 title={isActive ? 'Disable Engagement' : 'Enable Engagement'}
                                                             >
                                                                 <span
-                                                                    className={`${isActive ? 'translate-x-5' : 'translate-x-1'} inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform flex items-center justify-center`}
+                                                                    className={`${isActive ? 'translate-x-4' : 'translate-x-1'} inline-block h-2.5 w-2.5 transform rounded-full bg-white transition-transform flex items-center justify-center`}
                                                                 >
                                                                     {actionLoading === item.id && (
-                                                                        <div className="w-2 h-2 border-[1px] border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                                                        <div className="w-1.5 h-1.5 border-[1px] border-blue-900 border-t-transparent rounded-full animate-spin"></div>
                                                                     )}
                                                                 </span>
                                                             </button>
-                                                            <span className={`text-[10px] font-bold uppercase ${isActive ? 'text-green-600' : 'text-rose-600'}`}>
+                                                            <span className={`text-[9px] font-black titlecase tracking-widest ${isActive ? 'text-emerald-600' : 'text-rose-600'}`}>
                                                                 {item.status || 'Active'}
                                                             </span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="flex items-center gap-2">
+                                                    <td className="px-3 py-2 whitespace-nowrap">
+                                                        <div className="flex items-center gap-1">
                                                             {actionLoading === item.id ? (
-                                                                <div className="flex items-center gap-2 px-2 py-1 bg-gray-50 rounded-lg">
-                                                                    <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                                                                    <span className="text-[10px] font-bold text-indigo-600 uppercase">Processing...</span>
+                                                                <div className="flex items-center gap-1 px-1.5 py-0.5 bg-gray-50 rounded">
+                                                                    <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                                                    <span className="text-[9px] font-bold text-indigo-600 uppercase">Wait...</span>
                                                                 </div>
                                                             ) : (
                                                                 <>
                                                                     <button
                                                                         onClick={() => handleEditEngagement(item)}
-                                                                        className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                                                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100"
                                                                         title="Edit"
                                                                     >
-                                                                        <FiEdit2 size={16} />
+                                                                        <FiEdit2 size={12} />
                                                                     </button>
                                                                     <button
                                                                         onClick={() => handleDeleteEngagement(item)}
-                                                                        className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                                                                        className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm border border-gray-100"
                                                                         title="Delete"
                                                                     >
-                                                                        <FiTrash2 size={16} />
+                                                                        <FiTrash2 size={12} />
                                                                     </button>
                                                                 </>
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
+                                                    <td className="px-3 py-2 whitespace-nowrap">
                                                         <a
                                                             href={getPreviewUrl(item)}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="inline-flex items-center justify-center p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors"
+                                                            className="inline-flex items-center justify-center p-1 bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors"
                                                             title="Open Preview"
                                                         >
-                                                            <FiExternalLink size={16} />
+                                                            <FiExternalLink size={14} />
                                                         </a>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <button className="inline-flex items-center justify-center p-1.5 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors" title="View Analytics">
-                                                            <FiBarChart2 size={16} />
+                                                    <td className="px-3 py-2 whitespace-nowrap">
+                                                        <button className="inline-flex items-center justify-center p-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors" title="View Analytics">
+                                                            <FiBarChart2 size={14} />
                                                         </button>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="flex items-center gap-2">
+                                                    <td className="px-3 py-2 whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5">
                                                             {item.channel?.name?.toLowerCase().includes('web') ? (
-                                                                <FiMonitor className="text-rose-500" size={18} />
+                                                                <FiMonitor className="text-rose-500" size={14} />
                                                             ) : (
-                                                                <FiPhone className="text-green-500" size={18} />
+                                                                <FiPhone className="text-green-500" size={14} />
                                                             )}
-                                                            <span className="text-sm text-gray-700">{item.channel?.name || 'Unknown'}</span>
+                                                            <span className="text-xs text-gray-700">{item.channel?.name || 'Unknown'}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                    <td className="px-3 py-2 whitespace-nowrap text-xs font-semibold text-gray-900 truncate max-w-[120px]" title={item.name || item.engagementName}>
                                                         {item.name || item.engagementName}
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-500">
                                                         {item.botList?.[0]?.botTemplateName || '-'}
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-500">
                                                         {item.channel?.reference || '-'}
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className="w-8 h-8 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+                                                    <td className="px-3 py-2 whitespace-nowrap">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-6 h-6 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
                                                                 {((item.aiAgent?.agentImage && item.aiAgent.agentImage[0]) || item.aiAgent?.image) ? (
                                                                     <img
                                                                         src={(item.aiAgent?.agentImage && item.aiAgent.agentImage[0]) || item.aiAgent?.image}
@@ -389,18 +392,18 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
                                                                         className="w-full h-full object-cover"
                                                                     />
                                                                 ) : (
-                                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-[10px] font-bold text-gray-600">
+                                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200 text-[8px] font-bold text-gray-600">
                                                                         {(item.aiAgent?.name || 'A').charAt(0)}
                                                                     </div>
                                                                 )}
                                                             </div>
-                                                            <span className="text-sm font-medium text-gray-700">{item.aiAgent?.name || '-'}</span>
+                                                            <span className="text-[11px] font-medium text-gray-700">{item.aiAgent?.name || '-'}</span>
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-500">
                                                         {item.createdBy || '-'}
                                                     </td>
-                                                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                                                    <td className="px-3 py-2 whitespace-nowrap text-[11px] text-gray-500">
                                                         {item.createdDate ? new Date(item.createdDate).toLocaleDateString() : '-'}
                                                     </td>
                                                 </tr>
@@ -411,31 +414,37 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
                         </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in zoom-in-95 duration-300">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-in fade-in zoom-in-95 duration-300">
                         {engagements.map((group, idx) => (
                             <div
                                 key={group.type || idx}
                                 onClick={() => setSelectedGroup(group.type)}
-                                className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all cursor-pointer group relative overflow-hidden active:scale-[0.98]"
+                                className="standard-tile flex-col items-stretch group relative gap-3 !p-4 bg-white hover:border-blue-900/30 transition-all duration-300 shadow-sm hover:shadow-md cursor-pointer active:scale-[0.98]"
                             >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-14 h-14 ${getIconBg(group.type)} rounded-2xl flex items-center justify-center shadow-lg transition-transform group-hover:scale-110`}>
-                                        {getIcon(group.type)}
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-10 h-10 ${getIconBg(group.type).replace('indigo-500', 'blue-900').replace('indigo-100', 'blue-50')} text-blue-900 rounded-xl flex items-center justify-center shadow-sm border border-blue-100 transition-transform group-hover:scale-105`}>
+                                        {React.cloneElement(getIcon(group.type) as React.ReactElement, { size: 18 })}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-0.5">
-                                            Chatbot
+                                        <p className="text-[9px] font-black text-gray-400 titlecase tracking-widest mb-0">
+                                            Engagement
                                         </p>
                                         <div className="flex items-center gap-2">
-                                            <h3 className="text-lg font-bold text-[#1a365d] truncate">
-                                                {group.type}
+                                            <h3 className="text-sm font-bold text-gray-900 truncate titlecase">
+                                                {group.type.toLowerCase()}
                                             </h3>
-                                            <span className="bg-indigo-100 text-indigo-700 text-[10px] font-black px-1.5 py-0.5 rounded-full">
+                                            <span className="bg-blue-50 text-blue-900 text-[9px] font-black px-1.5 py-0.5 rounded-full border border-blue-100">
                                                 {group.count}
                                             </span>
                                         </div>
                                     </div>
-                                    <FiChevronRight className="text-gray-300 group-hover:text-indigo-500 transition-colors" />
+                                    <FiChevronRight className="text-gray-300 group-hover:text-blue-900 transition-colors" size={16} />
+                                </div>
+                                {/* Absolute Action Button */}
+                                <div className="absolute bottom-4 right-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-900 text-white shadow-md">
+                                        <FiArrowRight size={14} />
+                                    </div>
                                 </div>
                             </div>
                         ))}

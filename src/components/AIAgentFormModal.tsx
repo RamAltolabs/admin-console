@@ -67,12 +67,12 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-indigo-600 text-white rounded-xl shadow-lg shadow-indigo-200">
+                        <div className="p-3 bg-blue-900 text-white rounded-xl shadow-lg shadow-blue-200">
                             <FiUser size={24} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">Edit AI Agent</h2>
-                            <p className="text-sm text-gray-500 font-medium">Configure agent identity, intelligence, and behavior</p>
+                            <h2 className="text-xl font-black text-blue-900 tracking-tight">Edit AI Agent</h2>
+                            <p className="text-xs font-medium text-gray-400">Configure agent identity, intelligence, and behavior</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-all">
@@ -85,30 +85,30 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                     <div className="p-8 space-y-10">
                         {/* Basic Identity */}
                         <section>
-                            <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <span className="w-8 h-[2px] bg-indigo-600/20 rounded-full"></span>
+                            <h3 className="text-[10px] font-black text-blue-900 titlecase tracking-widest mb-6 flex items-center gap-2">
+                                <span className="w-8 h-[2px] bg-blue-900/20 rounded-full"></span>
                                 Identity & Core Info
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Agent Name (Identifier)</label>
+                                    <label className="block text-[10px] font-black text-gray-400 titlecase tracking-widest mb-2 ml-1">Agent Name (Identifier)</label>
                                     <input
                                         type="text"
                                         name="identifier"
                                         value={formData.identifier || ''}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all font-bold text-gray-900"
+                                        className="w-full px-4 py-3 bg-gray-50/50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-900 transition-all font-black text-blue-900"
                                         placeholder="e.g. Hamid"
                                         required
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Status</label>
+                                    <label className="block text-[10px] font-black text-gray-400 titlecase tracking-widest mb-2 ml-1">Status</label>
                                     <select
                                         name="status"
                                         value={formData.status || 'Active'}
                                         onChange={handleChange}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 transition-all font-bold text-gray-900"
+                                        className="w-full px-4 py-3 bg-gray-50/50 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-900 transition-all font-black text-blue-900"
                                     >
                                         <option value="Active">Active</option>
                                         <option value="Inactive">Inactive</option>
@@ -167,8 +167,8 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
 
                         {/* Behavior & Persona */}
                         <section>
-                            <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <span className="w-8 h-[2px] bg-indigo-600/20 rounded-full"></span>
+                            <h3 className="text-[10px] font-black text-blue-900 titlecase tracking-widest mb-6 flex items-center gap-2">
+                                <span className="w-8 h-[2px] bg-blue-900/20 rounded-full"></span>
                                 Persona & Behavior
                             </h3>
                             <div className="space-y-6">
@@ -228,13 +228,13 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
 
                         {/* Knowledge & AI Models */}
                         <section>
-                            <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <span className="w-8 h-[2px] bg-indigo-600/20 rounded-full"></span>
+                            <h3 className="text-[10px] font-black text-blue-900 titlecase tracking-widest mb-6 flex items-center gap-2">
+                                <span className="w-8 h-[2px] bg-blue-900/20 rounded-full"></span>
                                 Intelligence Layer
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
-                                    <h4 className="text-xs font-bold text-gray-900 uppercase flex items-center gap-2 mb-4"><FiBook className="text-indigo-600" /> Primary Connectivity</h4>
+                                <div className="p-6 bg-gray-50/50 rounded-2xl border-2 border-gray-200 space-y-4 shadow-sm">
+                                    <h4 className="text-[10px] font-black text-blue-900 titlecase tracking-widest flex items-center gap-2 mb-4"><FiBook className="text-blue-900" /> Primary Connectivity</h4>
                                     <div>
                                         <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 ml-1">Knowledge Base ID</label>
                                         <input
@@ -256,8 +256,8 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                         />
                                     </div>
                                 </div>
-                                <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
-                                    <h4 className="text-xs font-bold text-gray-900 uppercase flex items-center gap-2 mb-4"><FiLayers className="text-indigo-600" /> Secondary Connectivity</h4>
+                                <div className="p-6 bg-gray-50/50 rounded-2xl border-2 border-gray-200 space-y-4 shadow-sm">
+                                    <h4 className="text-[10px] font-black text-blue-900 titlecase tracking-widest flex items-center gap-2 mb-4"><FiLayers className="text-blue-900" /> Secondary Connectivity</h4>
                                     <div>
                                         <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 ml-1">Knowledge Base ID</label>
                                         <input
@@ -284,8 +284,8 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
 
                         {/* Media & Voice */}
                         <section>
-                            <h3 className="text-sm font-bold text-indigo-600 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                <span className="w-8 h-[2px] bg-indigo-600/20 rounded-full"></span>
+                            <h3 className="text-[10px] font-black text-blue-900 titlecase tracking-widest mb-6 flex items-center gap-2">
+                                <span className="w-8 h-[2px] bg-blue-900/20 rounded-full"></span>
                                 Voice & Media Configuration
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -359,17 +359,17 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                     <button
                         onClick={handleSubmit}
                         disabled={saving}
-                        className="px-8 py-2.5 bg-indigo-600 text-sm font-bold text-white rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-95 flex items-center gap-2 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                        className="px-10 py-2.5 bg-blue-900 text-sm font-black text-white rounded-xl hover:bg-blue-800 transition-all shadow-lg active:scale-95 flex items-center gap-2 disabled:bg-blue-900/40 disabled:cursor-not-allowed border border-blue-900"
                     >
                         {saving ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                Saving Changes...
+                                <span className="titlecase">Syncing...</span>
                             </>
                         ) : (
                             <>
                                 <FiSave />
-                                Sync Agent Details
+                                <span className="titlecase tracking-wide">Sync Agent Details</span>
                             </>
                         )}
                     </button>

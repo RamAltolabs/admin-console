@@ -266,7 +266,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                 </div>
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{title}</p>
+                        <p className="text-xs font-bold text-gray-400 titlecase tracking-wider">{title}</p>
                         {trend && (
                             <div className={`flex items-center gap-1 text-xs font-bold ${trend === 'up' ? 'text-green-500' : 'text-red-500'}`}>
                                 {trendValue}
@@ -313,9 +313,9 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                             <button
                                 key={preset.id}
                                 onClick={() => handlePresetChange(preset.id)}
-                                className={`px - 4 py - 1.5 rounded - lg text - [10px] font - black uppercase tracking - widest transition - all ${selectedPreset === preset.id
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-400 hover:text-gray-600'
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedPreset === preset.id
+                                    ? 'bg-blue-900 text-white shadow-sm'
+                                    : 'text-gray-400 hover:text-blue-900 hover:bg-white'
                                     } `}
                             >
                                 {preset.label}
@@ -330,12 +330,12 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                         <button
                             key={tab.id}
                             onClick={() => setActiveVizTab(tab.id)}
-                            className={`flex items - center gap - 2 px - 3 py - 2 rounded - lg transition - all whitespace - nowrap ${activeVizTab === tab.id
-                                ? 'bg-blue-50 text-gray-900 shadow-sm font-bold'
-                                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all whitespace-nowrap ${activeVizTab === tab.id
+                                ? 'bg-blue-900 text-white shadow-sm font-bold'
+                                : 'text-gray-400 hover:text-blue-900 hover:bg-gray-50'
                                 } `}
                         >
-                            <tab.icon size={14} style={{ color: activeVizTab === tab.id ? tab.color : 'inherit' }} />
+                            <tab.icon size={14} style={{ color: activeVizTab === tab.id ? 'white' : 'inherit' }} />
                             <span className="text-xs font-bold">{tab.label}</span>
                         </button>
                     ))}
@@ -359,7 +359,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                         newFragment += (newFragment ? '&' : '') + param;
                                     }
                                 });
-                                return `${newBaseUrl} #${newFragment} `;
+                                return `${newBaseUrl}#${newFragment}`;
                             })()}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -418,7 +418,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                         <div className="lg:col-span-2 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                             <div className="flex items-center justify-between mb-4">
                                 <div>
-                                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight">Response Performance</h3>
+                                    <h3 className="text-sm font-black text-gray-800 titlecase tracking-tight">Response Performance</h3>
                                     <p className="text-xs text-gray-400 font-medium">Average response time</p>
                                 </div>
                                 <FiClock className="text-orange-500" size={16} />
@@ -467,7 +467,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
                             <div className="flex items-start justify-between mb-4">
                                 <div>
-                                    <h3 className="text-sm font-black text-gray-800 uppercase tracking-tight">Visitor Types</h3>
+                                    <h3 className="text-sm font-black text-gray-800 titlecase tracking-tight">Visitor Types</h3>
                                     <p className="text-xs text-gray-400 font-medium">New vs Returning</p>
                                 </div>
                                 <FiUsers className="text-blue-500" size={16} />
@@ -510,14 +510,14 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                        <span className="text-[11px] font-bold text-gray-600 uppercase">New Visitors</span>
+                                        <span className="text-[11px] font-bold text-gray-600 titlecase">New Visitors</span>
                                     </div>
                                     <span className="text-xs font-black text-gray-900">{stats.newVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.newVisitors / stats.totalVisitors) * 100) : 0}%)</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                                        <span className="text-[11px] font-bold text-gray-600 uppercase">Returning</span>
+                                        <span className="text-[11px] font-bold text-gray-600 titlecase">Returning</span>
                                     </div>
                                     <span className="text-xs font-black text-gray-900">{stats.returningVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.returningVisitors / stats.totalVisitors) * 100) : 0}%)</span>
                                 </div>
@@ -531,7 +531,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                         {vizLoading ? (
                             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                                 <div className="animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent mb-4 shadow-sm"></div>
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider animate-pulse">Loading Analytics...</p>
+                                <p className="text-xs font-bold text-gray-400 titlecase tracking-wider animate-pulse">Loading Analytics...</p>
                             </div>
                         ) : dashboardUrls[activeVizTab] ? (
                             <iframe

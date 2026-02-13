@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiUser, FiUserCheck, FiUserPlus, FiRefreshCw, FiTrash2, FiToggleLeft, FiToggleRight, FiLock, FiAlertTriangle, FiCheck, FiX, FiMail, FiClock, FiSettings, FiPower, FiSearch, FiChevronLeft, FiChevronRight, FiFilter, FiRotateCcw } from 'react-icons/fi';
+import { FiUser, FiUserCheck, FiUserPlus, FiRefreshCw, FiTrash2, FiToggleLeft, FiToggleRight, FiLock, FiAlertTriangle, FiCheck, FiX, FiMail, FiClock, FiSettings, FiPower, FiSearch, FiChevronLeft, FiChevronRight, FiFilter, FiRotateCcw, FiEye } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface UsersCardProps {
@@ -41,6 +41,8 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteData, setInviteData] = useState({ email: '', role: 'ADMIN', authType: 'PG' });
     const [inviting, setInviting] = useState(false);
+
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchUsers = async (pageIndex = 0, size = pageSize) => {
         setLoading(true);
@@ -210,6 +212,12 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
         }
     };
 
+    const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+    const handleViewUser = (user: User) => {
+        setSelectedUser(user);
+    };
+
     if (loading && users.length === 0) {
         return (
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
@@ -223,7 +231,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
     }
 
     return (
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
             <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
@@ -239,17 +247,18 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => fetchUsers(page)}
-                        className="p-2 bg-white text-primary-main hover:bg-primary-main hover:text-white rounded-lg transition-all shadow-sm border border-neutral-border/50 active:scale-95"
+                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
                         title="Refresh"
                     >
-                        <FiRotateCcw size={16} className={loading ? 'animate-spin' : ''} />
+                        <FiRotateCcw size={14} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
                     <button
                         onClick={() => setShowInviteModal(true)}
-                        className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm"
                     >
                         <FiUserPlus size={16} />
-                        <span className="text-sm font-medium">Invite User</span>
+                        Invite User
                     </button>
                 </div>
             </div>
@@ -267,30 +276,46 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     />
                 </div>
 
-                <div className="flex items-center gap-2">
-                    <FiFilter className="text-gray-400" size={14} />
-                    <select
-                        value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className="bg-white border border-gray-200 rounded-lg text-xs font-bold py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700 cursor-pointer"
+                <div className="relative">
+                    <button
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                        onClick={() => setShowFilters(!showFilters)}
                     >
-                        <option value="ALL">All Roles</option>
-                        <option value="ADMIN">Admin</option>
-                        <option value="USER">User</option>
-                        <option value="SUPPORT">Support</option>
-                    </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="bg-white border border-gray-200 rounded-lg text-xs font-bold py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-700 cursor-pointer"
-                    >
-                        <option value="ALL">All Status</option>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
+                        <FiFilter size={16} />
+                        Filters
+                    </button>
+                    {showFilters && (
+                        <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                            <div className="text-xs font-bold text-gray-500 uppercase mb-3">Filter Users</div>
+                            <div className="space-y-3">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
+                                    <select
+                                        value={roleFilter}
+                                        onChange={(e) => setRoleFilter(e.target.value)}
+                                        className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                                    >
+                                        <option value="ALL">All Roles</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="USER">User</option>
+                                        <option value="SUPPORT">Support</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) => setStatusFilter(e.target.value)}
+                                        className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:border-blue-500"
+                                    >
+                                        <option value="ALL">All Status</option>
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {(searchTerm || roleFilter !== 'ALL' || statusFilter !== 'ALL') && (
@@ -303,7 +328,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                         className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-red-600 border border-red-100 rounded-lg hover:bg-red-50 hover:text-red-700 transition-all shadow-sm active:scale-95"
                     >
                         <FiRotateCcw size={12} className="opacity-80" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Reset</span>
+                        <span className="text-[10px] font-black titlecase tracking-widest">Reset</span>
                     </button>
                 )}
             </div>
@@ -340,7 +365,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                             {user.firstName} {user.lastName}
                                             {!user.firstName && !user.lastName && (user.userName || 'Unknown User')}
                                         </h4>
-                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold titlecase tracking-wider ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                             {user.status || 'Unknown'}
                                         </span>
                                     </div>
@@ -363,6 +388,14 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                 </div>
 
                                 <div className="flex items-center gap-1.5 shrink-0 opacity-100 transition-all">
+                                    <button
+                                        onClick={() => handleViewUser(user)}
+                                        disabled={isProcessing}
+                                        className="tile-btn-view h-8 w-8 flex items-center justify-center"
+                                        title="View User Details"
+                                    >
+                                        <FiEye size={14} />
+                                    </button>
                                     <button
                                         onClick={() => handleResetPassword(user.userName)}
                                         disabled={isProcessing}
@@ -421,7 +454,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     </span>
                     <div className="h-4 w-[1px] bg-gray-200 hidden sm:block"></div>
                     <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Per Page:</span>
+                        <span className="text-[10px] font-bold text-gray-400 titlecase tracking-widest">Per Page:</span>
                         <select
                             value={pageSize}
                             onChange={(e) => handlePageSizeChange(Number(e.target.value))}
@@ -449,7 +482,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                         <span className="text-xs font-black text-blue-600 px-3 py-1.5 bg-white border border-blue-100 rounded-lg shadow-sm min-w-[36px] text-center">
                             {page + 1}
                         </span>
-                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-tighter px-0.5">of</span>
+                        <span className="text-[10px] text-gray-400 font-black titlecase tracking-tighter px-0.5">of</span>
                         <span className="text-xs font-black text-gray-900 px-3 py-1.5 bg-white border border-gray-200 rounded-lg shadow-sm min-w-[36px] text-center">
                             {effectiveTotalPages || 1}
                         </span>
@@ -490,7 +523,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
 
                         <form onSubmit={handleInviteUser} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                <label className="block text-xs font-bold text-gray-700 titlecase tracking-wider mb-1">
                                     Email Address
                                 </label>
                                 <div className="relative">
@@ -510,7 +543,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                    <label className="block text-xs font-bold text-gray-700 titlecase tracking-wider mb-1">
                                         Role
                                     </label>
                                     <select
@@ -524,7 +557,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                                    <label className="block text-xs font-bold text-gray-700 titlecase tracking-wider mb-1">
                                         Auth Type
                                     </label>
                                     <select
@@ -568,7 +601,96 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     </div>
                 </div>
             )}
-        </div>
+
+            {/* View User Modal */}
+            {selectedUser && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
+                                    <FiUser size={20} />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-gray-900">User Details</h3>
+                                    <p className="text-xs text-gray-500">Viewing user information</p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
+                            >
+                                <FiX size={20} />
+                            </button>
+                        </div>
+
+                        <div className="p-6 space-y-6">
+                            {/* Header Info */}
+                            <div className="flex items-center gap-4">
+                                <div className="h-16 w-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-2xl font-bold shadow-md">
+                                    {selectedUser.firstName ? selectedUser.firstName.charAt(0) : (selectedUser.userName ? selectedUser.userName.charAt(0).toUpperCase() : <FiUser />)}
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900">
+                                        {selectedUser.firstName} {selectedUser.lastName}
+                                    </h2>
+                                    <p className="text-sm text-gray-500 font-medium">{selectedUser.userName}</p>
+                                    <div className="flex gap-2 mt-2">
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selectedUser.status.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            {selectedUser.status}
+                                        </span>
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
+                                            {selectedUser.role}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Email Address</label>
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                                        <FiMail className="text-gray-400" size={14} />
+                                        {selectedUser.email}
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">User ID</label>
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                                        <FiSettings className="text-gray-400" size={14} />
+                                        {selectedUser.id}
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Modified Time</label>
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                                        <FiClock className="text-gray-400" size={14} />
+                                        {selectedUser.modifiedTime ? new Date(selectedUser.modifiedTime).toLocaleString() : 'N/A'}
+                                    </div>
+                                </div>
+                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Merchant ID</label>
+                                    <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                                        <FiLock className="text-gray-400" size={14} />
+                                        {selectedUser.merchantId}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors shadow-sm"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div >
     );
 };
 

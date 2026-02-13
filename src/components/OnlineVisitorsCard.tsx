@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiSmile, FiCornerRightUp, FiGlobe } from 'react-icons/fi';
+import { FiUser, FiSmile, FiRefreshCw, FiGlobe } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface OnlineVisitorsCardProps {
@@ -38,20 +38,20 @@ const OnlineVisitorsCard: React.FC<OnlineVisitorsCardProps> = ({ merchantId, clu
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-green-50 text-green-600 rounded-lg">
                             <div className="relative">
-                                <FiGlobe size={5} />
+                                <FiGlobe size={16} />
                                 <span className="absolute -top-1 -right-1 flex h-2 w-2">
                                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                                 </span>
                             </div>
                         </div>
-                        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Online Visitors</h2>
+                        <h2 className="text-sm font-bold text-gray-800 titlecase tracking-wide">Online Visitors</h2>
                     </div>
                     <button
                         onClick={fetchVisitorList}
-                        className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors border border-transparent hover:border-blue-100"
+                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
                     >
-                        <FiCornerRightUp size={12} className={loading ? "animate-spin" : ""} />
+                        <FiRefreshCw size={14} className={loading ? "animate-spin" : ""} />
                         {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
@@ -61,10 +61,10 @@ const OnlineVisitorsCard: React.FC<OnlineVisitorsCardProps> = ({ merchantId, clu
                 <table className="min-w-full divide-y divide-gray-100 text-left">
                     <thead>
                         <tr>
-                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Visitor Name</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Agent</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Channel</th>
-                            <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-wider">Activity</th>
+                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 titlecase tracking-wider">Visitor Name</th>
+                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 titlecase tracking-wider">Agent</th>
+                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 titlecase tracking-wider">Channel</th>
+                            <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-400 titlecase tracking-wider">Activity</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-50">

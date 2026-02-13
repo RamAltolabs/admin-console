@@ -22,6 +22,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
     // Filtering state
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('ACTIVE');
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchData = async () => {
         setLoading(true);
@@ -30,6 +31,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
             setAIAgents(Array.isArray(agents) ? agents : []);
         } catch (error) {
             console.error('Error fetching AI agents:', error);
+            setError('Failed to load AI agents records from the API.');
             setAIAgents([]);
         } finally {
             setLoading(false);
@@ -116,48 +118,67 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
             {/* Header with Filters */}
             <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                    <FiLayers className="text-indigo-600" />
-                    <h3 className="font-bold text-gray-800">AI Agents</h3>
-                    <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-[10px] font-bold rounded-full">
-                        {filteredAgents.length}
+                    <FiLayers className="text-blue-900" size={16} />
+                    <h3 className="font-bold text-gray-800 text-sm">AI Agents</h3>
+                    <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-900 text-[10px] font-black rounded-md uppercase tracking-wider">
+                        {filteredAgents.length} Agents
                     </span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
                     {/* Search Bar */}
-                    <div className="relative group">
-                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-indigo-500 transition-colors" size={14} />
+                    <div className="relative group flex-1 md:flex-none">
+                        <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={14} />
                         <input
                             type="text"
                             placeholder="Search agents..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-9 pr-4 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all w-48"
+                            className="pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all w-full md:w-48 outline-none"
                         />
                     </div>
 
-                    {/* Status Filter Dropdown */}
+                    {/* Filter Button Style */}
                     <div className="relative">
-                        <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={12} />
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="pl-8 pr-8 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer min-w-[120px]"
+                        <button
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                            onClick={() => setShowFilters(!showFilters)}
                         >
-                            <option value="ALL">All Status</option>
-                            <option value="ACTIVE">Active Only</option>
-                        </select>
-                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                            <svg className="w-3 h-3 fill-current" viewBox="0 0 20 20"><path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" /></svg>
-                        </div>
+                            <FiFilter size={14} />
+                            {statusFilter === 'ALL' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1).toLowerCase()}
+                        </button>
+                        {showFilters && (
+                            <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Filter by Status</div>
+                                <div className="space-y-1">
+                                    {['ALL', 'ACTIVE'].map(status => (
+                                        <button
+                                            key={status}
+                                            onClick={() => {
+                                                setStatusFilter(status);
+                                                setShowFilters(false);
+                                            }}
+                                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors ${statusFilter === status
+                                                ? 'bg-blue-50 text-blue-900'
+                                                : 'text-gray-600 hover:bg-gray-50'
+                                                }`}
+                                        >
+                                            {status === 'ALL' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <button
                         onClick={fetchData}
-                        className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-white transition-all border border-transparent hover:border-gray-100 shadow-sm hover:shadow-md"
+                        disabled={loading}
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
                         <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
             </div>
@@ -171,14 +192,14 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                 ) : (
                     <div className="space-y-4">
                         {filteredAgents.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {filteredAgents.map((agent, index) => {
                                     const agentTitle = agent.identifier || agent.agentName || 'AI Agent';
                                     const agentImg = (agent.agentImage && agent.agentImage[0]) || agent.image;
                                     const isActive = agent.status?.toUpperCase() === 'ACTIVE';
 
                                     return (
-                                        <div key={agent.id || index} className="standard-tile relative group min-h-[105px] !p-3">
+                                        <div key={agent.id || index} className="standard-tile relative group min-h-[105px] !p-3 !border-gray-200 !border-opacity-100 shadow-sm hover:shadow-md transition-all duration-300">
                                             {/* Circular Avatar with Status Indicator */}
                                             <div className="relative flex-shrink-0">
                                                 <div className="standard-tile-avatar group-hover:scale-105 transition-transform overflow-hidden !w-12 !h-12">
@@ -196,25 +217,25 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
 
                                             {/* Agent Details - Filled */}
                                             <div className="flex-grow min-w-0 pr-8">
-                                                <h4 className="font-bold text-gray-800 text-[15px] truncate mb-0.5 leading-tight" title={agentTitle}>
+                                                <h4 className="font-bold text-gray-800 text-sm truncate mb-0.5 leading-tight titlecase" title={agentTitle}>
                                                     {agentTitle}
                                                 </h4>
-                                                <div className="space-y-0.5 text-[11px]">
+                                                <div className="space-y-0.5 text-[10px]">
                                                     <p className="flex items-center gap-1.5">
-                                                        <span className="text-gray-400 font-medium">Persona:</span>
+                                                        <span className="text-gray-400 font-black titlecase tracking-widest">Persona:</span>
                                                         <span className="text-gray-500 font-bold truncate block max-w-[150px]">
                                                             {agent.persona || 'General Assistant'}
                                                         </span>
                                                     </p>
                                                     <p className="flex items-center gap-1.5">
-                                                        <span className="text-gray-400 font-medium">Lang:</span>
+                                                        <span className="text-gray-400 font-black titlecase tracking-widest">Lang:</span>
                                                         <span className="text-gray-500 font-bold">
                                                             {agent.language || 'en-US'}
                                                         </span>
                                                     </p>
                                                     {agent.primaryKnowledgeBaseName && (
-                                                        <p className="flex items-center gap-1.5 text-indigo-600 mt-0.5">
-                                                            <span className="text-indigo-400 font-medium">KB:</span>
+                                                        <p className="flex items-center gap-1.5 text-blue-900 mt-0.5 bg-blue-50/50 px-1.5 py-0.5 rounded border border-blue-100/50 w-fit">
+                                                            <span className="text-blue-400 font-black titlecase tracking-widest bg-transparent px-0 py-0">KB:</span>
                                                             <span className="font-bold truncate block max-w-[140px]">
                                                                 {agent.primaryKnowledgeBaseName}
                                                             </span>
@@ -223,35 +244,34 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                                 </div>
                                             </div>
 
-                                            {/* Actions Group - Ultra Compact */}
-                                            <div className="absolute bottom-2 right-2.5 flex flex-col items-center gap-1.5 opacity-100">
+                                            {/* Actions Group - Fixed Bottom Right */}
+                                            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 transition-all duration-300">
                                                 {actionLoading === agent.id ? (
-                                                    <div className="p-0.5 border border-indigo-100 bg-white rounded flex items-center justify-center">
-                                                        <div className="w-2.5 h-2.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                                    <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 border border-gray-100">
+                                                        <div className="w-4 h-4 border-2 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
                                                     </div>
                                                 ) : (
                                                     <>
                                                         <button
                                                             onClick={() => handleViewDetails(agent)}
-                                                            className="tile-btn-view"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
                                                             title="View Details"
                                                         >
-                                                            <FiEye size={10} />
-                                                            <span className="hidden group-hover:block ml-1 text-[7px]">View</span>
+                                                            <FiEye size={14} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => handleEditAgent(agent, e)}
-                                                            className="tile-btn-edit"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
                                                             title="Edit Agent"
                                                         >
-                                                            <FiEdit2 size={10} />
+                                                            <FiEdit2 size={14} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => handleDeleteAgent(agent, e)}
-                                                            className="tile-btn-delete"
+                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
                                                             title="Delete Agent"
                                                         >
-                                                            <FiTrash2 size={10} />
+                                                            <FiTrash2 size={14} />
                                                         </button>
                                                     </>
                                                 )}

@@ -66,7 +66,9 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
                 merchantId,
                 knowledgeBaseName: name,
                 knowledgeBaseDesc: description,
+                status: 'Active',
                 modelId: selectedModelId,
+                createdBy: "meiyaps noc", // Example from user
                 artifactId: selectedArtifactId,
                 vectorStorageType: vectorStorageType === 'Azure' ? 'AZURE_AI_SEARCH' : 'WEAVIATE_DB'
             };

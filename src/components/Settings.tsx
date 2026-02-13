@@ -64,7 +64,7 @@ const Settings: React.FC = () => {
                 <button
                     onClick={handleSave}
                     disabled={isSaving || !hasChanges}
-                    className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all ${isSaving
+                    className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-[10px] titlecase tracking-widest transition-all ${isSaving
                         ? 'bg-neutral-bg text-neutral-text-muted cursor-not-allowed opacity-50'
                         : !hasChanges
                             ? 'bg-[#f4f5f7] text-neutral-text-muted cursor-not-allowed border border-neutral-border/20'
@@ -104,7 +104,7 @@ const Settings: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === tab.id
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold titlecase tracking-[0.15em] transition-all duration-300 ${activeTab === tab.id
                                         ? 'bg-[#172b4d] text-white shadow-md'
                                         : 'text-neutral-text-secondary hover:text-primary-main hover:bg-white/50 dark:hover:bg-white/5'
                                         }`}
@@ -127,13 +127,13 @@ const Settings: React.FC = () => {
                             {activeTab === 'identity' && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-0.5">
-                                        <h3 className="text-sm font-bold text-neutral-text-main uppercase tracking-widest">Branding Identity</h3>
-                                        <p className="text-[10px] font-bold text-neutral-text-muted uppercase opacity-60">System-wide labels and descriptors.</p>
+                                        <h3 className="text-sm font-bold text-neutral-text-main titlecase tracking-widest">Branding Identity</h3>
+                                        <p className="text-[10px] font-bold text-neutral-text-muted titlecase opacity-60">System-wide labels and descriptors.</p>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.15em] ml-1">Site Official Title</label>
+                                            <label className="text-[9px] font-bold text-neutral-text-muted titlecase tracking-[0.15em] ml-1">Site Official Title</label>
                                             <input
                                                 type="text"
                                                 value={siteTitle}
@@ -142,7 +142,7 @@ const Settings: React.FC = () => {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.15em] ml-1">Tagline / Subtitle</label>
+                                            <label className="text-[9px] font-bold text-neutral-text-muted titlecase tracking-[0.15em] ml-1">Tagline / Subtitle</label>
                                             <input
                                                 type="text"
                                                 value={tagline}
@@ -157,19 +157,19 @@ const Settings: React.FC = () => {
                             {activeTab === 'visuals' && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-0.5">
-                                        <h3 className="text-sm font-bold text-neutral-text-main uppercase tracking-widest">Interface Appearance</h3>
-                                        <p className="text-[10px] font-bold text-neutral-text-muted uppercase opacity-60">System styling and visual behavior.</p>
+                                        <h3 className="text-sm font-bold text-neutral-text-main titlecase tracking-widest">Interface Appearance</h3>
+                                        <p className="text-[10px] font-bold text-neutral-text-muted titlecase opacity-60">System styling and visual behavior.</p>
                                     </div>
 
                                     <div className="space-y-5">
                                         <div className="space-y-3">
-                                            <label className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.15em] ml-1">Base Environment Theme</label>
+                                            <label className="text-[9px] font-bold text-neutral-text-muted titlecase tracking-[0.15em] ml-1">Base Environment Theme</label>
                                             <div className="grid grid-cols-3 gap-3">
                                                 {['Light', 'Dark', 'System'].map((opt) => (
                                                     <button
                                                         key={opt}
                                                         onClick={() => setTheme(opt)}
-                                                        className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${theme === opt
+                                                        className={`px-4 py-3 rounded-xl text-[10px] font-bold titlecase tracking-widest transition-all border ${theme === opt
                                                             ? 'bg-[#172b4d] text-white border-[#172b4d] shadow-md'
                                                             : 'bg-[#f4f5f7] dark:bg-white/5 text-neutral-text-muted border-neutral-border/40 hover:bg-neutral-bg'
                                                             }`}
@@ -186,8 +186,8 @@ const Settings: React.FC = () => {
                                                     <FiMonitor size={20} />
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <h4 className="text-xs font-black text-blue-900 dark:text-blue-300 uppercase tracking-widest">Theme Sync Active</h4>
-                                                    <p className="text-[10px] font-bold text-blue-800/60 dark:text-blue-400/60 leading-relaxed uppercase">The interface will automatically adapt to your selection in real-time. System theme follows your OS preference.</p>
+                                                    <h4 className="text-xs font-black text-blue-900 dark:text-blue-300 titlecase tracking-widest">Theme Sync Active</h4>
+                                                    <p className="text-[10px] font-bold text-blue-800/60 dark:text-blue-400/60 leading-relaxed titlecase">The interface will automatically adapt to your selection in real-time. System theme follows your OS preference.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -198,8 +198,8 @@ const Settings: React.FC = () => {
                             {activeTab === 'profile' && (
                                 <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
                                     <div className="space-y-1">
-                                        <h3 className="text-sm font-black text-neutral-text-main uppercase tracking-widest">User Profile</h3>
-                                        <p className="text-[11px] font-bold text-neutral-text-muted leading-relaxed uppercase opacity-60">Personal account information.</p>
+                                        <h3 className="text-sm font-black text-neutral-text-main titlecase tracking-widest">User Profile</h3>
+                                        <p className="text-[11px] font-bold text-neutral-text-muted leading-relaxed titlecase opacity-60">Personal account information.</p>
                                     </div>
 
                                     <div className="flex flex-col items-center p-8 bg-neutral-bg/20 dark:bg-white/5 rounded-[32px] border border-neutral-border/40">
@@ -230,17 +230,17 @@ const Settings: React.FC = () => {
 
                                         <div className="w-full max-w-md grid grid-cols-1 gap-4">
                                             <div className="p-4 bg-white dark:bg-black/20 rounded-xl border border-neutral-border/40 flex items-center justify-between">
-                                                <span className="text-xs font-black uppercase tracking-widest text-neutral-text-muted">Full Name</span>
+                                                <span className="text-xs font-black titlecase tracking-widest text-neutral-text-muted">Full Name</span>
                                                 <span className="text-sm font-bold text-neutral-text-main">{user?.firstName} {user?.lastName}</span>
                                             </div>
 
                                             <div className="p-4 bg-white dark:bg-black/20 rounded-xl border border-neutral-border/40 flex items-center justify-between">
-                                                <span className="text-xs font-black uppercase tracking-widest text-neutral-text-muted">Email Address</span>
+                                                <span className="text-xs font-black titlecase tracking-widest text-neutral-text-muted">Email Address</span>
                                                 <span className="text-sm font-bold text-neutral-text-main">{user?.email}</span>
                                             </div>
 
                                             <div className="p-4 bg-white dark:bg-black/20 rounded-xl border border-neutral-border/40 flex items-center justify-between">
-                                                <span className="text-xs font-black uppercase tracking-widest text-neutral-text-muted">Username</span>
+                                                <span className="text-xs font-black titlecase tracking-widest text-neutral-text-muted">Username</span>
                                                 <span className="text-sm font-bold text-neutral-text-main">{user?.username}</span>
                                             </div>
                                         </div>

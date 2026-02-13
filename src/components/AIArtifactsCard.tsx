@@ -17,15 +17,18 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedArtifact, setSelectedArtifact] = useState<AIArtifact | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchArtifacts = async () => {
         setLoading(true);
+        setError(null);
         try {
             const data = await merchantService.getAIArtifactsList(merchantId, cluster);
             // The new API returns an array directly
             setArtifacts(Array.isArray(data) ? data : []);
         } catch (error) {
             console.error('Error fetching artifacts:', error);
+            setError('Failed to load AI artifacts from the database.');
             setArtifacts([]);
         } finally {
             setLoading(false);
@@ -61,6 +64,14 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
 
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            {error && (
+                <div className="p-4 bg-red-50 border-b border-red-100 text-red-600 text-sm font-medium flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                        <FiPackage size={16} />
+                    </div>
+                    {error}
+                </div>
+            )}
             <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center">
                     <FiPackage className="mr-2 text-genx-500" /> AI Artifacts
@@ -126,9 +137,9 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                 <div className="mt-auto pt-3 border-t border-gray-50 flex justify-end">
                                     <button
                                         onClick={() => handleViewArtifact(artifact)}
-                                        className="tile-btn-view"
+                                        className="bg-blue-900 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
                                     >
-                                        <FiEye className="mr-1" /> View Details
+                                        <FiEye /> View Details
                                     </button>
                                 </div>
                             </div>

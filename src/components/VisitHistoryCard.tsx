@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiCalendar, FiClock, FiUser, FiActivity, FiMapPin } from 'react-icons/fi';
+import { FiCalendar, FiClock, FiUser, FiActivity, FiMapPin, FiRefreshCw } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface VisitHistoryCardProps {
@@ -123,77 +123,78 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
     return (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Header */}
-            <div className="p-6 border-b border-gray-100 bg-white">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg">
-                            <FiCalendar className="text-blue-600" size={20} />
-                        </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-gray-800">Visit History</h3>
-                            <p className="text-xs text-gray-500 mt-0.5">
-                                {dateRange === '7days' && 'Last 7 days of visitor activity'}
-                                {dateRange === '30days' && 'Last 30 days of visitor activity'}
-                                {dateRange === '90days' && 'Last 90 days of visitor activity'}
-                                {dateRange === 'custom' && 'Custom date range'}
-                            </p>
-                        </div>
+            <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-50 rounded-lg text-blue-900 border border-blue-100 shadow-sm">
+                        <FiCalendar size={18} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black text-gray-800 titlecase tracking-tight">Visit History</h3>
+                        <p className="text-[10px] text-gray-400 font-black titlecase tracking-widest bg-gray-100 px-1.5 py-0.5 rounded mt-0.5">
+                            {dateRange === '7days' && 'Last 7 Days'}
+                            {dateRange === '30days' && 'Last 30 Days'}
+                            {dateRange === '90days' && 'Last 90 Days'}
+                            {dateRange === 'custom' && 'Custom Range'}
+                        </p>
                     </div>
                 </div>
 
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-gray-100 px-2 py-1 rounded">
+                        {visitors.length} Results
+                    </span>
+                    <button
+                        onClick={() => {
+                            setCurrentPage(0);
+                            // fetchVisitHistory is triggered by dependencies, but we can call a manual refresh if we want.
+                            // However, since it's in useEffect, updating a refresh state is cleaner.
+                        }}
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        title="Refresh"
+                    >
+                        <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                </div>
+            </div>
+
+            <div className="p-4 bg-white border-b border-gray-100">
                 {/* Date Filter */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={() => setDateRange('7days')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === '7days'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        Last 7 Days
-                    </button>
-                    <button
-                        onClick={() => setDateRange('30days')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === '30days'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        Last 30 Days
-                    </button>
-                    <button
-                        onClick={() => setDateRange('90days')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === '90days'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        Last 90 Days
-                    </button>
-                    <button
-                        onClick={() => setDateRange('custom')}
-                        className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${dateRange === 'custom'
-                                ? 'bg-blue-600 text-white shadow-sm'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
-                    >
-                        Custom Range
-                    </button>
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                        {[
+                            { id: '7days', label: '7D' },
+                            { id: '30days', label: '30D' },
+                            { id: '90days', label: '90D' },
+                            { id: 'custom', label: 'Custom' }
+                        ].map((preset) => (
+                            <button
+                                key={preset.id}
+                                onClick={() => setDateRange(preset.id as any)}
+                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black titlecase tracking-widest transition-all duration-200 ${dateRange === preset.id
+                                    ? 'bg-blue-900 text-white shadow-md'
+                                    : 'text-gray-500 hover:text-blue-900 hover:bg-white'
+                                    }`}
+                            >
+                                {preset.label}
+                            </button>
+                        ))}
+                    </div>
 
                     {dateRange === 'custom' && (
-                        <div className="flex items-center gap-2 ml-2">
+                        <div className="flex items-center gap-2 ml-2 animate-in fade-in slide-in-from-left-2 duration-300">
                             <input
                                 type="date"
                                 value={customStartDate}
                                 onChange={(e) => setCustomStartDate(e.target.value)}
-                                className="px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-3 py-1.5 text-xs font-bold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
                             />
-                            <span className="text-xs text-gray-500">to</span>
+                            <span className="text-[10px] font-black text-gray-400 titlecase">to</span>
                             <input
                                 type="date"
                                 value={customEndDate}
                                 onChange={(e) => setCustomEndDate(e.target.value)}
-                                className="px-2 py-1 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="px-3 py-1.5 text-xs font-bold border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 bg-white"
                             />
                         </div>
                     )}
@@ -205,19 +206,19 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
                 <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 titlecase tracking-wider">
                                 Visitor
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 titlecase tracking-wider">
                                 Channel
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 titlecase tracking-wider">
                                 Type
                             </th>
-                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 titlecase tracking-wider">
                                 Messages
                             </th>
-                            <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 titlecase tracking-wider">
                                 Last Accessed
                             </th>
                         </tr>
@@ -225,9 +226,11 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
                     <tbody className="bg-white divide-y divide-gray-50">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-12 text-center">
-                                    <div className="animate-spin h-8 w-8 border-3 border-blue-500 border-t-transparent rounded-full mx-auto mb-3"></div>
-                                    <span className="text-sm font-medium text-gray-400">Loading visit history...</span>
+                                <td colSpan={5} className="px-6 py-20 text-center">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                                        <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading visit history...</p>
+                                    </div>
                                 </td>
                             </tr>
                         ) : visitors.length > 0 ? (
@@ -280,12 +283,12 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
                         ) : (
                             <tr>
                                 <td colSpan={5} className="px-6 py-12 text-center">
-                                    <div className="flex flex-col items-center">
-                                        <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3">
-                                            <FiCalendar className="text-gray-400" size={24} />
+                                    <div className="flex flex-col items-center py-10">
+                                        <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
+                                            <FiCalendar className="text-gray-300" size={28} />
                                         </div>
-                                        <p className="text-sm font-bold text-gray-800 mb-1">No Visit History</p>
-                                        <p className="text-xs text-gray-500">No visitor data found for the last 30 days</p>
+                                        <h4 className="text-sm font-bold text-gray-600 mb-1">No Visit History Found</h4>
+                                        <p className="text-xs text-gray-400">No visitor data found for the selected range.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -296,24 +299,26 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
 
             {/* Pagination */}
             {!loading && visitors.length > 0 && totalPages > 1 && (
-                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-gray-50">
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                        disabled={currentPage === 0}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        Previous
-                    </button>
-                    <span className="text-sm text-gray-600 font-medium">
+                <div className="flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest bg-white px-2 py-1 rounded-md border border-gray-100 shadow-sm">
                         Page {currentPage + 1} of {totalPages}
-                    </span>
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
-                        disabled={currentPage >= totalPages - 1}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                        Next
-                    </button>
+                    </p>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
+                            disabled={currentPage === 0}
+                            className="px-4 py-2 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                        >
+                            Previous
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages - 1, prev + 1))}
+                            disabled={currentPage >= totalPages - 1}
+                            className="px-4 py-2 text-xs font-bold rounded-lg border border-gray-200 text-gray-600 bg-white hover:bg-blue-50 hover:text-blue-900 hover:border-blue-200 disabled:opacity-30 disabled:cursor-not-allowed transition-all shadow-sm"
+                        >
+                            Next
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

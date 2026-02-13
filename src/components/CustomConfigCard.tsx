@@ -124,9 +124,9 @@ const CustomConfigCard: React.FC<CustomConfigCardProps> = ({ merchantId, cluster
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-gray-100 shadow-sm">
-                <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-500 border-t-transparent mb-4"></div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Loading configuration...</p>
+            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
+                <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading configuration...</p>
             </div>
         );
     }
@@ -136,59 +136,60 @@ const CustomConfigCard: React.FC<CustomConfigCardProps> = ({ merchantId, cluster
             {/* Header Section */}
             <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <h2 className="text-lg font-black text-blue-900 tracking-tight">Cloud Configuration</h2>
+                        <FiInfo size={14} className="text-gray-300 cursor-help" />
+                    </div>
                     <div className="flex items-center gap-2">
-                        <h2 className="text-2xl font-normal text-gray-700">Cloud Configuration</h2>
-                        <div className="flex items-center gap-2 absolute right-6 md:static">
-                            {!isEditing ? (
+                        {!isEditing ? (
+                            <button
+                                onClick={handleEditToggle}
+                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm"
+                            >
+                                <FiEdit size={14} />
+                                Edit
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleSave}
+                                    disabled={saving}
+                                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors flex items-center gap-2 shadow-sm disabled:opacity-50"
+                                >
+                                    {saving ? <FiRefreshCw className="animate-spin" size={14} /> : <FiSave size={14} />}
+                                    Save
+                                </button>
                                 <button
                                     onClick={handleEditToggle}
-                                    className="p-1 px-3 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded flex items-center gap-2 text-sm transition-colors"
+                                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors flex items-center gap-2 border border-gray-200"
                                 >
-                                    <FiEdit size={14} />
-                                    Edit
+                                    <FiX size={14} />
+                                    Cancel
                                 </button>
-                            ) : (
-                                <div className="flex items-center gap-2">
-                                    <button
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                        className="p-1 px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded flex items-center gap-2 text-sm transition-colors disabled:opacity-50"
-                                    >
-                                        {saving ? <FiRefreshCw className="animate-spin" size={14} /> : <FiSave size={14} />}
-                                        Save
-                                    </button>
-                                    <button
-                                        onClick={handleEditToggle}
-                                        className="p-1 px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-600 rounded flex items-center gap-2 text-sm transition-colors"
-                                    >
-                                        <FiX size={14} />
-                                        Cancel
-                                    </button>
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                <div className="flex items-start gap-2 text-gray-400 text-sm leading-relaxed max-w-5xl text-justify">
-                    <FiSettings className="mt-1 flex-shrink-0 text-amber-500" size={16} />
-                    <p>
-                        Cloud Configuration is an advanced user setting that enables users to intricately define and meticulously manage customized configurations tailored to their specific account.
+                <div className="flex items-start gap-2 text-gray-500 text-sm leading-relaxed max-w-5xl">
+                    <FiSettings className="mt-1 flex-shrink-0 text-blue-900/40" size={16} />
+                    <p className="text-xs font-medium text-gray-400 leading-relaxed">
+                        Cloud Configuration is an advanced setting that enables users to define and manage customized configurations tailored to their account.
                     </p>
                 </div>
             </div>
 
             {/* Main Content Area */}
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-                <div className="bg-gray-50/80 px-6 py-3 border-b border-gray-100 flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-600">Attributes</h3>
+                <div className="bg-gray-50/50 px-6 py-3 border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="text-[10px] font-black text-gray-400 titlecase tracking-widest titlecase">Configuration Attributes</h3>
                     {isEditing && (
                         <button
                             onClick={() => setShowAddRow(true)}
-                            className="text-xs flex items-center gap-1 text-sky-600 hover:text-sky-700 font-bold uppercase"
+                            className="text-[10px] flex items-center gap-1 text-blue-900 hover:text-blue-800 font-black titlecase tracking-widest"
                         >
                             <FiPlus size={14} />
-                            Add New
+                            Add Attribute
                         </button>
                     )}
                 </div>
@@ -203,44 +204,44 @@ const CustomConfigCard: React.FC<CustomConfigCardProps> = ({ merchantId, cluster
                                 placeholder="Search attributes..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-100 rounded bg-gray-50/50 focus:outline-none focus:ring-1 focus:ring-sky-400 focus:bg-white transition-all"
+                                className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-900 transition-all shadow-sm"
                             />
                         </div>
                     )}
 
                     {/* Add New Row */}
                     {isEditing && showAddRow && (
-                        <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 flex flex-col md:flex-row gap-4 animate-in fade-in slide-in-from-top-2">
+                        <div className="mb-6 p-5 bg-blue-50/50 rounded-2xl border border-blue-100 flex flex-col md:flex-row gap-4 animate-in fade-in slide-in-from-top-2">
                             <div className="flex-1">
-                                <label className="block text-[10px] font-bold text-sky-600 uppercase mb-1">Key Name</label>
+                                <label className="block text-[10px] font-black text-blue-900 titlecase tracking-widest mb-1.5">Key Name</label>
                                 <input
                                     type="text"
                                     value={newKey}
                                     onChange={(e) => setNewKey(e.target.value)}
                                     placeholder="e.g. api_base_url"
-                                    className="w-full px-3 py-2 text-sm border border-sky-200 rounded focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                                    className="w-full px-4 py-2.5 text-sm border border-blue-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-900/5 focus:border-blue-900 bg-white"
                                 />
                             </div>
                             <div className="flex-[1.5]">
-                                <label className="block text-[10px] font-bold text-sky-600 uppercase mb-1">Value</label>
+                                <label className="block text-[10px] font-black text-blue-900 titlecase tracking-widest mb-1.5">Value</label>
                                 <input
                                     type="text"
                                     value={newValue}
                                     onChange={(e) => setNewValue(e.target.value)}
                                     placeholder="Value content"
-                                    className="w-full px-3 py-2 text-sm border border-sky-200 rounded focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+                                    className="w-full px-4 py-2.5 text-sm border border-blue-100 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-900/5 focus:border-blue-900 bg-white"
                                 />
                             </div>
                             <div className="flex items-end gap-2">
                                 <button
                                     onClick={handleAddAttribute}
-                                    className="px-4 py-2 bg-sky-500 text-white rounded text-sm font-bold hover:bg-sky-600"
+                                    className="px-6 py-2.5 bg-blue-900 text-white rounded-xl text-sm font-bold hover:bg-blue-800 transition-all shadow-md"
                                 >
                                     Add
                                 </button>
                                 <button
                                     onClick={() => setShowAddRow(false)}
-                                    className="px-4 py-2 bg-gray-200 text-gray-600 rounded text-sm font-bold hover:bg-gray-300"
+                                    className="px-6 py-2.5 bg-white text-gray-600 rounded-xl text-sm font-bold hover:bg-gray-50 border border-gray-200 transition-all shadow-sm"
                                 >
                                     Cancel
                                 </button>
@@ -305,13 +306,13 @@ const CustomConfigCard: React.FC<CustomConfigCardProps> = ({ merchantId, cluster
             </div>
 
             {/* Footer / Refresh */}
-            <div className="flex justify-between items-center px-2">
-                <div className="text-xs text-gray-400 italic">
-                    {isEditing ? "* Changes will be applied after clicking Save" : ""}
+            <div className="flex justify-between items-center px-4">
+                <div className="text-[10px] font-black text-gray-400 titlecase tracking-widest">
+                    {isEditing ? "* Changes will be applied after clicking Save" : `Found ${filteredEntries.length} Attributes`}
                 </div>
                 <button
                     onClick={fetchCustomConfig}
-                    className="flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-sky-500 transition-colors uppercase tracking-wider"
+                    className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-blue-900 transition-all titlecase tracking-widest bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200"
                 >
                     <FiRefreshCw size={12} className={loading ? 'animate-spin' : ''} />
                     Last Updated: {new Date().toLocaleTimeString()}

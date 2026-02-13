@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingCart, FiRefreshCw, FiPackage, FiSearch, FiDollarSign, FiTag, FiCheckCircle, FiXCircle, FiExternalLink, FiEye, FiX } from 'react-icons/fi';
+import { FiShoppingCart, FiRefreshCw, FiPackage, FiSearch, FiDollarSign, FiTag, FiCheckCircle, FiXCircle, FiExternalLink, FiEye, FiX, FiFilter } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface ProductsCardProps {
@@ -15,6 +15,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
     const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState<any | null>(null);
+    const [showFilters, setShowFilters] = useState(false);
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -80,7 +81,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
     return (
         <div className="space-y-4">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-2">
                 <div className="flex items-center gap-3">
                     <div className="relative flex-1 sm:w-72">
                         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
@@ -93,153 +94,164 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                         />
                     </div>
                     <div className="relative">
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="appearance-none pl-3 pr-8 py-2 text-xs font-bold uppercase tracking-wider border border-gray-200 rounded-lg bg-gray-50 hover:bg-white text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 cursor-pointer"
+                        <button
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                            onClick={() => setShowFilters(!showFilters)}
                         >
-                            <option value="All">All Statuses</option>
-                            <option value="Active">Active</option>
-                            <option value="Inactive">Inactive</option>
-                            <option value="Available">Available</option>
-                            <option value="Unavailable">Unavailable</option>
-                        </select>
-                        <div className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-gray-400">
-                            <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                                <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
-                            </svg>
-                        </div>
+                            <FiFilter size={16} />
+                            Filters
+                        </button>
+                        {showFilters && (
+                            <div className="absolute left-0 sm:right-0 sm:left-auto top-full mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Filter by Status</div>
+                                <div className="space-y-2">
+                                    {['All', 'Active', 'Inactive', 'Available', 'Unavailable'].map(status => (
+                                        <label key={status} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded transition-colors">
+                                            <input
+                                                type="radio"
+                                                name="statusFilter"
+                                                value={status}
+                                                checked={statusFilter === status}
+                                                onChange={(e) => {
+                                                    setStatusFilter(e.target.value);
+                                                }}
+                                                className="text-blue-900 focus:ring-blue-900 h-4 w-4"
+                                            />
+                                            <span className="text-sm text-gray-700 capitalize font-medium">
+                                                {status === 'All' ? 'All Statuses' : status}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-gray-400 uppercase">
-                        {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-100 px-2 py-1 rounded">
+                        {filteredProducts.length} Results
                     </span>
                     <button
                         onClick={fetchProducts}
                         disabled={loading}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
-                        <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+                        <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
                     </button>
                 </div>
             </div>
 
             {/* Products List */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-transparent">
                 {loading ? (
-                    <div className="flex flex-col items-center justify-center py-16">
-                        <div className="animate-spin rounded-full h-8 w-8 border-3 border-blue-500 border-t-transparent mb-4"></div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Loading products...</p>
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200">
+                        <div className="w-10 h-10 border-4 border-blue-900/30 border-t-blue-900 rounded-full animate-spin mb-4"></div>
+                        <p className="text-xs font-bold text-gray-400 titlecase tracking-widest">Loading products...</p>
                     </div>
                 ) : filteredProducts.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
-                            <FiShoppingCart className="text-gray-300" size={28} />
+                    <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-200 text-center">
+                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 text-gray-300">
+                            <FiShoppingCart size={32} />
                         </div>
-                        <h4 className="text-sm font-bold text-gray-600 mb-1">No Products Found</h4>
+                        <h4 className="text-base font-bold text-gray-600 mb-1">No Products Found</h4>
                         <p className="text-xs text-gray-400 max-w-[240px]">
                             {searchQuery ? 'No products match your search query.' : 'No products have been added for this merchant yet.'}
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         {filteredProducts.map((product: any, index: number) => {
                             const status = getStatus(product);
                             const isActive = status === 'Active' || status === 'Available';
 
-                            // Updated extraction logic based on sample response
                             const productUrl = product.attributes?.URL || product.url || product.productUrl || product.link;
                             const imageUrl = product.image?.thumbnail1 || product.image || product.imageUrl || product.img || product.thumbnail;
 
-                            // Use subCategory if available for more detail
                             const displayCategory = product.subCategory || product.category || product.categoryName || product.type || 'Uncategorized';
 
                             return (
-                                <div key={product.id || product.productId || index} className="standard-tile flex-col items-stretch group overflow-hidden">
+                                <div key={product.id || product.productId || index} className="standard-tile !p-0 flex-col items-stretch group overflow-hidden bg-white hover:border-blue-900/30 transition-all duration-300 shadow-sm hover:shadow-md animate-in fade-in zoom-in-95 duration-300">
                                     {/* Product Image Area */}
-                                    <div className="aspect-square bg-gray-50 relative overflow-hidden p-6 flex items-center justify-center">
+                                    <div className="aspect-square bg-gray-50/50 relative overflow-hidden p-4 flex items-center justify-center border-b border-gray-100">
                                         {imageUrl ? (
                                             <img
                                                 src={imageUrl}
                                                 alt={product.name}
-                                                className="max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-110 transition-transform duration-500 will-change-transform"
+                                                className="max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-500 will-change-transform"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).style.display = 'none';
-                                                    // Fallback to Icon if image loads fails
                                                     const parent = (e.target as HTMLImageElement).parentElement;
                                                     if (parent) {
                                                         const iconContainer = document.createElement('div');
-                                                        iconContainer.innerHTML = '<svg stroke="currentColor" fill="none" class="text-gray-300" stroke-width="2" viewBox="0 0 24 24" height="42" width="42" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
-                                                        parent.appendChild(iconContainer.firstChild as Node);
-                                                        parent.classList.add('flex', 'items-center', 'justify-center');
+                                                        iconContainer.className = 'text-gray-200';
+                                                        iconContainer.innerHTML = '<svg stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24" height="48" width="48" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+                                                        parent.appendChild(iconContainer);
                                                     }
                                                 }}
                                             />
                                         ) : (
-                                            <div className="flex items-center justify-center text-gray-300">
-                                                <FiPackage size={42} strokeWidth={1.5} />
+                                            <div className="flex items-center justify-center text-gray-200">
+                                                <FiPackage size={48} strokeWidth={1.5} />
                                             </div>
                                         )}
 
-                                        <div className="absolute top-3 right-3">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold uppercase backdrop-blur-md shadow-sm border ${isActive
-                                                ? 'bg-white/80 text-emerald-600 border-emerald-100'
-                                                : 'bg-white/80 text-gray-500 border-gray-100'
+                                        <div className="absolute top-2 right-2">
+                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-black titlecase tracking-wider backdrop-blur-md shadow-sm border ${isActive
+                                                ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
+                                                : 'bg-gray-50 text-gray-500 border-gray-100'
                                                 }`}>
-                                                {isActive ? <FiCheckCircle size={10} className="mr-1.5" /> : <FiXCircle size={10} className="mr-1.5" />}
                                                 {status}
                                             </span>
                                         </div>
                                     </div>
 
                                     {/* Content */}
-                                    <div className="p-3 flex flex-col flex-1">
+                                    <div className="p-3 flex flex-col flex-1 bg-white">
                                         <div className="mb-2">
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-0.5 line-clamp-1" title={displayCategory}>
+                                            <p className="text-[9px] font-black text-gray-400 titlecase tracking-widest mb-0.5 line-clamp-1 truncate" title={displayCategory}>
                                                 {displayCategory}
                                             </p>
-                                            <h3 className="font-bold text-gray-900 line-clamp-2 min-h-[1.25rem]" title={product.name || product.productName}>
+                                            <h3 className="text-sm font-bold text-gray-900 line-clamp-2 h-10 overflow-hidden leading-tight titlecase" title={product.name || product.productName}>
                                                 {product.name || product.productName || product.title || 'Unnamed Product'}
                                             </h3>
                                         </div>
 
-                                        <div className="mt-auto pt-3 border-t border-gray-50 flex items-center justify-between">
-                                            <div className="flex flex-col">
-                                                <span className="text-xs text-gray-400 font-medium">Price</span>
-                                                <span className="text-lg font-black text-gray-900 tracking-tight">
-                                                    {getPrice(product)}
-                                                </span>
-                                            </div>
+                                        <div className="mt-auto pt-2 border-t border-gray-50">
+                                            <p className="text-[9px] font-black text-gray-400 titlecase tracking-widest">Price</p>
+                                            <p className="text-base font-black text-blue-900 tracking-tight">
+                                                {getPrice(product)}
+                                            </p>
+                                        </div>
 
-                                            <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
-                                                <button
-                                                    onClick={() => {
-                                                        setSelectedProduct(product);
-                                                        setEditForm(JSON.parse(JSON.stringify(product))); // Deep copy
-                                                        setIsEditing(false);
-                                                    }}
-                                                    className="tile-btn-view h-7 w-7"
-                                                    title="View/Edit Details"
-                                                >
-                                                    <FiEye size={12} />
-                                                </button>
-                                                <button
-                                                    onClick={() => {
-                                                        if (productUrl) {
-                                                            window.open(productUrl, '_blank');
-                                                        } else {
-                                                            alert('Product URL not available');
-                                                        }
-                                                    }}
-                                                    className={`tile-btn-edit h-7 w-7 ${!productUrl ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                                    disabled={!productUrl}
-                                                    title={productUrl ? "View Product Page" : "No URL Available"}
-                                                >
-                                                    <FiExternalLink size={12} />
-                                                </button>
-                                            </div>
+                                        {/* Absolute Action Buttons */}
+                                        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 translate-y-1 transition-transform duration-300 group-hover:translate-y-0">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedProduct(product);
+                                                    setEditForm(JSON.parse(JSON.stringify(product)));
+                                                    setIsEditing(false);
+                                                }}
+                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
+                                                title="View Details"
+                                            >
+                                                <FiEye size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (productUrl) {
+                                                        window.open(productUrl, '_blank');
+                                                    } else {
+                                                        alert('Product URL not available');
+                                                    }
+                                                }}
+                                                className={`w-8 h-8 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 ${!productUrl ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                                disabled={!productUrl}
+                                                title={productUrl ? "View Product Page" : "No URL Available"}
+                                            >
+                                                <FiExternalLink size={14} />
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

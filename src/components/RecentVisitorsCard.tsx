@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiActivity, FiClock, FiMapPin, FiGlobe } from 'react-icons/fi';
+import { FiActivity, FiClock, FiMapPin, FiRefreshCw, FiGlobe } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface RecentVisitorsCardProps {
@@ -12,18 +12,20 @@ const RecentVisitorsCard: React.FC<RecentVisitorsCardProps> = ({ merchantId, clu
     const [visitors, setVisitors] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const fetchRecent = async () => {
+        setLoading(true);
+        try {
+            const response = await merchantService.getRawVisitors(merchantId, 0, 10, cluster);
+            setVisitors(Array.isArray(response?.content) ? response.content : []);
+        } catch (err) {
+            console.error('Failed to fetch recent visitors:', err);
+            setVisitors([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const fetchRecent = async () => {
-            setLoading(true);
-            try {
-                const response = await merchantService.getRawVisitors(merchantId, 0, 10, cluster);
-                setVisitors(response?.content || []);
-            } catch (err) {
-                console.error('Failed to fetch recent visitors:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchRecent();
     }, [merchantId, cluster]);
 
@@ -33,20 +35,27 @@ const RecentVisitorsCard: React.FC<RecentVisitorsCardProps> = ({ merchantId, clu
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                            <FiClock size={5} />
+                            <FiClock size={20} />
                         </div>
-                        <h2 className="text-sm font-bold text-gray-800 uppercase tracking-wide">Recent Visitors</h2>
+                        <h2 className="text-sm font-bold text-gray-800 titlecase tracking-wide">Recent Visitors</h2>
                     </div>
+                    <button
+                        onClick={fetchRecent}
+                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
+                    >
+                        <FiRefreshCw size={14} className={loading ? "animate-spin" : ""} />
+                        {loading ? 'Refreshing...' : 'Refresh'}
+                    </button>
                 </div>
             )}
             <div className="flex-1 overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-100 text-left">
                     <thead>
                         <tr>
-                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Visitor Name</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Merchant ID</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 uppercase tracking-wider">Engagement</th>
-                            <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-400 uppercase tracking-wider">Time</th>
+                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 titlecase tracking-wider">Visitor Name</th>
+                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 titlecase tracking-wider">Merchant ID</th>
+                            <th className="px-6 py-3 text-[10px] font-bold text-gray-400 titlecase tracking-wider">Engagement</th>
+                            <th className="px-6 py-3 text-right text-[10px] font-bold text-gray-400 titlecase tracking-wider">Time</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-50">

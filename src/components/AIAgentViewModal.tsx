@@ -20,18 +20,18 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                 {/* Header */}
                 <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                     <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-indigo-50 border border-indigo-100 flex items-center justify-center shrink-0 shadow-sm">
+                        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 shadow-sm transition-all hover:border-blue-900/30">
                             {agentImg ? (
                                 <img src={agentImg} alt={agentTitle} className="w-full h-full object-cover" />
                             ) : (
-                                <FiUser size={32} className="text-indigo-300" />
+                                <FiUser size={32} className="text-blue-300" />
                             )}
                         </div>
                         <div>
                             <div className="flex items-center gap-3">
-                                <h2 className="text-2xl font-bold text-gray-900">{agentTitle}</h2>
-                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold uppercase ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                    {agent.status || 'N/A'}
+                                <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{agentTitle}</h2>
+                                <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black titlecase tracking-wider border ${isActive ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-gray-100 text-gray-500 border-gray-200'}`}>
+                                    {isActive ? 'Active' : 'Inactive'}
                                 </span>
                             </div>
                             <p className="text-sm text-gray-500 font-medium mt-1">Version {agent.version || '1.0'} • Created by {agent.createdBy || 'Unknown'}</p>
@@ -51,24 +51,24 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                         {/* Summary Column */}
                         <div className="md:col-span-1 space-y-6">
                             <section>
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <FiActivity size={14} className="text-indigo-500" /> Activity Stats
+                                <h3 className="text-[10px] font-black text-gray-400 titlecase tracking-widest mb-3 flex items-center gap-2">
+                                    <FiActivity size={14} className="text-blue-900" /> Activity Stats
                                 </h3>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
-                                        <p className="text-2xl font-bold text-gray-900">{agent.totalConversations || 0}</p>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Conversations</p>
+                                    <div className="bg-gray-50/50 p-4 rounded-xl border-2 border-gray-200 text-center shadow-sm">
+                                        <p className="text-2xl font-black text-blue-900 tracking-tight">{agent.totalConversations || 0}</p>
+                                        <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest mt-1">Conversations</p>
                                     </div>
-                                    <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-center">
-                                        <p className="text-2xl font-bold text-gray-900">{agent.totalCustomers || 0}</p>
-                                        <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Customers</p>
+                                    <div className="bg-gray-50/50 p-4 rounded-xl border-2 border-gray-200 text-center shadow-sm">
+                                        <p className="text-2xl font-black text-blue-900 tracking-tight">{agent.totalCustomers || 0}</p>
+                                        <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest mt-1">Customers</p>
                                     </div>
                                 </div>
                             </section>
 
                             <section>
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <FiInfo size={14} className="text-indigo-500" /> Agent Details
+                                <h3 className="text-[10px] font-black text-gray-400 titlecase tracking-widest mb-3 flex items-center gap-2">
+                                    <FiInfo size={14} className="text-blue-900" /> Agent Details
                                 </h3>
                                 <div className="space-y-3">
                                     <div className="flex items-center justify-between text-sm py-2 border-b border-gray-50">
@@ -89,12 +89,12 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                             </section>
 
                             <section>
-                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <FiClock size={14} className="text-indigo-500" /> Timeline
+                                <h3 className="text-[10px] font-black text-gray-400 titlecase tracking-widest mb-3 flex items-center gap-2">
+                                    <FiClock size={14} className="text-blue-900" /> Timeline
                                 </h3>
-                                <div className="text-xs text-gray-500 font-medium py-3 px-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                                    <p className="mb-1 uppercase font-bold text-[9px] text-indigo-400">Last Modified</p>
-                                    <p className="text-gray-700 font-bold text-sm">{agent.lastModifiedDate || 'N/A'}</p>
+                                <div className="text-xs text-gray-500 font-medium py-3 px-4 bg-blue-50/50 rounded-xl border-2 border-blue-100 transition-all hover:bg-blue-50">
+                                    <p className="mb-1 titlecase font-black text-[9px] text-blue-900 tracking-widest">Last Modified</p>
+                                    <p className="text-gray-900 font-black text-sm tracking-tight">{agent.lastModifiedDate || 'N/A'}</p>
                                 </div>
                             </section>
                         </div>
@@ -102,32 +102,32 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                         {/* Config Column */}
                         <div className="md:col-span-2 space-y-8">
                             <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                                <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-                                    <FiLayers className="text-indigo-600" /> Intelligence Layer
+                                <h3 className="text-lg font-black text-blue-900 mb-6 flex items-center gap-3 tracking-tight">
+                                    <FiLayers className="text-blue-900" /> Intelligence Layer
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     {/* Primary Knowledge Base */}
                                     <div className="space-y-4">
-                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-all">
+                                        <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 hover:border-blue-900/30 transition-all shadow-sm">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                                <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
                                                     <FiBook size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Primary Knowledge Base</p>
-                                                    <h4 className="font-bold text-gray-900 mt-1 truncate">{agent.primaryKnowledgeBaseName || 'None'}</h4>
+                                                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Primary Knowledge Base</p>
+                                                    <h4 className="font-black text-blue-900 mt-2 truncate text-sm">{agent.primaryKnowledgeBaseName || 'None'}</h4>
                                                 </div>
                                             </div>
-                                            <p className="text-[11px] text-gray-400 font-mono mt-2">ID: {agent.primaryKnowledgeBaseId || 'N/A'}</p>
+                                            <p className="text-[10px] text-gray-400 font-mono mt-2 bg-white/50 px-2 py-1 rounded inline-block">Ref: {agent.primaryKnowledgeBaseId || 'N/A'}</p>
                                         </div>
-                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-all">
+                                        <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 hover:border-blue-900/30 transition-all shadow-sm">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                                                <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
                                                     <FiCpu size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Primary AI Model</p>
-                                                    <h4 className="font-bold text-gray-900 mt-1">ID: {agent.primaryModelId || 'N/A'}</h4>
+                                                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Primary AI Model</p>
+                                                    <h4 className="font-black text-blue-900 mt-2 text-sm">ID: {agent.primaryModelId || 'N/A'}</h4>
                                                 </div>
                                             </div>
                                         </div>
@@ -135,26 +135,26 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
 
                                     {/* Secondary Knowledge Base */}
                                     <div className="space-y-4">
-                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-all opacity-80">
+                                        <div className="p-4 bg-gray-50/30 rounded-2xl border-2 border-gray-100 hover:border-blue-900/20 transition-all opacity-80 scale-[0.98]">
                                             <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-2 bg-gray-200 text-gray-600 rounded-lg">
+                                                <div className="p-2 bg-gray-200 text-gray-600 rounded-lg text-opacity-40">
                                                     <FiDatabase size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Secondary Knowledge Base</p>
-                                                    <h4 className="font-bold text-gray-900 mt-1 truncate">{agent.secondaryKnowledgeBaseName || 'None'}</h4>
+                                                    <p className="text-[10px] font-black text-gray-300 titlecase tracking-widest leading-none">Secondary Knowledge Base</p>
+                                                    <h4 className="font-black text-gray-400 mt-2 truncate text-sm">{agent.secondaryKnowledgeBaseName || 'None'}</h4>
                                                 </div>
                                             </div>
-                                            <p className="text-[11px] text-gray-400 font-mono mt-2">ID: {agent.secondaryKnowledgeBaseId || 'N/A'}</p>
+                                            <p className="text-[10px] text-gray-300 font-mono mt-2">Ref: {agent.secondaryKnowledgeBaseId || 'N/A'}</p>
                                         </div>
-                                        <div className="p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-indigo-200 transition-all opacity-80">
+                                        <div className="p-4 bg-gray-50/30 rounded-2xl border-2 border-gray-100 hover:border-blue-900/20 transition-all opacity-80 scale-[0.98]">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-gray-200 text-gray-600 rounded-lg">
+                                                <div className="p-2 bg-gray-200 text-gray-600 rounded-lg text-opacity-40">
                                                     <FiCpu size={18} />
                                                 </div>
                                                 <div>
-                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">Secondary AI Model</p>
-                                                    <h4 className="font-bold text-gray-900 mt-1">ID: {agent.secondaryModelId || 'N/A'}</h4>
+                                                    <p className="text-[10px] font-black text-gray-300 titlecase tracking-widest leading-none">Secondary AI Model</p>
+                                                    <h4 className="font-black text-gray-400 mt-2 text-sm">ID: {agent.secondaryModelId || 'N/A'}</h4>
                                                 </div>
                                             </div>
                                         </div>
@@ -162,20 +162,20 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                                 </div>
                             </div>
 
-                            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-6">
-                                <h4 className="text-sm font-bold text-indigo-900 mb-4 uppercase tracking-widest flex items-center gap-2">
+                            <div className="bg-blue-50 border-2 border-blue-100 rounded-2xl p-6 shadow-sm">
+                                <h4 className="text-[10px] font-black text-blue-900 mb-4 titlecase tracking-widest flex items-center gap-2">
                                     <FiGlobe size={16} /> Voice & Speech Config
                                 </h4>
                                 <div className="grid grid-cols-2 gap-6">
-                                    <div>
-                                        <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Text-to-Speech</p>
-                                        <p className="text-sm font-bold text-indigo-900">{agent.textSpeechProvider || 'Default'}</p>
-                                        <p className="text-[11px] text-indigo-600 mt-0.5">{agent.textSpeechTone || 'Natural'}</p>
+                                    <div className="p-4 bg-white/50 rounded-xl border border-blue-100 shadow-sm">
+                                        <p className="text-[10px] font-black text-blue-900/40 titlecase tracking-widest mb-1.5">Text-to-Speech</p>
+                                        <p className="text-sm font-black text-blue-900">{agent.textSpeechProvider || 'Default'}</p>
+                                        <p className="text-[10px] text-blue-600/60 font-medium mt-1">{agent.textSpeechTone || 'Natural Tone'}</p>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] font-bold text-indigo-400 uppercase mb-1">Speech-to-Text</p>
-                                        <p className="text-sm font-bold text-indigo-900">{agent.speechTextProvider || 'Default'}</p>
-                                        <p className="text-[11px] text-indigo-600 mt-0.5">{agent.speechTextTone || 'Accurate'}</p>
+                                    <div className="p-4 bg-white/50 rounded-xl border border-blue-100 shadow-sm">
+                                        <p className="text-[10px] font-black text-blue-900/40 titlecase tracking-widest mb-1.5">Speech-to-Text</p>
+                                        <p className="text-sm font-black text-blue-900">{agent.speechTextProvider || 'Default'}</p>
+                                        <p className="text-[10px] text-blue-600/60 font-medium mt-1">{agent.speechTextTone || 'Accurate Model'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -187,9 +187,9 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                 <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2.5 bg-gray-900 text-sm font-bold text-white rounded-xl hover:bg-gray-800 transition-all shadow-lg active:scale-95"
+                        className="px-8 py-2.5 bg-blue-900 text-sm font-bold text-white rounded-xl hover:bg-blue-800 transition-all shadow-md active:scale-95 border border-blue-900"
                     >
-                        Close Details
+                        Done
                     </button>
                 </div>
             </div>

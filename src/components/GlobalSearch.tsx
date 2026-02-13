@@ -96,7 +96,7 @@ const GlobalSearch: React.FC = () => {
                 cat: 'General', items: [
                     { id: 'users', label: 'Users', icon: <FiUserCheck /> },
                     { id: 'departments', label: 'Departments', icon: <FiUsers /> },
-                    { id: 'contacts', label: 'Contacts', icon: <FiUser /> },
+                    { id: 'contacts', label: 'Customers', icon: <FiUser /> },
                 ]
             },
             {

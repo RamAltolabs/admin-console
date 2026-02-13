@@ -897,20 +897,22 @@ class MerchantApiService {
     }
   }
 
-  // Ontologies
-  async getOntologies(merchantId: string, cluster?: string): Promise<any> {
+  async updateDocument(merchantId: string, knowledgeBaseId: string, documentId: string, payload: any, cluster?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}model-service/entity/getEntityByMerchantId/${merchantId}?type=ontology`;
+      const url = `${baseURL}model-service/knowledgeBaseDocument/update/${merchantId}/${knowledgeBaseId}/${documentId}`;
 
-      const response = await this.api.get<any>(url);
-      console.log(`[getOntologies] API response:`, response.data);
+      console.log(`[updateDocument] PUT ${url}`, payload);
+      const response = await this.api.put(url, payload);
       return response.data;
     } catch (error) {
-      console.error(`Failed to fetch ontologies for merchant ${merchantId}:`, error);
-      return [];
+      console.error(`Failed to update document ${documentId}:`, error);
+      throw error;
     }
   }
+
+  // Ontologies
+
 
   // Intents
   async getIntents(merchantId: string, cluster?: string): Promise<any> {
@@ -1482,8 +1484,8 @@ class MerchantApiService {
   async deleteAIModel(modelId: string, merchantId: string, cluster?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}model-service/model/delete?access_token=${this.getAccessToken()}&merchantId=${merchantId}&modelId=${modelId}`;
-      const response = await this.api.post(url); // Using POST for delete as per common pattern in some parts of this legacy app
+      const url = `${baseURL}model-service/model/remove/${merchantId}/${modelId}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.delete(url);
       return response.data;
     } catch (error) {
       console.error('Failed to delete AI model:', error);
@@ -1494,7 +1496,7 @@ class MerchantApiService {
   async addKnowledgeBase(payload: any, cluster?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}knowledge-bases/create?access_token=${this.getAccessToken()}`;
+      const url = `${baseURL}model-service/knowledgeBase/create?access_token=${this.getAccessToken()}`;
       const response = await this.api.post(url, payload);
       return response.data;
     } catch (error) {
@@ -1812,6 +1814,29 @@ class MerchantApiService {
       return response.data;
     } catch (error) {
       console.error('Failed to delete user:', error);
+      throw error;
+    }
+  }
+
+  async uploadContacts(merchantId: string, file: File, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/uploadContacts?access_token=${this.getAccessToken()}`;
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('merchantId', merchantId);
+
+      console.log(`[uploadContacts] Uploading contacts for merchant ${merchantId} to ${url}`);
+
+      const response = await this.api.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Failed to upload contacts:', error);
       throw error;
     }
   }
@@ -2330,6 +2355,65 @@ class MerchantApiService {
       return [];
     }
   }
+
+
+  async getOntologies(merchantId: string, cluster?: string): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/entity/getEntityByMerchantId/${merchantId}`;
+
+      console.log(`[getOntologies] Requesting: ${url}`);
+      const response = await this.api.get(url, {
+        params: { type: 'ontology' }
+      });
+
+      console.log(`[getOntologies] Response:`, response.data);
+
+      const rawData = response.data;
+      if (Array.isArray(rawData)) return rawData;
+      if (rawData.entity && Array.isArray(rawData.entity)) return rawData.entity;
+      if (rawData.data && Array.isArray(rawData.data)) return rawData.data;
+
+      return [];
+    } catch (error) {
+      console.error(`Failed to fetch ontologies for ${merchantId}:`, error);
+      return [];
+    }
+  }
+
+  async createOrUpdateOntology(payload: any, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/entity/createOrUpdateEntity`;
+
+      console.log(`[createOrUpdateOntology] Request:`, payload);
+      const response = await this.api.post(url, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create/update ontology:', error);
+      throw error;
+    }
+  }
+
+  async deleteOntology(entityId: string, merchantId: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      // Note: The API uses POST for deletion based on user request
+      // We assume entityId is the numeric ID (e.g. 12482) not the mongo ID based on curl
+      const url = `${baseURL}model-service/entity/deleteEntity/${entityId}`;
+
+      console.log(`[deleteOntology] Request: ${url} with merchantId=${merchantId}`);
+      // Based on curl, merchantId is a query param
+      const response = await this.api.post(url, {}, {
+        params: { merchantId }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to delete ontology ${entityId}:`, error);
+      throw error;
+    }
+  }
+
 }
 
 export default new MerchantApiService();

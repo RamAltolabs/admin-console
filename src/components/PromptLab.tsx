@@ -65,9 +65,16 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
 
     const fetchOntologies = async () => {
         try {
-            const response = await merchantService.getOntologies(merchantId, cluster);
+            const response: any = await merchantService.getOntologies(merchantId, cluster);
             // Handling array response directly or inside a property
-            const data = Array.isArray(response) ? response : (response.data || []);
+            let data: any[] = [];
+            if (Array.isArray(response)) {
+                data = response;
+            } else if (response && Array.isArray(response.entity)) {
+                data = response.entity;
+            } else if (response && Array.isArray(response.data)) {
+                data = response.data;
+            }
             setOntologies(data);
         } catch (error) {
             console.error('Error fetching ontologies:', error);
@@ -355,34 +362,35 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
                 {/* Left Sidebar */}
-                {/* Left Sidebar */}
                 <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
                     {/* Tabs */}
-                    <div className="flex border-b border-gray-200 text-xs font-medium text-gray-500 bg-gray-50">
-                        <button
-                            onClick={() => setActiveTab('prompts')}
-                            className={`flex-1 py-3 text-center border-b-2 hover:bg-gray-100 transition-colors ${activeTab === 'prompts' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent'}`}
-                        >
-                            Prompts
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('intents')}
-                            className={`flex-1 py-3 text-center border-b-2 hover:bg-gray-100 transition-colors ${activeTab === 'intents' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent'}`}
-                        >
-                            Intents
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('ontologies')}
-                            className={`flex-1 py-3 text-center border-b-2 hover:bg-gray-100 transition-colors ${activeTab === 'ontologies' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent'}`}
-                        >
-                            Ontology
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('documents')}
-                            className={`flex-1 py-3 text-center border-b-2 hover:bg-gray-100 transition-colors ${activeTab === 'documents' ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent'}`}
-                        >
-                            Docs
-                        </button>
+                    <div className="p-2 border-b border-gray-200 bg-gray-50">
+                        <div className="flex bg-gray-200/50 p-1 rounded-lg">
+                            <button
+                                onClick={() => setActiveTab('prompts')}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'prompts' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
+                            >
+                                Prompts
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('intents')}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'intents' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
+                            >
+                                Intents
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('ontologies')}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'ontologies' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
+                            >
+                                Ontology
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('documents')}
+                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'documents' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
+                            >
+                                Docs
+                            </button>
+                        </div>
                     </div>
 
                     <div className="p-4 border-b border-gray-200 bg-white">
@@ -392,8 +400,9 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
                                 placeholder={`Search ${activeTab}...`}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all"
+                                className="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 focus:bg-white focus:border-blue-900 transition-all"
                             />
+                            <FiSearch className="absolute left-3 top-2.5 text-gray-400" size={16} />
                         </div>
                     </div>
 
@@ -403,13 +412,13 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
                             <div key={category} className="border-b border-gray-100">
                                 <button
                                     onClick={() => toggleCategory(category)}
-                                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors bg-white"
+                                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors bg-white group"
                                 >
                                     <div className="flex items-center gap-2">
-                                        {expandedCategories[category] ? <FiChevronDown size={14} className="text-gray-400" /> : <FiChevronRight size={14} className="text-gray-400" />}
-                                        <span className="text-sm font-medium text-gray-700">{category}</span>
+                                        {expandedCategories[category] ? <FiChevronDown size={14} className="text-gray-400 group-hover:text-blue-900" /> : <FiChevronRight size={14} className="text-gray-400 group-hover:text-blue-900" />}
+                                        <span className="text-sm font-bold text-gray-700 group-hover:text-blue-900">{category}</span>
                                     </div>
-                                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{catPrompts.length}</span>
+                                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full group-hover:bg-blue-50 group-hover:text-blue-900">{catPrompts.length}</span>
                                 </button>
 
                                 {expandedCategories[category] && (
@@ -419,13 +428,13 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
                                                 key={p.id}
                                                 onClick={() => handleSelectPrompt(p)}
                                                 className={`w-full text-left px-8 py-2.5 border-l-2 text-sm transition-all ${selectedPrompt?.id === p.id
-                                                    ? 'bg-blue-50/50 border-blue-500 text-blue-700'
+                                                    ? 'bg-blue-50 border-blue-900 text-blue-900 font-medium'
                                                     : 'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                                                     }`}
                                             >
-                                                <div className="font-medium truncate">{p.title || 'Untitled'}</div>
-                                                <div className="text-xs text-gray-400 truncate mt-0.5">{p.id}</div>
-                                                <div className="text-xs text-gray-400 truncate mt-1 opacity-70">{p.promptText || 'No description'}</div>
+                                                <div className="truncate">{p.title || 'Untitled'}</div>
+                                                <div className="text-xs text-gray-400 truncate mt-0.5 font-normal">{p.id}</div>
+                                                <div className="text-xs text-gray-400 truncate mt-1 opacity-70 font-normal">{p.promptText || 'No description'}</div>
                                             </button>
                                         ))}
                                     </div>
