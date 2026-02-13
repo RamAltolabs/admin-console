@@ -89,16 +89,16 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {filteredKBs.map((kb, idx) => (
-                            <div key={kb.id || idx} className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm hover:border-blue-200 transition-all flex flex-col">
-                                <div className="flex justify-between items-start mb-2">
-                                    <h4 className="font-bold text-sm text-gray-900 line-clamp-1">
+                            <div key={kb.id || idx} className="standard-tile flex-col items-start h-full">
+                                <div className="flex justify-between items-start w-full mb-1">
+                                    <h4 className="font-bold text-sm text-neutral-text-main line-clamp-1">
                                         {kb.knowledgeBaseName || kb.title || kb.name || kb.question || kb.header || kb.subject || 'Knowledge Entry'}
                                     </h4>
-                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${(kb.status || kb.category || kb.type || 'Active').toString().toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600'}`}>
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${(kb.status || kb.category || kb.type || 'Active').toString().toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-blue-50 text-blue-600'}`}>
                                         {kb.status || kb.category || kb.type || 'Active'}
                                     </span>
                                 </div>
-                                <p className="text-xs text-gray-600 line-clamp-4 leading-relaxed mb-3 flex-grow">
+                                <p className="text-[11px] text-neutral-text-muted line-clamp-3 leading-relaxed mb-3 flex-grow">
                                     {kb.knowledgeBaseDesc || kb.content || kb.description || kb.answer || kb.body || kb.text || 'No description provided.'}
                                 </p>
                                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50 text-[10px] text-gray-400">
@@ -111,12 +111,15 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
                                         {kb.aiTrainingStatus || 'Status Unknown'}
                                     </div>
                                 </div>
-                                <div className="mt-4 pt-4 border-t border-gray-50 flex justify-end">
+                                <div className="mt-3 pt-3 border-t border-neutral-border/50 flex justify-between items-center w-full">
+                                    <div className="text-[9px] font-bold text-neutral-text-muted flex items-center gap-2">
+                                        <FiCalendar /> {kb.updatedDate ? new Date(kb.updatedDate).toLocaleDateString() : 'N/A'}
+                                    </div>
                                     <button
                                         onClick={() => handleViewKB(kb)}
-                                        className="text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 flex items-center px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                                        className="tile-btn-view"
                                     >
-                                        <FiEye className="mr-1.5" /> View Details
+                                        <FiEye size={12} /> View Details
                                     </button>
                                 </div>
                             </div>

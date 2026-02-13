@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingBag, FiRefreshCw, FiSearch, FiCalendar, FiUser, FiHash, FiCheckCircle, FiClock, FiXCircle, FiTruck, FiArrowRight, FiFilter } from 'react-icons/fi';
+import { FiShoppingBag, FiRefreshCw, FiSearch, FiCalendar, FiUser, FiHash, FiCheckCircle, FiClock, FiXCircle, FiTruck, FiArrowRight, FiFilter, FiEye } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface OrdersCardProps {
@@ -226,7 +226,7 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                             const orderId = order.details?.orderNo || order.details?.id || order.id || index + 1;
 
                             return (
-                                <div key={orderId} className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-all flex flex-col gap-3 group relative">
+                                <div key={orderId} className="standard-tile flex-col items-stretch group relative gap-3">
                                     {/* Header: ID and Date */}
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center gap-2">
@@ -280,9 +280,9 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                                         </div>
                                         <button
                                             onClick={() => setSelectedOrder(order)}
-                                            className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+                                            className="tile-btn-view ml-auto"
                                         >
-                                            View Details <FiArrowRight size={12} />
+                                            <FiEye size={12} /> View Details
                                         </button>
                                     </div>
                                 </div>

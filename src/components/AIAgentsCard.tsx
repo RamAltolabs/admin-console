@@ -144,6 +144,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                             onChange={(e) => setStatusFilter(e.target.value)}
                             className="pl-8 pr-8 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 focus:ring-2 focus:ring-indigo-500 transition-all appearance-none cursor-pointer min-w-[120px]"
                         >
+                            <option value="ALL">All Status</option>
                             <option value="ACTIVE">Active Only</option>
                         </select>
                         <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
@@ -177,43 +178,44 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                     const isActive = agent.status?.toUpperCase() === 'ACTIVE';
 
                                     return (
-                                        <div key={agent.id || index} className="group relative bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all p-4 flex items-center gap-4 overflow-hidden min-h-[120px]">
-                                            {/* Circular Avatar */}
-                                            <div className="w-20 h-20 rounded-full border-2 border-white shadow-md overflow-hidden shrink-0 bg-gray-50 group-hover:scale-105 transition-transform">
-                                                {agentImg ? (
-                                                    <img src={agentImg} alt={agentTitle} className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center bg-indigo-50 text-indigo-300">
-                                                        <FiUser size={36} />
-                                                    </div>
-                                                )}
+                                        <div key={agent.id || index} className="standard-tile relative group min-h-[105px] !p-3">
+                                            {/* Circular Avatar with Status Indicator */}
+                                            <div className="relative flex-shrink-0">
+                                                <div className="standard-tile-avatar group-hover:scale-105 transition-transform overflow-hidden !w-12 !h-12">
+                                                    {agentImg ? (
+                                                        <img src={agentImg} alt={agentTitle} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <FiUser size={20} />
+                                                    )}
+                                                </div>
+                                                {/* Status Badge on Avatar */}
+                                                <div className="absolute -top-1 -right-1">
+                                                    <span className={`block w-3.5 h-3.5 rounded-full border-2 border-white shadow-sm transition-all ${isActive ? 'bg-green-500' : 'bg-gray-300'}`} title={agent.status || 'Unknown'}></span>
+                                                </div>
                                             </div>
 
-                                            {/* Agent Details */}
-                                            <div className="flex-grow min-w-0 pr-6">
-                                                <h4 className="font-bold text-gray-800 text-sm truncate mb-1 flex items-center gap-2" title={agentTitle}>
+                                            {/* Agent Details - Filled */}
+                                            <div className="flex-grow min-w-0 pr-8">
+                                                <h4 className="font-bold text-gray-800 text-[15px] truncate mb-0.5 leading-tight" title={agentTitle}>
                                                     {agentTitle}
-                                                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                        {agent.status || (isActive ? 'Active' : 'Inactive')}
-                                                    </span>
                                                 </h4>
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] flex items-center gap-1">
+                                                <div className="space-y-0.5 text-[11px]">
+                                                    <p className="flex items-center gap-1.5">
                                                         <span className="text-gray-400 font-medium">Persona:</span>
-                                                        <span className="text-gray-500 font-bold truncate block max-w-full">
+                                                        <span className="text-gray-500 font-bold truncate block max-w-[150px]">
                                                             {agent.persona || 'General Assistant'}
                                                         </span>
                                                     </p>
-                                                    <p className="text-[10px] flex items-center gap-1">
-                                                        <span className="text-gray-400 font-medium">Language:</span>
+                                                    <p className="flex items-center gap-1.5">
+                                                        <span className="text-gray-400 font-medium">Lang:</span>
                                                         <span className="text-gray-500 font-bold">
                                                             {agent.language || 'en-US'}
                                                         </span>
                                                     </p>
                                                     {agent.primaryKnowledgeBaseName && (
-                                                        <p className="text-[10px] flex items-center gap-1 mt-1">
-                                                            <span className="text-indigo-400 font-medium">Knowledge:</span>
-                                                            <span className="text-indigo-600 font-bold truncate block">
+                                                        <p className="flex items-center gap-1.5 text-indigo-600 mt-0.5">
+                                                            <span className="text-indigo-400 font-medium">KB:</span>
+                                                            <span className="font-bold truncate block max-w-[140px]">
                                                                 {agent.primaryKnowledgeBaseName}
                                                             </span>
                                                         </p>
@@ -221,43 +223,38 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                                 </div>
                                             </div>
 
-                                            {/* Hover Actions Group */}
-                                            <div className="absolute top-2 right-2 flex flex-col gap-1.5 opacity-0 group-hover:opacity-100 transition-all pointer-events-none group-hover:pointer-events-auto">
+                                            {/* Actions Group - Ultra Compact */}
+                                            <div className="absolute bottom-2 right-2.5 flex flex-col items-center gap-1.5 opacity-100">
                                                 {actionLoading === agent.id ? (
-                                                    <div className="p-1 px-2 border border-indigo-100 bg-white/90 rounded-lg flex items-center gap-2 shadow-sm backdrop-blur-sm">
-                                                        <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                                                        <span className="text-[10px] font-bold text-indigo-600 uppercase">Deleting...</span>
+                                                    <div className="p-0.5 border border-indigo-100 bg-white rounded flex items-center justify-center">
+                                                        <div className="w-2.5 h-2.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
                                                     </div>
                                                 ) : (
                                                     <>
                                                         <button
+                                                            onClick={() => handleViewDetails(agent)}
+                                                            className="tile-btn-view"
+                                                            title="View Details"
+                                                        >
+                                                            <FiEye size={10} />
+                                                            <span className="hidden group-hover:block ml-1 text-[7px]">View</span>
+                                                        </button>
+                                                        <button
                                                             onClick={(e) => handleEditAgent(agent, e)}
-                                                            className="p-1.5 bg-white text-indigo-600 border border-indigo-100 rounded-lg shadow-sm hover:bg-indigo-600 hover:text-white transition-all focus:outline-none"
+                                                            className="tile-btn-edit"
                                                             title="Edit Agent"
                                                         >
-                                                            <FiEdit2 size={12} />
+                                                            <FiEdit2 size={10} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => handleDeleteAgent(agent, e)}
-                                                            className="p-1.5 bg-white text-rose-500 border border-rose-100 rounded-lg shadow-sm hover:bg-rose-500 hover:text-white transition-all focus:outline-none"
+                                                            className="tile-btn-delete"
                                                             title="Delete Agent"
                                                         >
-                                                            <FiTrash2 size={12} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleViewDetails(agent)}
-                                                            className="p-1.5 bg-white text-gray-500 border border-gray-100 rounded-lg shadow-sm hover:bg-gray-800 hover:text-white transition-all focus:outline-none"
-                                                            title="View Details"
-                                                        >
-                                                            <FiEye size={12} />
+                                                            <FiTrash2 size={10} />
                                                         </button>
                                                     </>
                                                 )}
-                                            </div>
-
-                                            {/* Status Dot */}
-                                            <div className="absolute bottom-2 right-2">
-                                                <span className={`w-3 h-3 rounded-full border-2 border-white shadow-sm transition-all ${isActive ? 'bg-green-500' : 'bg-gray-300'}`} title={agent.status || 'Unknown'}></span>
                                             </div>
                                         </div>
                                     );

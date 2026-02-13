@@ -5,7 +5,7 @@ import { calculateDashboardStats, calculatePercentage, formatNumber } from '../u
 import merchantService from '../services/merchantService';
 import { Merchant } from '../types/merchant';
 import AnalyticsDashboard from './AnalyticsDashboard';
-import { FiUsers, FiCheckCircle, FiXCircle, FiAlertCircle, FiTrendingUp, FiHelpCircle, FiActivity, FiLayout, FiRefreshCw, FiServer, FiGlobe, FiLayers, FiInfo } from 'react-icons/fi';
+import { FiUsers, FiCheckCircle, FiXCircle, FiAlertCircle, FiTrendingUp, FiHelpCircle, FiActivity, FiLayout, FiRefreshCw, FiServer, FiGlobe, FiLayers, FiInfo, FiRotateCcw } from 'react-icons/fi';
 
 const Dashboard: React.FC = () => {
   const { merchants, loading, selectedCluster, clusters, setSelectedCluster, fetchMerchants, fetchClusters, viewMode, setViewMode } = useMerchantContext();
@@ -30,6 +30,28 @@ const Dashboard: React.FC = () => {
       setActiveGlobalTab(defaultCluster ? defaultCluster.id : clusters[0].id);
     }
   }, [viewMode, clusters, activeGlobalTab]);
+
+  // Handle anchor scrolling for deep links (e.g. from Global Search)
+  React.useEffect(() => {
+    const hash = window.location.hash;
+    const isActuallyLoading = loading || userStats.loading;
+
+    // If we're on a deep feature link, ensure we are in cluster mode if needed
+    if (hash && !selectedCluster && viewMode === 'cluster') return;
+
+    if (hash && !isActuallyLoading) {
+      const scrollTimeout = setTimeout(() => {
+        const id = hash.replace('#', '');
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          element.classList.add('ring-4', 'ring-primary-main/30', 'ring-offset-4', 'rounded-2xl', 'transition-all', 'duration-1000', 'z-10');
+          setTimeout(() => element.classList.remove('ring-4', 'ring-primary-main/30', 'ring-offset-4'), 3000);
+        }
+      }, 300);
+      return () => clearTimeout(scrollTimeout);
+    }
+  }, [selectedCluster, viewMode, window.location.hash, loading, userStats.loading]);
 
   const handleManualRefresh = async () => {
     setRefreshKey(prev => prev + 1);
@@ -410,7 +432,7 @@ const Dashboard: React.FC = () => {
     const [showHint, setShowHint] = useState(false);
 
     return (
-      <div className="card-premium p-4 flex flex-col justify-between h-full transition-all duration-300 hover:shadow-md hover:border-primary-main/30 group relative">
+      <div className="card-premium p-3.5 flex flex-col justify-between h-full transition-all duration-300 hover:shadow-md hover:border-primary-main/30 group relative">
         {hint && (
           <div className="absolute top-3 right-3 z-10">
             <div className="relative">
@@ -474,13 +496,13 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 mx-auto space-y-6 pb-20">
+    <div className="p-3 md:p-5 lg:p-6 mx-auto space-y-4 pb-20">
       {/* Executive Header Tile */}
-      <div className="bg-white rounded-2xl border border-neutral-border shadow-sm overflow-hidden mb-2">
-        <div className="bg-gradient-to-r from-primary-main/5 via-transparent to-transparent px-6 py-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 bg-white rounded-xl border border-neutral-border shadow-sm flex items-center justify-center text-primary-main shrink-0">
-              <FiActivity size={24} />
+      <div className="bg-white rounded-2xl border border-neutral-border shadow-sm overflow-hidden mb-3">
+        <div className="bg-gradient-to-r from-primary-main/5 via-transparent to-transparent px-5 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 bg-white rounded-xl border border-neutral-border shadow-sm flex items-center justify-center text-primary-main shrink-0">
+              <FiActivity size={20} />
             </div>
             <div className="space-y-2">
               <div className="flex flex-wrap items-center gap-3">
@@ -518,21 +540,21 @@ const Dashboard: React.FC = () => {
                   <div className="flex items-center gap-1.5 ml-1">
                     <button
                       onClick={() => setAutoRefresh(!autoRefresh)}
-                      className={`flex items-center gap-2 px-2 py-0.5 rounded-md border transition-all ${autoRefresh
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all ${autoRefresh
                         ? 'bg-blue-600 text-white border-blue-700 shadow-sm'
                         : 'bg-white border-neutral-border text-neutral-text-muted hover:border-primary-main/30'
                         }`}
                     >
-                      <div className={`w-1 h-1 rounded-full ${autoRefresh ? 'bg-white animate-pulse' : 'bg-neutral-border'}`}></div>
-                      <span className="text-[9px] font-bold uppercase tracking-wider whitespace-nowrap">Sync: {autoRefresh ? 'ON' : 'OFF'}</span>
+                      <div className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-white animate-pulse' : 'bg-neutral-border'}`}></div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Sync: {autoRefresh ? 'ON' : 'OFF'}</span>
                     </button>
                     <button
                       onClick={handleManualRefresh}
-                      className="p-1 bg-white text-neutral-text-main border border-neutral-border rounded-md hover:text-primary-main hover:border-primary-main/30 transition-all shadow-sm group/refresh"
+                      className="p-1.5 bg-white text-primary-main border border-primary-main/20 rounded-lg hover:bg-primary-main hover:text-white transition-all shadow-sm group/refresh active:scale-90"
                       title="Force Refresh Data"
                       disabled={isLoading || userStats.loading}
                     >
-                      <FiRefreshCw size={11} className={`transition-transform duration-500 ${isLoading || userStats.loading ? 'animate-spin' : 'group-active/refresh:rotate-180'}`} />
+                      <FiRotateCcw size={14} className={`transition-transform duration-500 ${isLoading || userStats.loading ? 'animate-spin' : 'group-active/refresh:rotate-180'}`} />
                     </button>
                   </div>
                 </div>
@@ -586,16 +608,16 @@ const Dashboard: React.FC = () => {
             <div className="bg-neutral-bg/50 rounded-xl border border-neutral-border p-1 flex items-center shadow-inner">
               <button
                 onClick={() => setViewMode('cluster')}
-                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'cluster'
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'cluster'
                   ? 'bg-white text-primary-main shadow-sm'
                   : 'text-neutral-text-secondary hover:text-primary-main'
                   }`}
               >
-                Cluster Focus View
+                Cluster Focus
               </button>
               <button
                 onClick={() => setViewMode('overall')}
-                className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'overall'
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'overall'
                   ? 'bg-white text-primary-main shadow-sm'
                   : 'text-neutral-text-secondary hover:text-primary-main'
                   }`}
@@ -608,7 +630,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Grid: Integrated Business & Operational Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+      <div id="engagement-stats" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-8 gap-4 scroll-mt-24">
         <StatCard
           title="Total Merchants"
           value={stats.totalMerchants}
@@ -696,19 +718,19 @@ const Dashboard: React.FC = () => {
       {/* Tables Section */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
         {/* Recent Merchants Table */}
-        <div className="card-premium overflow-hidden h-full flex flex-col">
-          <div className="p-6 border-b border-neutral-border flex items-center justify-between bg-neutral-bg/20">
+        <div id="recent-merchants" className="card-premium overflow-hidden h-full flex flex-col scroll-mt-24">
+          <div className="px-5 py-4 border-b border-neutral-border flex items-center justify-between bg-neutral-bg/20">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-primary-main"></div>
-              <h2 className="text-sm font-bold text-neutral-text-main uppercase tracking-widest">Recent Merchants</h2>
+              <h2 className="text-[11px] font-bold text-neutral-text-main uppercase tracking-[0.15em]">Recent Merchants</h2>
             </div>
             {isLoading && <div className="animate-spin h-4 w-4 border-2 border-primary-main border-t-transparent rounded-full"></div>}
           </div>
           <div className="flex-1 overflow-x-auto">
             <table className="min-w-full divide-y divide-neutral-border">
-              <thead className="bg-neutral-bg/30">
+              <thead className="bg-neutral-bg/10">
                 <tr>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Merchant Name</th>
+                  <th className="px-5 py-3 text-left text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Merchant Name</th>
                   {viewMode === 'overall' && (
                     <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Cluster</th>
                   )}
@@ -743,7 +765,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Recent Visitors Table */}
-        <div id="visitors-table" className="card-premium overflow-hidden h-full flex flex-col">
+        <div id="visitors-table" className="card-premium overflow-hidden h-full flex flex-col scroll-mt-24">
           <div className="p-6 border-b border-neutral-border flex items-center justify-between bg-neutral-bg/20">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-[#36b37e]"></div>
@@ -860,25 +882,24 @@ const Dashboard: React.FC = () => {
                     <button
                       key={cluster.id}
                       onClick={() => setActiveGlobalTab(cluster.id)}
-                      className={`flex items-center gap-4 p-3 rounded-xl border transition-all min-w-[240px] text-left shrink-0 ${isActive
-                        ? 'bg-white border-primary-main shadow-md ring-1 ring-primary-main/10 translate-y-[-2px]'
-                        : 'bg-white/50 border-neutral-border/50 text-neutral-text-muted hover:bg-white hover:border-primary-main/30'
+                      className={`standard-tile min-w-[240px] text-left shrink-0 ${isActive
+                        ? 'border-primary-main shadow-md ring-1 ring-primary-main/10 translate-y-[-2px] bg-white'
+                        : 'bg-white/50 border-neutral-border/50'
                         }`}
                     >
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shadow-inner transition-all ${isActive ? 'bg-[#0052cc] text-white rotate-0' : 'bg-neutral-bg text-neutral-text-muted -rotate-3'
-                        }`}>
+                      <div className={`standard-tile-avatar transition-all ${isActive ? 'bg-primary-main text-white' : 'bg-neutral-bg text-neutral-text-muted'}`}>
                         {cluster.name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <h3 className={`text-sm font-bold leading-tight ${isActive ? 'text-neutral-text-main' : 'text-neutral-text-secondary'}`}>
+                        <h3 className={`text-sm font-bold leading-tight ${isActive ? 'text-primary-main' : 'text-neutral-text-main'}`}>
                           {cluster.name} Analytics
                         </h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[9px] font-bold uppercase tracking-widest opacity-60">
+                          <span className="text-[9px] font-bold uppercase tracking-widest opacity-60 text-neutral-text-muted">
                             {cluster.region}
                           </span>
                           <span className="text-neutral-border text-[9px]">|</span>
-                          <span className={`text-[9px] font-bold uppercase tracking-tighter ${isActive ? 'text-primary-main' : 'opacity-40'}`}>
+                          <span className={`text-[9px] font-bold uppercase tracking-tighter ${isActive ? 'text-primary-main' : 'text-neutral-text-muted opacity-40'}`}>
                             {cluster.gcpProject?.replace('GCP Project Name: ', '')}
                           </span>
                         </div>

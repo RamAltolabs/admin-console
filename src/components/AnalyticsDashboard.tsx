@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FiTrendingUp, FiUsers, FiMessageSquare, FiMaximize2, FiLayout, FiRefreshCw } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiMessageSquare, FiMaximize2, FiLayout, FiRotateCcw } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface AnalyticsDashboardProps {
@@ -161,10 +161,10 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ cluster }) => {
                     </div>
                     <button
                         onClick={() => fetchAnalytics(activeTab)}
-                        className="p-2 bg-primary-main/10 text-primary-main rounded-lg hover:bg-primary-main hover:text-white transition-all shadow-sm active:scale-95 group"
+                        className="p-2 bg-primary-main text-white rounded-lg hover:bg-black transition-all shadow-md active:scale-95 group"
                         title="Refresh Data"
                     >
-                        <FiRefreshCw size={14} className="group-active:rotate-180 transition-transform duration-500" />
+                        <FiRotateCcw size={14} className="group-active:rotate-180 transition-transform duration-500" />
                     </button>
                 </div>
             </div>

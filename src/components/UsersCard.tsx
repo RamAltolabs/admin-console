@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiUser, FiUserCheck, FiUserPlus, FiRefreshCw, FiTrash2, FiToggleLeft, FiToggleRight, FiLock, FiAlertTriangle, FiCheck, FiX, FiMail, FiClock, FiSettings, FiPower, FiSearch, FiChevronLeft, FiChevronRight, FiFilter } from 'react-icons/fi';
+import { FiUser, FiUserCheck, FiUserPlus, FiRefreshCw, FiTrash2, FiToggleLeft, FiToggleRight, FiLock, FiAlertTriangle, FiCheck, FiX, FiMail, FiClock, FiSettings, FiPower, FiSearch, FiChevronLeft, FiChevronRight, FiFilter, FiRotateCcw } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface UsersCardProps {
@@ -146,6 +146,25 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
         }
     };
 
+    const handleDeleteUser = async (userName: string) => {
+        if (!window.confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) return;
+
+        setActionLoading(userName);
+        setError(null);
+        setSuccessMessage(null);
+
+        try {
+            await merchantService.deleteUser(userName, cluster);
+            setSuccessMessage(`User ${userName} deleted successfully`);
+            setUsers(users.filter(u => u.userName !== userName));
+        } catch (err) {
+            console.error('Failed to delete user:', err);
+            setError('Failed to delete user');
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     const handleResetPassword = async (userName: string) => {
         if (!window.confirm('Send password reset email to this user?')) return;
 
@@ -220,10 +239,10 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => fetchUsers(page)}
-                        className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 bg-white text-primary-main hover:bg-primary-main hover:text-white rounded-lg transition-all shadow-sm border border-neutral-border/50 active:scale-95"
                         title="Refresh"
                     >
-                        <FiRefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+                        <FiRotateCcw size={16} className={loading ? 'animate-spin' : ''} />
                     </button>
                     <button
                         onClick={() => setShowInviteModal(true)}
@@ -281,9 +300,10 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                             setRoleFilter('ALL');
                             setStatusFilter('ALL');
                         }}
-                        className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-800 tracking-widest transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 bg-white text-red-600 border border-red-100 rounded-lg hover:bg-red-50 hover:text-red-700 transition-all shadow-sm active:scale-95"
                     >
-                        Clear Filters
+                        <FiRotateCcw size={12} className="opacity-80" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Reset</span>
                     </button>
                 )}
             </div>
@@ -309,9 +329,9 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                         const isActive = user.status.toLowerCase() === 'active';
 
                         return (
-                            <div key={user.id || index} className="col-span-1 bg-white border border-gray-100 rounded-lg p-3 hover:border-blue-100 hover:shadow-sm transition-all group flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-medium shrink-0 text-sm">
-                                    {user.firstName ? user.firstName.charAt(0) : (user.userName ? user.userName.charAt(0).toUpperCase() : <FiUser />)}
+                            <div key={user.id || index} className="standard-tile group relative">
+                                <div className="standard-tile-avatar">
+                                    {user.firstName ? user.firstName.charAt(0) : (user.userName ? user.userName.charAt(0).toUpperCase() : <FiUser size={16} />)}
                                 </div>
 
                                 <div className="flex-1 min-w-0">
@@ -342,24 +362,32 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-1 shrink-0">
+                                <div className="flex items-center gap-1.5 shrink-0 opacity-100 transition-all">
                                     <button
                                         onClick={() => handleResetPassword(user.userName)}
                                         disabled={isProcessing}
-                                        className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                        className="tile-btn-view h-8 w-8 !p-0 flex items-center justify-center"
                                         title="Reset Password"
                                     >
-                                        <FiLock size={15} />
+                                        <FiRotateCcw size={14} />
                                     </button>
                                     <button
                                         onClick={() => handleToggleStatus(user)}
                                         disabled={isProcessing}
-                                        className={`p-1.5 rounded-lg transition-colors ${isActive
-                                            ? 'text-red-500 hover:bg-red-50'
-                                            : 'text-green-600 hover:bg-green-50'}`}
+                                        className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${isActive
+                                            ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-600 hover:text-white hover:border-amber-600'
+                                            : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white hover:border-green-600'}`}
                                         title={isActive ? "Deactivate User" : "Activate User"}
                                     >
-                                        <FiPower size={15} />
+                                        <FiPower size={12} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteUser(user.userName)}
+                                        disabled={isProcessing}
+                                        className="tile-btn-delete h-8 w-8 flex items-center justify-center"
+                                        title="Delete User"
+                                    >
+                                        <FiTrash2 size={12} />
                                     </button>
                                 </div>
                             </div>

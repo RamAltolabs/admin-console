@@ -1,4 +1,4 @@
-export default {
+module.exports = {
   content: [
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
@@ -8,29 +8,24 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          main: 'var(--primary-main)',
-          dark: 'var(--primary-dark)',
-          light: 'var(--primary-light)',
+          main: '#0052cc',
+          dark: '#0747a6',
+          light: '#deebff',
         },
         neutral: {
-          bg: 'var(--neutral-bg)',
-          card: 'var(--neutral-card)',
-          border: 'var(--neutral-border)',
+          bg: '#f8f9fa',
+          card: '#ffffff',
+          border: '#dfe1e6',
           text: {
-            main: 'var(--neutral-text-main)',
-            secondary: 'var(--neutral-text-secondary)',
-            muted: 'var(--neutral-text-muted)',
-          }
+            main: '#172b4d',
+            secondary: '#42526e',
+            muted: '#6b778c',
+          },
         },
         status: {
-          success: 'var(--status-success)',
-          error: 'var(--status-error)',
-          warning: 'var(--status-warning)',
+          success: '#36b37e',
+          error: '#ff5630',
+          warning: '#ffab00',
         },
         genx: {
           50: '#f7fafc',

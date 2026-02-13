@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
     FiActivity, FiUsers, FiTrendingUp, FiMessageSquare,
     FiClock, FiArrowUpRight, FiArrowDownRight, FiPieChart, FiBarChart2, FiGlobe,
-    FiInfo, FiSmile, FiUser, FiZap, FiCornerRightUp, FiLayout, FiMaximize2, FiRefreshCw
+    FiInfo, FiSmile, FiUser, FiZap, FiCornerRightUp, FiLayout, FiMaximize2, FiRotateCcw
 } from 'react-icons/fi';
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -313,10 +313,10 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                             <button
                                 key={preset.id}
                                 onClick={() => handlePresetChange(preset.id)}
-                                className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${selectedPreset === preset.id
+                                className={`px - 4 py - 1.5 rounded - lg text - [10px] font - black uppercase tracking - widest transition - all ${selectedPreset === preset.id
                                     ? 'bg-white text-blue-600 shadow-sm'
                                     : 'text-gray-400 hover:text-gray-600'
-                                    }`}
+                                    } `}
                             >
                                 {preset.label}
                             </button>
@@ -330,10 +330,10 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                         <button
                             key={tab.id}
                             onClick={() => setActiveVizTab(tab.id)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all whitespace-nowrap ${activeVizTab === tab.id
+                            className={`flex items - center gap - 2 px - 3 py - 2 rounded - lg transition - all whitespace - nowrap ${activeVizTab === tab.id
                                 ? 'bg-blue-50 text-gray-900 shadow-sm font-bold'
                                 : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50'
-                                }`}
+                                } `}
                         >
                             <tab.icon size={14} style={{ color: activeVizTab === tab.id ? tab.color : 'inherit' }} />
                             <span className="text-xs font-bold">{tab.label}</span>
@@ -359,7 +359,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                         newFragment += (newFragment ? '&' : '') + param;
                                     }
                                 });
-                                return `${newBaseUrl}#${newFragment}`;
+                                return `${newBaseUrl} #${newFragment} `;
                             })()}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -553,7 +553,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                             newFragment += (newFragment ? '&' : '') + param;
                                         }
                                     });
-                                    return `${newBaseUrl}#${newFragment}`;
+                                    return `${newBaseUrl} #${newFragment} `;
                                 })()}
                                 className="w-full h-[650px] border-0"
                                 title="Merchant Analytics Visualization"

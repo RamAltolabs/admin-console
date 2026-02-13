@@ -126,9 +126,9 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                 <div className="mt-auto pt-3 border-t border-gray-50 flex justify-end">
                                     <button
                                         onClick={() => handleViewArtifact(artifact)}
-                                        className="text-[11px] font-bold text-white bg-blue-600 hover:bg-blue-700 flex items-center px-3 py-1.5 rounded-lg transition-all shadow-sm"
+                                        className="tile-btn-view"
                                     >
-                                        <FiEye className="mr-1.5" /> View Details
+                                        <FiEye className="mr-1" /> View Details
                                     </button>
                                 </div>
                             </div>

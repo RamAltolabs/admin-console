@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiEdit, FiTrash2, FiSearch, FiPlus, FiFilter, FiFileText, FiChevronDown, FiChevronUp, FiEye, FiServer } from 'react-icons/fi';
+import { FiEdit, FiTrash2, FiSearch, FiPlus, FiFilter, FiFileText, FiChevronDown, FiChevronUp, FiEye, FiServer, FiRotateCcw } from 'react-icons/fi';
 import { Merchant } from '../types/merchant';
 import { useMerchantContext } from '../context/MerchantContext';
 import merchantService from '../services/merchantService';
@@ -133,11 +133,11 @@ const MerchantList: React.FC<MerchantListProps> = ({
   const totalPages = isSearchMode ? 1 : Math.ceil(filteredMerchants.length / itemsPerPage);
 
   return (
-    <div className="bg-white rounded-lg shadow-card-lg">
+    <div className="p-3 md:p-5 lg:p-6 mx-auto space-y-4 pb-20">
       {/* Header */}
       <div className="border-b border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <h2 className="text-2xl font-semibold text-genx-700">
+          <h2 className="text-xl font-bold text-neutral-text-main uppercase tracking-tight">
             {viewMode === 'overall' ? 'Global Merchants' : 'Merchants'}
           </h2>
           <button
@@ -218,6 +218,23 @@ const MerchantList: React.FC<MerchantListProps> = ({
               </div>
             </div>
           )}
+
+          {(statusFilter !== 'all' || clusterFilter !== 'all' || searchQuery) && (
+            <button
+              onClick={() => {
+                setStatusFilter('all');
+                setClusterFilter('all');
+                setSearchQuery('');
+                setIsSearchMode(false);
+                setCurrentPage(1);
+              }}
+              className="flex items-center gap-1.5 px-3 py-2 bg-white text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all shadow-sm active:scale-95"
+              title="Reset All Filters"
+            >
+              <FiRotateCcw size={14} />
+              <span className="text-xs font-bold uppercase tracking-widest">Reset</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -237,9 +254,10 @@ const MerchantList: React.FC<MerchantListProps> = ({
                 setIsSearchMode(false);
                 setCurrentPage(1);
               }}
-              className="text-xs text-blue-600 hover:text-blue-800 font-medium underline"
+              className="flex items-center gap-1.5 px-3 py-1 bg-white text-blue-600 border border-blue-100 rounded-lg hover:bg-blue-50 transition-all shadow-sm active:scale-95"
             >
-              Clear Search
+              <FiRotateCcw size={12} />
+              <span className="text-xs font-bold">Reset Search</span>
             </button>
           </div>
         </div>
@@ -263,15 +281,15 @@ const MerchantList: React.FC<MerchantListProps> = ({
             <table className="w-full">
               <thead className="bg-genx-50 border-b border-gray-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Name</th>
                   {viewMode === 'overall' && (
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Cluster</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Cluster</th>
                   )}
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Email</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Users</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Activity</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Email</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Users</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Activity</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -440,22 +458,27 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
 
   return (
     <>
-      <tr className="transition-colors hover:bg-gray-50/50">
-        <td className="px-6 py-4 whitespace-nowrap">
+      <tr className="transition-colors hover:bg-neutral-bg/30">
+        <td className="px-4 py-2.5 whitespace-nowrap">
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEdit(merchant)}
-              className="group relative inline-flex items-center justify-center w-8 h-8 text-gray-700 bg-gray-100 hover:bg-gray-800 hover:text-white rounded-lg transition-all duration-200 hover:shadow-md border border-gray-200 hover:border-gray-800 cursor-pointer"
+              className="tile-btn-edit"
               title="Edit"
             >
-              <FiEdit size={16} className="transition-transform group-hover:scale-110" />
+              <FiEdit size={14} />
             </button>
             <button
-              onClick={() => navigate(`/merchants/${merchant.id}?cluster=${selectedCluster}`)}
-              className="group relative inline-flex items-center justify-center w-8 h-8 text-gray-700 bg-gray-100 hover:bg-gray-800 hover:text-white rounded-lg transition-all duration-200 hover:shadow-md border border-gray-200 hover:border-gray-800 cursor-pointer"
+              onClick={() => {
+                const searchParams = new URLSearchParams(window.location.search);
+                const currentTab = searchParams.get('tab');
+                const detailPath = `/merchants/${merchant.id}?cluster=${selectedCluster}${currentTab ? `&tab=${currentTab}` : ''}`;
+                navigate(detailPath);
+              }}
+              className="tile-btn-view"
               title="View Details"
             >
-              <FiEye size={16} className="transition-transform group-hover:scale-110" />
+              <FiEye size={14} />
             </button>
           </div>
         </td>

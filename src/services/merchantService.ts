@@ -1803,6 +1803,19 @@ class MerchantApiService {
     }
   }
 
+  async deleteUser(userName: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}curo/merchant/manageAccount/deleteUser?userName=${userName}`;
+      // Following the pattern of resetPassword for account management tasks
+      const response = await this.api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      throw error;
+    }
+  }
+
   // Contacts
   async getContactsByMerchant(merchantId: string, cluster?: string, pageIndex: number = 0, pageCount: number = 10): Promise<any> {
     try {
@@ -1920,10 +1933,10 @@ class MerchantApiService {
     return cleanPayload;
   }
 
-  async getEngagementList(merchantId: string, cluster?: string): Promise<any> {
+  async getEngagementList(merchantId: string, cluster?: string, page: number = 0, size: number = 20): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/engagementList?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
+      const url = `${baseURL}chimes/engagementList?access_token=${this.getAccessToken()}&merchantId=${merchantId}&page=${page}&size=${size}`;
       const response = await this.api.get(url);
       return response.data;
     } catch (error) {

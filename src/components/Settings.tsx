@@ -58,17 +58,17 @@ const Settings: React.FC = () => {
     ];
 
     return (
-        <div className="max-w-7xl mx-auto space-y-8 pb-12 animate-in fade-in duration-700">
+        <div className="p-3 md:p-5 lg:p-6 mx-auto space-y-4 pb-12 animate-in fade-in duration-700">
             {/* Header - Simplified Action Bar Only */}
-            <div className="flex justify-end pt-4 pb-2 border-b border-neutral-border/50">
+            <div className="flex justify-end pb-2 border-b border-neutral-border/30">
                 <button
                     onClick={handleSave}
                     disabled={isSaving || !hasChanges}
-                    className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${isSaving
+                    className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest transition-all ${isSaving
                         ? 'bg-neutral-bg text-neutral-text-muted cursor-not-allowed opacity-50'
                         : !hasChanges
-                            ? 'bg-[#f4f5f7] text-neutral-text-muted cursor-not-allowed border border-neutral-border/40'
-                            : 'bg-[#172b4d] text-white shadow-lg shadow-black/10 hover:shadow-xl hover:bg-black active:scale-95'
+                            ? 'bg-[#f4f5f7] text-neutral-text-muted cursor-not-allowed border border-neutral-border/20'
+                            : 'bg-[#172b4d] text-white shadow-md hover:bg-black active:scale-95'
                         }`}
                 >
                     {isSaving ? (
@@ -91,25 +91,25 @@ const Settings: React.FC = () => {
             </div>
 
             {/* Unified Container */}
-            <div className="bg-white dark:bg-neutral-card rounded-[32px] border border-neutral-border/40 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.03)] overflow-hidden">
-                <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[600px]">
+            <div className="bg-white dark:bg-neutral-card rounded-2xl border border-neutral-border/40 shadow-sm overflow-hidden">
+                <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[500px]">
 
                     {/* Sidebar Navigation */}
-                    <div className="lg:col-span-3 p-8 bg-neutral-bg/20 dark:bg-black/10 relative">
+                    <div className="lg:col-span-3 p-5 bg-neutral-bg/20 dark:bg-black/10 relative">
                         {/* Meeting Point Fading Shadow */}
-                        <div className="absolute top-0 right-0 w-[40px] h-full bg-gradient-to-l from-white/20 dark:from-black/10 to-transparent pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-[20px] h-full bg-gradient-to-l from-white/10 dark:from-black/10 to-transparent pointer-events-none"></div>
 
-                        <div className="space-y-2 relative z-10">
+                        <div className="space-y-1 relative z-10">
                             {tabs.map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
-                                    className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${activeTab === tab.id
-                                        ? 'bg-[#172b4d] text-white shadow-lg shadow-black/10'
-                                        : 'text-neutral-text-muted hover:text-neutral-text-main hover:bg-neutral-bg/50 dark:hover:bg-white/5'
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-[0.15em] transition-all duration-300 ${activeTab === tab.id
+                                        ? 'bg-[#172b4d] text-white shadow-md'
+                                        : 'text-neutral-text-secondary hover:text-primary-main hover:bg-white/50 dark:hover:bg-white/5'
                                         }`}
                                 >
-                                    <span className={`text-lg transition-colors duration-300 ${activeTab === tab.id ? 'text-white' : 'text-neutral-text-muted/40'}`}>
+                                    <span className={`text-base transition-colors duration-300 ${activeTab === tab.id ? 'text-white' : 'text-neutral-text-muted/40'}`}>
                                         {tab.icon}
                                     </span>
                                     {tab.label}
@@ -119,35 +119,35 @@ const Settings: React.FC = () => {
                     </div>
 
                     {/* Content Area */}
-                    <div className="lg:col-span-9 p-10 relative">
+                    <div className="lg:col-span-9 p-6 relative">
                         {/* Vertical Meeting Line (Fading) */}
-                        <div className="absolute left-0 top-10 bottom-10 w-[1px] bg-gradient-to-b from-transparent via-neutral-border/40 dark:via-white/5 to-transparent"></div>
+                        <div className="absolute left-0 top-6 bottom-6 w-[1px] bg-gradient-to-b from-transparent via-neutral-border/20 dark:via-white/5 to-transparent"></div>
 
                         <div className="relative z-10 h-full">
                             {activeTab === 'identity' && (
-                                <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
-                                    <div className="space-y-1">
-                                        <h3 className="text-sm font-black text-neutral-text-main uppercase tracking-widest">Branding Identity</h3>
-                                        <p className="text-[11px] font-bold text-neutral-text-muted leading-relaxed uppercase opacity-60">System-wide labels and descriptors.</p>
+                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                                    <div className="space-y-0.5">
+                                        <h3 className="text-sm font-bold text-neutral-text-main uppercase tracking-widest">Branding Identity</h3>
+                                        <p className="text-[10px] font-bold text-neutral-text-muted uppercase opacity-60">System-wide labels and descriptors.</p>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-neutral-text-muted uppercase tracking-[0.2em] ml-1">Site Official Title</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.15em] ml-1">Site Official Title</label>
                                             <input
                                                 type="text"
                                                 value={siteTitle}
                                                 onChange={(e) => setSiteTitle(e.target.value)}
-                                                className="w-full px-5 py-4 bg-[#f9fafb] dark:bg-white/5 border border-neutral-border/40 rounded-2xl text-[13px] font-bold focus:outline-none focus:ring-4 focus:ring-primary-main/5 focus:border-primary-main/60 transition-all placeholder:text-neutral-text-muted/30 dark:text-white"
+                                                className="w-full px-4 py-3 bg-[#f9fafb] dark:bg-white/5 border border-neutral-border/40 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary-main/10 focus:border-primary-main/60 transition-all placeholder:text-neutral-text-muted/30 dark:text-white"
                                             />
                                         </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[10px] font-black text-neutral-text-muted uppercase tracking-[0.2em] ml-1">Tagline / Subtitle</label>
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.15em] ml-1">Tagline / Subtitle</label>
                                             <input
                                                 type="text"
                                                 value={tagline}
                                                 onChange={(e) => setTagline(e.target.value)}
-                                                className="w-full px-5 py-4 bg-[#f9fafb] dark:bg-white/5 border border-neutral-border/40 rounded-2xl text-[13px] font-bold focus:outline-none focus:ring-4 focus:ring-primary-main/5 focus:border-primary-main/60 transition-all placeholder:text-neutral-text-muted/30 dark:text-white"
+                                                className="w-full px-4 py-3 bg-[#f9fafb] dark:bg-white/5 border border-neutral-border/40 rounded-xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-primary-main/10 focus:border-primary-main/60 transition-all placeholder:text-neutral-text-muted/30 dark:text-white"
                                             />
                                         </div>
                                     </div>
@@ -155,23 +155,23 @@ const Settings: React.FC = () => {
                             )}
 
                             {activeTab === 'visuals' && (
-                                <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
-                                    <div className="space-y-1">
-                                        <h3 className="text-sm font-black text-neutral-text-main uppercase tracking-widest">Interface Appearance</h3>
-                                        <p className="text-[11px] font-bold text-neutral-text-muted leading-relaxed uppercase opacity-60">System styling and visual behavior.</p>
+                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-500">
+                                    <div className="space-y-0.5">
+                                        <h3 className="text-sm font-bold text-neutral-text-main uppercase tracking-widest">Interface Appearance</h3>
+                                        <p className="text-[10px] font-bold text-neutral-text-muted uppercase opacity-60">System styling and visual behavior.</p>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <div className="space-y-4">
-                                            <label className="text-[10px] font-black text-neutral-text-muted uppercase tracking-[0.2em] ml-1">Base Environment Theme</label>
-                                            <div className="grid grid-cols-3 gap-4">
+                                    <div className="space-y-5">
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.15em] ml-1">Base Environment Theme</label>
+                                            <div className="grid grid-cols-3 gap-3">
                                                 {['Light', 'Dark', 'System'].map((opt) => (
                                                     <button
                                                         key={opt}
                                                         onClick={() => setTheme(opt)}
-                                                        className={`px-5 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border ${theme === opt
-                                                            ? 'bg-[#172b4d] text-white border-[#172b4d] shadow-lg shadow-black/10'
-                                                            : 'bg-[#f4f5f7] dark:bg-white/5 text-neutral-text-muted border-neutral-border/40 hover:bg-neutral-bg animate-in'
+                                                        className={`px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border ${theme === opt
+                                                            ? 'bg-[#172b4d] text-white border-[#172b4d] shadow-md'
+                                                            : 'bg-[#f4f5f7] dark:bg-white/5 text-neutral-text-muted border-neutral-border/40 hover:bg-neutral-bg'
                                                             }`}
                                                     >
                                                         {opt}

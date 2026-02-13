@@ -157,7 +157,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                             const displayCategory = product.subCategory || product.category || product.categoryName || product.type || 'Uncategorized';
 
                             return (
-                                <div key={product.id || product.productId || index} className="group bg-white rounded-2xl border border-gray-100 hover:border-blue-400 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 flex flex-col overflow-hidden">
+                                <div key={product.id || product.productId || index} className="standard-tile flex-col items-stretch group overflow-hidden">
                                     {/* Product Image Area */}
                                     <div className="aspect-square bg-gray-50 relative overflow-hidden p-6 flex items-center justify-center">
                                         {imageUrl ? (
@@ -213,17 +213,17 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                                 </span>
                                             </div>
 
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
                                                 <button
                                                     onClick={() => {
                                                         setSelectedProduct(product);
                                                         setEditForm(JSON.parse(JSON.stringify(product))); // Deep copy
                                                         setIsEditing(false);
                                                     }}
-                                                    className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                                    className="tile-btn-view h-7 w-7"
                                                     title="View/Edit Details"
                                                 >
-                                                    <FiEye size={16} />
+                                                    <FiEye size={12} />
                                                 </button>
                                                 <button
                                                     onClick={() => {
@@ -233,16 +233,11 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                                             alert('Product URL not available');
                                                         }
                                                     }}
-                                                    // Enable if URL exists
-                                                    className={`px-3 py-1.5 rounded-lg transition-colors flex items-center gap-2 text-xs font-bold ${productUrl
-                                                        ? 'text-blue-600 bg-blue-50 hover:bg-blue-100'
-                                                        : 'text-gray-400 bg-gray-50 cursor-not-allowed opacity-50'
-                                                        }`}
+                                                    className={`tile-btn-edit h-7 w-7 ${!productUrl ? 'opacity-30 cursor-not-allowed' : ''}`}
                                                     disabled={!productUrl}
                                                     title={productUrl ? "View Product Page" : "No URL Available"}
                                                 >
-                                                    <FiExternalLink size={14} />
-                                                    View
+                                                    <FiExternalLink size={12} />
                                                 </button>
                                             </div>
                                         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiCpu, FiRefreshCw, FiPlayCircle, FiPauseCircle, FiLayers, FiZap, FiShoppingBag, FiInfo, FiSend, FiTarget } from 'react-icons/fi';
 import BotDetailsModal from './BotDetailsModal';
+import AIAgentFormModal from './AIAgentFormModal';
 import merchantService from '../services/merchantService';
 
 interface AgentiAICardProps {
@@ -40,6 +41,7 @@ const AgentiAICard: React.FC<AgentiAICardProps> = ({ merchantId, cluster }) => {
 
     const [selectedBot, setSelectedBot] = useState<Bot | null>(null);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
 
     const fetchBots = async () => {
         setLoading(true);
@@ -161,6 +163,22 @@ const AgentiAICard: React.FC<AgentiAICardProps> = ({ merchantId, cluster }) => {
         );
     }
 
+    const handleEditBot = (bot: Bot) => {
+        setSelectedBot(bot);
+        setShowEditModal(true);
+    };
+
+    const handleUpdateBot = async (payload: any) => {
+        try {
+            await merchantService.updateAIAgent(payload, cluster);
+            await fetchBots();
+            setShowEditModal(false);
+        } catch (error) {
+            console.error('Failed to update bot:', error);
+            throw error;
+        }
+    };
+
     const handleDeleteBot = async (bot: Bot) => {
         if (!window.confirm(`Are you sure you want to delete "${bot.botTemplateName || bot.botName}"?`)) {
             return;
@@ -237,6 +255,15 @@ const AgentiAICard: React.FC<AgentiAICardProps> = ({ merchantId, cluster }) => {
                 />
             )}
 
+            {showEditModal && (
+                <AIAgentFormModal
+                    isOpen={showEditModal}
+                    onClose={() => setShowEditModal(false)}
+                    onSave={handleUpdateBot}
+                    agent={selectedBot}
+                />
+            )}
+
             <div className="bg-white rounded-xl shadow-sm border border-genx-200 overflow-hidden">
                 {/* Notifications */}
                 {error && (
@@ -281,91 +308,104 @@ const AgentiAICard: React.FC<AgentiAICardProps> = ({ merchantId, cluster }) => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredBots.map((bot, index) => (
-                    <div key={bot.id || index} className="bg-white p-6 rounded-xl border border-gray-200 hover:shadow-md transition-all h-[180px] flex flex-col justify-between group relative">
-                        <div>
-                            <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-1 rounded-lg inline-flex flex-shrink-0">
+                {filteredBots.map((bot, index) => {
+                    const isActive = (bot.status?.toLowerCase() || '') === 'active';
+                    return (
+                        <div key={bot.id || index} className="standard-tile relative group min-h-[125px] flex-col !items-start bg-white !p-3.5">
+                            {/* Top row: Avatar and Basic Info */}
+                            <div className="flex items-start gap-4 w-full">
+                                {/* Avatar with StatusIndicator */}
+                                <div className="relative flex-shrink-0">
+                                    <div className="standard-tile-avatar group-hover:scale-105 transition-transform overflow-hidden !w-12 !h-12 bg-gray-50 border border-gray-100">
                                         <img
                                             src={bot.botImage1 || 'https://it-inferno.neocloud.ai/img/chatbot-template.png'}
                                             alt={bot.botTemplateName || 'Bot'}
-                                            className="w-10 h-10 object-cover rounded-lg"
+                                            className="w-full h-full object-cover"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).src = 'https://it-inferno.neocloud.ai/img/chatbot-template.png';
                                             }}
                                         />
                                     </div>
-                                    <h4 className="font-semibold text-gray-900 line-clamp-2 text-sm" title={bot.botTemplateName}>
+                                    <div className="absolute -top-1 -right-1">
+                                        <span className={`block w-3.5 h-3.5 bg-white rounded-full border-2 border-white shadow-sm transition-all ${isActive ? 'bg-green-500' : 'bg-yellow-500'}`} title={bot.status || 'Draft'}></span>
+                                    </div>
+                                </div>
+
+                                {/* Title and Badge */}
+                                <div className="flex-1 min-w-0 pr-8">
+                                    <h4 className="font-bold text-gray-900 text-[14px] truncate leading-tight mb-1" title={bot.botTemplateName}>
                                         {bot.botTemplateName || 'Unnamed Agent'}
                                     </h4>
-                                </div>
-                                <div className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider flex-shrink-0 ${(bot.status?.toLowerCase() || '') === 'active'
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-yellow-100 text-yellow-700'
-                                    }`}>
-                                    {bot.status || 'Draft'}
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {bot.groupName && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-500 uppercase tracking-tighter">
+                                                {bot.groupName}
+                                            </span>
+                                        )}
+                                        {bot.type && (
+                                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-600 uppercase tracking-tighter">
+                                                {bot.type}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 mb-2">
-                                {bot.groupName && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600 border border-gray-200">
-                                        <FiLayers className="mr-1" size={10} />
-                                        {bot.groupName}
-                                    </span>
-                                )}
-                                {bot.type && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
-                                        <FiZap className="mr-1" size={10} />
-                                        {bot.type}
-                                    </span>
-                                )}
+                            {/* Description Section - Filled */}
+                            <div className="mt-2.5 w-full">
+                                <p className="text-[11px] text-gray-500 line-clamp-1 leading-normal h-[16px]">
+                                    {bot.description || 'No description provided.'}
+                                </p>
                             </div>
 
-                            <p className="text-xs text-gray-400 mt-2 line-clamp-2">
-                                {bot.description || 'No description provided.'}
-                            </p>
-                        </div>
+                            {/* Footer Row (Publish Button) - Filled */}
+                            <div className="mt-auto pt-2.5 w-full border-t border-gray-100 flex items-center justify-between">
+                                <button
+                                    onClick={() => handlePublishBot(bot)}
+                                    className="tile-btn-view"
+                                    title="Publish"
+                                >
+                                    <FiTarget className="mr-1" />
+                                    Publish
+                                </button>
+                            </div>
 
-                        <div className="flex items-center justify-end gap-3 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                            {actionLoading === bot.id ? (
-                                <div className="flex items-center gap-2 py-1 bg-indigo-50 px-3 rounded-lg border border-indigo-100">
-                                    <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                                    <span className="text-[10px] font-bold text-indigo-600 uppercase">Processing...</span>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="flex items-center gap-1">
+                            {/* Actions Group - Ultra Compact */}
+                            <div className="absolute bottom-3.5 right-3.5 flex flex-col items-center gap-1.5 opacity-100">
+                                {actionLoading === bot.id ? (
+                                    <div className="p-0.5 border border-indigo-100 bg-white rounded flex items-center justify-center">
+                                        <div className="w-2.5 h-2.5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+                                    </div>
+                                ) : (
+                                    <>
                                         <button
                                             onClick={() => handleViewDetails(bot)}
-                                            className="p-1.5 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors"
-                                            title="Details"
+                                            className="tile-btn-view"
+                                            title="View Details"
                                         >
-                                            <FiInfo size={18} />
+                                            <FiInfo size={10} />
+                                            <span className="hidden group-hover:block ml-1 text-[7px]">View</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleEditBot(bot)}
+                                            className="tile-btn-edit"
+                                            title="Edit Agent"
+                                        >
+                                            <FiEdit2 size={10} />
                                         </button>
                                         <button
                                             onClick={() => handleDeleteBot(bot)}
-                                            className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition-colors"
-                                            title="Delete"
+                                            className="tile-btn-delete"
+                                            title="Delete Agent"
                                         >
-                                            <FiTrash2 size={18} />
+                                            <FiTrash2 size={10} />
                                         </button>
-                                    </div>
-
-                                    <button
-                                        onClick={() => handlePublishBot(bot)}
-                                        className="flex items-center gap-2 px-4 py-1.5 bg-[#22a6dc] hover:bg-[#1d95c7] text-white rounded-lg transition-all shadow-sm active:scale-95 flex-shrink-0"
-                                        title="Publish"
-                                    >
-                                        <FiTarget size={14} className="stroke-[3]" />
-                                        <span className="font-bold text-[11px] uppercase tracking-wider">Publish</span>
-                                    </button>
-                                </>
-                            )}
+                                    </>
+                                )}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

@@ -22,6 +22,12 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
     const [selectedEngagement, setSelectedEngagement] = useState<any | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
+    // Pagination states
+    const [pageIndex, setPageIndex] = useState(0);
+    const [pageSize] = useState(20);
+    const [totalElements, setTotalElements] = useState(0);
+    const [totalPages, setTotalPages] = useState(0);
+
     const getPreviewUrl = (engagement: any) => {
         // Logic to determine base URL based on current hostname or cluster
         // Mapping: app6a -> api6a-inferno, etc.
@@ -36,13 +42,31 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
         return `https://${apiPrefix}.neocloud.ai/chat.html?id=${engagement.id}&&${engagement.name}&&${merchantId}`;
     };
 
-    const fetchEngagements = async () => {
+    const fetchEngagements = async (page: number = pageIndex) => {
         setLoading(true);
         setError(null);
         try {
-            const response = await merchantService.getEngagementList(merchantId, cluster);
-            // API returns { engagements: [...] }
-            const list = response?.engagements || [];
+            const response = await merchantService.getEngagementList(merchantId, cluster, page, pageSize);
+            // API returns { engagements: [...] } or paginated response
+            let list: any[] = [];
+            let total = 0;
+            let pages = 0;
+
+            if (response?.engagements) {
+                list = response.engagements;
+                // Check for pagination metadata
+                total = response.totalElements || response.total || list.length;
+                pages = response.totalPages || Math.ceil(total / pageSize) || 1;
+            } else if (Array.isArray(response)) {
+                list = response;
+                total = list.length;
+                pages = 1;
+            } else if (response?.content) {
+                // Paginated response
+                list = response.content;
+                total = response.totalElements || response.total || list.length;
+                pages = response.totalPages || Math.ceil(total / pageSize) || 1;
+            }
 
             // Group by Type (e.g. Website, Messaging Platforms)
             const grouped = list.reduce((acc: any, curr: any) => {
@@ -66,6 +90,8 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
             }, {});
 
             setEngagements(Object.values(grouped));
+            setTotalElements(total);
+            setTotalPages(pages);
         } catch (err) {
             console.error('Error fetching engagements:', err);
             setError('Failed to load engagements');
@@ -146,11 +172,19 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
         }
     };
 
+    const handlePageChange = (newPageIndex: number) => {
+        if (newPageIndex >= 0 && newPageIndex < totalPages) {
+            setPageIndex(newPageIndex);
+            fetchEngagements(newPageIndex);
+        }
+    };
+
     useEffect(() => {
         if (merchantId) {
-            fetchEngagements();
+            fetchEngagements(0);
+            setPageIndex(0);
         }
-    }, [merchantId]);
+    }, [merchantId, cluster]);
 
     const getIcon = (type: string) => {
         const t = type?.toLowerCase() || '';
@@ -191,7 +225,7 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
                 </div>
                 <div className="flex items-center gap-3 ml-auto">
                     <button
-                        onClick={fetchEngagements}
+                        onClick={() => fetchEngagements(pageIndex)}
                         className="p-2.5 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all active:scale-95"
                         title="Refresh Data"
                     >

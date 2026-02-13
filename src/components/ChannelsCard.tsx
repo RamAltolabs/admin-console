@@ -108,23 +108,22 @@ const ChannelsCard: React.FC<ChannelsCardProps> = ({ merchantId, cluster }) => {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {channels.map((channel, idx) => (
-                            <div key={idx} className={`rounded-xl border border-gray-200 p-4 shadow-sm hover:shadow-md transition-all flex flex-col ${getChannelBg(channel)}`}>
-                                <div className="flex items-center gap-3 mb-3">
+                            <div key={idx} className={`standard-tile flex-col items-start ${getChannelBg(channel)}`}>
+                                <div className="flex items-center gap-3 w-full">
                                     <div className="bg-white p-2 rounded-lg shadow-sm">
-                                        {getChannelIcon(channel)}
+                                        {React.cloneElement(getChannelIcon(channel) as React.ReactElement, { size: 16 })}
                                     </div>
-                                    <div>
-                                        <h4 className="font-bold text-sm text-gray-900">{channel.channelName || channel.displayOption || channel.name || 'Unnamed Channel'}</h4>
-                                        <p className="text-xs text-gray-500 font-medium uppercase">{channel.channelCategory || channel.provider || 'Unknown Category'}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-sm text-neutral-text-main truncate">{channel.channelName || channel.displayOption || channel.name || 'Unnamed Channel'}</h4>
+                                        <p className="text-[10px] text-neutral-text-muted font-bold uppercase tracking-wider">{channel.channelCategory || channel.provider || 'Unknown Category'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-2 mt-auto pt-2 border-t border-gray-200/50">
+                                <div className="flex items-center justify-end w-full mt-2 pt-2 border-t border-neutral-border/30">
                                     <button
                                         onClick={() => handleViewChannel(channel)}
-                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center ml-auto"
+                                        className="tile-btn-view"
                                     >
-                                        <FiEye className="mr-1" /> Details
-                                    </button>
+                                        <FiEye className="mr-1" />  View Details                                    </button>
                                 </div>
                             </div>
                         ))}

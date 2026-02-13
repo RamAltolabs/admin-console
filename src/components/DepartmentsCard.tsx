@@ -81,32 +81,33 @@ const DepartmentsCard: React.FC<DepartmentsCardProps> = ({ merchantId, cluster }
                 </div>
             </div>
 
-            <div className="divide-y divide-gray-100">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4">
                 {departments.length > 0 ? (
                     departments.map((dept, index) => (
-                        <div key={dept.id || index} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between group">
-                            <div>
-                                <h4 className="font-medium text-gray-900">{dept.name || 'Unnamed Department'}</h4>
-                                {dept.description && <p className="text-sm text-gray-500 mt-1">{dept.description}</p>}
-                                <div className="flex items-center gap-2 mt-2">
-                                    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${dept.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                                        }`}>
-                                        {dept.status || 'Unknown'}
+                        <div key={dept.id || index} className="standard-tile group relative">
+                            <div className="standard-tile-avatar">
+                                <span className="text-primary-main">{dept.name?.charAt(0) || 'D'}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <h4 className="font-bold text-neutral-text-main text-sm truncate">{dept.name || 'Unnamed Department'}</h4>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${dept.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                        {dept.status || 'Active'}
                                     </span>
                                     {dept.userCount !== undefined && (
-                                        <span className="text-xs text-gray-400 flex items-center gap-1">
-                                            <FiUsers size={10} /> {dept.userCount} users
+                                        <span className="text-[10px] text-neutral-text-muted font-bold flex items-center gap-1">
+                                            <FiUsers size={10} /> {dept.userCount}
                                         </span>
                                     )}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                                    <FiEdit2 size={16} />
+                            <div className="flex items-center gap-1 opacity-100 transition-all shrink-0">
+                                <button className="tile-btn-edit h-7 w-7">
+                                    <FiEdit2 size={12} />
                                 </button>
-                                <button className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                                    <FiTrash2 size={16} />
+                                <button className="tile-btn-delete h-7 w-7">
+                                    <FiTrash2 size={12} />
                                 </button>
                             </div>
                         </div>

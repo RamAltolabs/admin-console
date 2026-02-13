@@ -42,9 +42,25 @@ const MerchantDetails: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState<string>('analytics');
+    const [activeTab, setActiveTab] = useState<string>(queryParams.get('tab') || 'analytics');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+
+    // Sync tab from URL
+    useEffect(() => {
+        const tab = queryParams.get('tab');
+        if (tab && tab !== activeTab) {
+            setActiveTab(tab);
+
+            // Auto-switch main tab based on sub-tab
+            for (const section of managementSections) {
+                if (section.items.some(i => i.id === tab)) {
+                    setMainTab(section.id as any);
+                    break;
+                }
+            }
+        }
+    }, [location.search, activeTab]);
 
     // Top-Level Tab State
     const [mainTab, setMainTab] = useState<'details' | 'overview' | 'analytics' | 'general' | 'ai-suite' | 'model-studio' | 'communication' | 'system'>('details');
@@ -209,15 +225,15 @@ const MerchantDetails: React.FC = () => {
     }
 
     const DetailItem: React.FC<{ icon: any; label: string; value: string | undefined; color?: string }> = ({
-        icon: Icon, label, value, color = "text-gray-500"
+        icon: Icon, label, value, color = "text-neutral-text-muted"
     }) => (
-        <div className="flex items-start space-x-1.5 p-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+        <div className="flex items-start gap-2 p-1.5 rounded-lg hover:bg-neutral-bg transition-colors">
             <div className={`mt-0.5 ${color}`}>
-                <Icon size={14} />
+                <Icon size={12} />
             </div>
             <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">{label}</p>
-                <p className="text-sm font-medium text-gray-900 mt-0.5 truncate">{value || 'N/A'}</p>
+                <p className="text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">{label}</p>
+                <p className="text-xs font-semibold text-neutral-text-main mt-0.5 truncate">{value || 'N/A'}</p>
             </div>
         </div>
     );
@@ -226,15 +242,15 @@ const MerchantDetails: React.FC = () => {
         <div className="flex flex-col h-full relative bg-gray-50">
             {/* Main Content Scrollable */}
             <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-3 pb-16">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-1">
                     <button
                         onClick={() => navigate('/merchants')}
-                        className="flex items-center text-gray-500 hover:text-genx-600 transition font-medium"
+                        className="flex items-center text-neutral-text-secondary hover:text-primary-main transition font-bold text-xs"
                     >
-                        <FiArrowLeft className="mr-2" /> Back to Merchants
+                        <FiArrowLeft className="mr-1.5" size={14} /> Back to List
                     </button>
                     <div className="flex space-x-2">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${merchant.status === 'active' ? 'bg-green-100 text-green-700' :
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${merchant.status === 'active' ? 'bg-green-100 text-green-700' :
                             merchant.status === 'inactive' ? 'bg-red-100 text-red-700' :
                                 merchant.status === 'suspended' ? 'bg-yellow-100 text-yellow-800' :
                                     'bg-gray-100 text-gray-600'
@@ -244,51 +260,51 @@ const MerchantDetails: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-card p-3 border border-gray-100">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 pb-3 border-b border-gray-100">
-                        <div className="flex items-center space-x-3">
-                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-lg font-bold shadow-lg shadow-blue-500/30">
+                <div className="bg-white rounded-xl shadow-sm p-3 border border-neutral-border">
+                    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 pb-3 border-b border-neutral-border/50">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-primary-main rounded-lg flex items-center justify-center text-white text-base font-bold shadow-sm">
                                 {merchant.name.charAt(0).toUpperCase()}
                             </div>
                             <div>
-                                <h1 className="text-xl font-bold text-gray-900">{merchant.name}</h1>
-                                <p className="text-gray-500 flex items-center mt-1">
-                                    <FiHash className="mr-1" /> {merchant.id}
+                                <h1 className="text-lg font-bold text-neutral-text-main tracking-tight">{merchant.name}</h1>
+                                <p className="text-[10px] font-bold text-neutral-text-muted flex items-center mt-0.5 uppercase tracking-widest">
+                                    <FiHash size={10} className="mr-1" /> {merchant.id}
                                 </p>
                             </div>
                         </div>
                     </div>
 
                     {/* Top Level Tabs */}
-                    <div className="flex flex-wrap gap-1 bg-gray-50/50 p-1 rounded-lg w-fit">
+                    <div className="flex flex-wrap gap-1 bg-neutral-bg/50 p-1 rounded-lg w-fit">
                         <button
                             onClick={() => setMainTab('details')}
-                            className={`flex items-center px-4 py-2 rounded-md text-sm font-bold transition-all ${mainTab === 'details'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
+                            className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === 'details'
+                                ? 'bg-white text-primary-main shadow-sm'
+                                : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
                                 }`}
                         >
-                            <FiUser className="mr-2" size={16} />
-                            Merchant Info
+                            <FiUser className="mr-1.5" size={14} />
+                            Info
                         </button>
                         <button
                             onClick={() => setMainTab('overview')}
-                            className={`flex items-center px-4 py-2 rounded-md text-sm font-bold transition-all ${mainTab === 'overview'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
+                            className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === 'overview'
+                                ? 'bg-white text-primary-main shadow-sm'
+                                : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
                                 }`}
                         >
-                            <FiUsers className="mr-2" size={16} />
-                            Visitor Info
+                            <FiUsers className="mr-1.5" size={14} />
+                            Visitors
                         </button>
                         <button
                             onClick={() => setMainTab('analytics')}
-                            className={`flex items-center px-4 py-2 rounded-md text-sm font-bold transition-all ${mainTab === 'analytics'
-                                ? 'bg-white text-blue-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
+                            className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === 'analytics'
+                                ? 'bg-white text-primary-main shadow-sm'
+                                : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
                                 }`}
                         >
-                            <FiBarChart2 className="mr-2" size={16} />
+                            <FiBarChart2 className="mr-1.5" size={14} />
                             Analytics
                         </button>
 
@@ -303,27 +319,27 @@ const MerchantDetails: React.FC = () => {
                                         setActiveTab(section.items[0].id);
                                     }
                                 }}
-                                className={`flex items-center px-4 py-2 rounded-md text-sm font-bold transition-all ${mainTab === section.id
-                                    ? 'bg-white text-blue-600 shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100/50'
+                                className={`flex items-center px-4 py-1.5 rounded-md text-[11px] font-bold tracking-wider transition-all ${mainTab === section.id
+                                    ? 'bg-white text-primary-main shadow-sm'
+                                    : 'text-neutral-text-secondary hover:text-neutral-text-main hover:bg-white/50'
                                     }`}
                             >
                                 {section.id !== 'general' && section.id !== 'system' && (
-                                    <div className="mr-2">
-                                        {section.id === 'ai-suite' && <FiZap size={16} />}
-                                        {section.id === 'model-studio' && <FiCpu size={16} />}
-                                        {section.id === 'communication' && <FiMessageSquare size={16} />}
+                                    <div className="mr-1.5">
+                                        {section.id === 'ai-suite' && <FiZap size={14} />}
+                                        {section.id === 'model-studio' && <FiCpu size={14} />}
+                                        {section.id === 'communication' && <FiMessageSquare size={14} />}
                                     </div>
                                 )}
-                                {section.id === 'general' && <FiGrid className="mr-2" size={16} />}
-                                {section.id === 'system' && <FiSettings className="mr-2" size={16} />}
+                                {section.id === 'general' && <FiGrid className="mr-1.5" size={14} />}
+                                {section.id === 'system' && <FiSettings className="mr-1.5" size={14} />}
                                 {section.title}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                <div className="mt-3">
+                <div>
                     {mainTab === 'details' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                             {/* Merchant Info & Location - Combined */}
@@ -393,21 +409,21 @@ const MerchantDetails: React.FC = () => {
                     )}
 
                     {mainTab === 'overview' && (
-                        <div className="flex gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                             {/* Visitor Sidebar */}
-                            <div className="w-56 shrink-0">
-                                <div className="bg-white rounded-xl border border-gray-100 p-3 space-y-1 shadow-sm">
+                            <div className="w-48 shrink-0">
+                                <div className="bg-white rounded-xl border border-neutral-border p-2 space-y-0.5 shadow-sm">
                                     {visitorSections.map((section) => (
                                         <button
                                             key={section.id}
                                             onClick={() => setVisitorSubTab(section.id)}
-                                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left ${visitorSubTab === section.id
-                                                ? 'bg-blue-50 text-blue-600 font-bold shadow-sm'
-                                                : 'text-gray-600 hover:bg-gray-50 font-medium'
+                                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${visitorSubTab === section.id
+                                                ? 'bg-primary-main/5 text-primary-main font-bold shadow-sm'
+                                                : 'text-neutral-text-secondary hover:bg-neutral-bg hover:text-primary-main font-bold'
                                                 }`}
                                         >
-                                            <section.icon size={18} />
-                                            <span className="text-sm">{section.label}</span>
+                                            <section.icon size={14} />
+                                            <span className="text-[11px] tracking-wider">{section.label}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -447,44 +463,31 @@ const MerchantDetails: React.FC = () => {
                         if (mainTab !== section.id) return null;
 
                         return (
-                            <div key={section.id} className="flex gap-6 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div key={section.id} className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                 {/* Management Sidebar */}
-                                <div className="w-56 shrink-0">
-                                    <div className="bg-white rounded-xl border border-gray-100 p-3 space-y-1 shadow-sm">
-                                        <div className="px-4 py-2 mb-2">
-                                            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider">{section.title}</h3>
+                                <div className="w-48 shrink-0">
+                                    <div className="bg-white rounded-xl border border-neutral-border p-2 space-y-0.5 shadow-sm">
+                                        <div className="px-3 py-1.5 mb-1">
+                                            <h3 className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">{section.title}</h3>
                                         </div>
                                         {section.items.map((item) => (
                                             <button
                                                 key={item.id}
                                                 onClick={() => setActiveTab(item.id)}
-                                                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all text-left ${activeTab === item.id || (mainTab === section.id && activeTab === item.id)
-                                                    ? 'bg-blue-50 text-blue-600 font-bold shadow-sm'
-                                                    : 'text-gray-600 hover:bg-gray-50 font-medium'
+                                                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg transition-all text-left ${activeTab === item.id || (mainTab === section.id && activeTab === item.id)
+                                                    ? 'bg-primary-main/5 text-primary-main font-bold shadow-sm'
+                                                    : 'text-neutral-text-secondary hover:bg-neutral-bg hover:text-primary-main font-bold'
                                                     }`}
                                             >
-                                                <item.icon size={18} />
-                                                <span className="text-sm">{item.label}</span>
+                                                <item.icon size={14} />
+                                                <span className="text-[11px] tracking-wider">{item.label}</span>
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                {/* Management Content Area */}
+                                {/* Content for each tab */}
                                 <div className="flex-1 min-w-0">
-                                    {/* Dynamic Header */}
-                                    {activeSection && (
-                                        <div className="mb-6">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-blue-50 rounded-lg">
-                                                    <activeSection.icon className="text-blue-600" size={20} />
-                                                </div>
-                                                <h2 className="text-lg font-bold text-gray-800">{activeSection.label}</h2>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* Content for each tab */}
                                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
                                         {(activeTab === 'users' || (mainTab === 'general' && activeTab === 'users')) && <UsersCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'departments' && <DepartmentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
@@ -536,12 +539,12 @@ const MerchantDetails: React.FC = () => {
             {/* Merchant Edit Modal */}
             <MerchantFormModal
                 isOpen={isEditModalOpen}
-                merchant={merchant}
+                merchant={merchant || undefined}
                 onClose={() => setIsEditModalOpen(false)}
                 onSubmit={handleEditMerchant}
                 loading={isUpdating}
             />
-        </div >
+        </div>
     );
 };
 

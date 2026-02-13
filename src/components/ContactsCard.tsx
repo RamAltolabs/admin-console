@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiUser, FiMail, FiPhone, FiAlertCircle, FiRefreshCw, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiUser, FiMail, FiPhone, FiAlertCircle, FiRefreshCw, FiChevronLeft, FiChevronRight, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface Contact {
@@ -102,6 +102,21 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
         }
     }, [merchantId, cluster]);
 
+    const handleEditContact = (e: React.MouseEvent, contact: Contact) => {
+        e.stopPropagation();
+        setSelectedContact(contact);
+        // In a real app, this would open an edit modal
+        alert('Edit functionality would open here');
+    };
+
+    const handleDeleteContact = (e: React.MouseEvent, contact: Contact) => {
+        e.stopPropagation();
+        if (window.confirm(`Are you sure you want to delete contact "${contact.contactFirstName} ${contact.contactLastName}"?`)) {
+            // In a real app, this would call merchantService.deleteContact
+            alert('Delete functionality would trigger here');
+        }
+    };
+
     const handlePageChange = (newPageIndex: number) => {
         if (newPageIndex >= 0 && newPageIndex < totalPages) {
             setPageIndex(newPageIndex);
@@ -185,43 +200,54 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                         <div
                             key={index}
                             onClick={() => setSelectedContact(contact)}
-                            className="group p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:shadow-md transition-all duration-200 bg-gray-50/50 hover:bg-white cursor-pointer"
+                            className="standard-tile group relative !p-4 cursor-pointer"
                         >
-                            <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0 text-purple-600 font-bold">
-                                    {(contact.contactFirstName || contact.contactLastName)
-                                        ? (contact.contactFirstName?.[0] || '') + (contact.contactLastName?.[0] || '')
-                                        : <FiUser />}
+                            <div className="standard-tile-avatar !w-12 !h-12 !bg-purple-100 text-purple-600">
+                                {(contact.contactFirstName || contact.contactLastName)
+                                    ? (contact.contactFirstName?.[0] || '') + (contact.contactLastName?.[0] || '')
+                                    : <FiUser size={20} />}
+                            </div>
+
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h4 className="font-bold text-gray-900 text-sm truncate">
+                                        {contact.contactFirstName} {contact.contactLastName}
+                                    </h4>
+                                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700">
+                                        {contact.role || 'Contact'}
+                                    </span>
                                 </div>
-
-                                <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                                    <div className="min-w-[180px] flex-shrink-0">
-                                        <h4 className="font-semibold text-gray-900 truncate">
-                                            {contact.contactFirstName} {contact.contactLastName}
-                                        </h4>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-gray-600">
-                                        {contact.emailAddress && (
-                                            <div className="flex items-center gap-2">
-                                                <FiMail size={14} className="text-gray-400 flex-shrink-0" />
-                                                <span className="truncate">{contact.emailAddress}</span>
-                                            </div>
-                                        )}
-                                        {contact.phone && (
-                                            <div className="flex items-center gap-2">
-                                                <FiPhone size={14} className="text-gray-400 flex-shrink-0" />
-                                                <span className="truncate">{contact.phone}</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="sm:ml-auto flex-shrink-0 mt-2 sm:mt-0">
-                                        <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 block text-center sm:inline">
-                                            {contact.role || 'Contact'}
-                                        </span>
-                                    </div>
+                                <div className="flex flex-col gap-1 text-xs text-gray-500">
+                                    {contact.emailAddress && (
+                                        <div className="flex items-center gap-1.5">
+                                            <FiMail size={12} className="text-gray-400" />
+                                            <span className="truncate">{contact.emailAddress}</span>
+                                        </div>
+                                    )}
+                                    {contact.phone && (
+                                        <div className="flex items-center gap-1.5">
+                                            <FiPhone size={12} className="text-gray-400" />
+                                            <span className="truncate">{contact.phone}</span>
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 opacity-100 transition-all shrink-0">
+                                <button
+                                    onClick={(e) => handleEditContact(e, contact)}
+                                    className="tile-btn-edit h-8 w-8 flex items-center justify-center"
+                                    title="Edit Contact"
+                                >
+                                    <FiEdit2 size={12} />
+                                </button>
+                                <button
+                                    onClick={(e) => handleDeleteContact(e, contact)}
+                                    className="tile-btn-delete h-8 w-8 flex items-center justify-center"
+                                    title="Delete Contact"
+                                >
+                                    <FiTrash2 size={12} />
+                                </button>
                             </div>
                         </div>
                     ))}
