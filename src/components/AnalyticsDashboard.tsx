@@ -77,7 +77,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ cluster }) => {
         return (
             <div className="flex flex-col items-center justify-center p-10 bg-white rounded-xl border border-neutral-border min-h-[300px]">
                 <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary-main border-t-transparent mb-4"></div>
-                <p className="text-[10px] font-bold text-neutral-text-muted uppercase tracking-widest">Synchronizing Analytics...</p>
+                <p className="text-[10px] font-bold text-neutral-text-muted titlecase tracking-widest">Synchronizing Analytics...</p>
             </div>
         );
     }
@@ -106,7 +106,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ cluster }) => {
                                 }`}
                         >
                             <tab.icon size={14} />
-                            <span className="text-[10px] font-bold uppercase tracking-[0.15em]">{tab.label}</span>
+                            <span className="text-[10px] font-bold titlecase tracking-[0.15em]">{tab.label}</span>
                         </button>
                     ))}
                 </div>
@@ -136,7 +136,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ cluster }) => {
                             })()}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-bold text-primary-main bg-primary-main/5 hover:bg-primary-main/10 transition-all uppercase tracking-widest border border-primary-main/10"
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-bold text-primary-main bg-primary-main/5 hover:bg-primary-main/10 transition-all titlecase tracking-widest border border-primary-main/10"
                             title="Open in Metabase"
                         >
                             <FiMaximize2 size={12} />
@@ -144,7 +144,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ cluster }) => {
                         </a>
                     )}
                     <div className="flex items-center gap-2 bg-neutral-bg/30 px-2 py-1 rounded-lg border border-neutral-border/50">
-                        <span className="text-[9px] font-bold text-neutral-text-muted uppercase">Range:</span>
+                        <span className="text-[9px] font-bold text-neutral-text-muted titlecase">Range:</span>
                         <input
                             type="date"
                             value={startDate}
@@ -217,8 +217,8 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ cluster }) => {
                         <div className="w-12 h-12 bg-neutral-bg rounded-2xl flex items-center justify-center mb-4 rotate-3 shadow-inner">
                             <FiLayout className="text-neutral-text-muted" size={24} />
                         </div>
-                        <h4 className="text-[11px] font-bold text-neutral-text-main uppercase tracking-widest mb-2">Endpoint Unavailable</h4>
-                        <p className="text-[10px] text-neutral-text-muted font-bold uppercase max-w-[200px] leading-relaxed">
+                        <h4 className="text-[11px] font-bold text-neutral-text-main titlecase tracking-widest mb-2">Endpoint Unavailable</h4>
+                        <p className="text-[10px] text-neutral-text-muted font-bold titlecase max-w-[200px] leading-relaxed">
                             No {currentTab?.label.toLowerCase()} metrics found for this period.
                         </p>
                     </div>

@@ -70,18 +70,18 @@ const BotDetailsModal: React.FC<BotDetailsModalProps> = ({ bot, onClose }) => {
                                     {/* Left Column: Basic Info */}
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Bot ID</label>
+                                            <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Bot ID</label>
                                             <p className="text-sm font-mono text-gray-900 bg-gray-50 p-2 rounded border border-gray-100">{bot.botId || bot.id}</p>
                                         </div>
 
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Internal Name</label>
+                                            <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Internal Name</label>
                                             <p className="text-sm text-gray-900">{bot.botName || 'N/A'}</p>
                                         </div>
 
                                         <div className="flex gap-4">
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</label>
+                                                <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Status</label>
                                                 <div className="mt-1">
                                                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${(bot.status?.toLowerCase() || '') === 'active'
                                                         ? 'bg-green-100 text-green-800'
@@ -92,7 +92,7 @@ const BotDetailsModal: React.FC<BotDetailsModalProps> = ({ bot, onClose }) => {
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Access</label>
+                                                <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Access</label>
                                                 <div className="mt-1">
                                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                                         {bot.botAccess || 'Private'}
@@ -105,26 +105,26 @@ const BotDetailsModal: React.FC<BotDetailsModalProps> = ({ bot, onClose }) => {
                                     {/* Right Column: Classification & Images */}
                                     <div className="space-y-4">
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Group</label>
+                                            <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Group</label>
                                             <p className="text-sm text-gray-900 flex items-center gap-1">
                                                 <FiLayers className="text-gray-400" /> {bot.groupName || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Type</label>
+                                            <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Type</label>
                                             <p className="text-sm text-gray-900 flex items-center gap-1">
                                                 <FiTag className="text-gray-400" /> {bot.type || 'N/A'}
                                             </p>
                                         </div>
                                         <div>
-                                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Merchant Ref</label>
+                                            <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Merchant Ref</label>
                                             <p className="text-sm font-mono text-gray-500">{bot.merchantRef || bot.merchantId || 'N/A'}</p>
                                         </div>
                                     </div>
 
                                     {/* Full Width: Description */}
                                     <div className="md:col-span-2">
-                                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Description</label>
+                                        <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider">Description</label>
                                         <div className="mt-1 text-sm text-gray-600 bg-gray-50 p-3 rounded-lg border border-gray-100 whitespace-pre-wrap">
                                             {bot.description || 'No description provided.'}
                                         </div>
@@ -133,7 +133,7 @@ const BotDetailsModal: React.FC<BotDetailsModalProps> = ({ bot, onClose }) => {
                                     {/* Full Width: Images if available */}
                                     {(bot.botImage1 || bot.botImage2) && (
                                         <div className="md:col-span-2">
-                                            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 block">Images</label>
+                                            <label className="text-xs font-semibold text-gray-400 titlecase tracking-wider mb-2 block">Images</label>
                                             <div className="flex gap-4 overflow-x-auto pb-2">
                                                 {bot.botImage1 && (
                                                     <img src={bot.botImage1} alt="Bot Image 1" className="h-32 w-auto object-cover rounded-lg border border-gray-200 shadow-sm" />

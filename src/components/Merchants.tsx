@@ -55,7 +55,7 @@ const Merchants: React.FC<MerchantsProps> = ({
           <FiUsers className="mx-auto text-primary-main/20 mb-4" size={42} />
           <h2 className="text-xl font-bold text-neutral-text-main mb-1.5">Cluster Selection Required</h2>
           <p className="text-sm text-neutral-text-secondary leading-tight mb-6">
-            Please choose a node to browse and manage merchant accounts.
+            Please choose a cluster to browse and manage merchant accounts.
           </p>
 
           {/* Cluster Selection Grid */}
@@ -75,7 +75,7 @@ const Merchants: React.FC<MerchantsProps> = ({
                     <FiLayers size={20} />
                   </div>
                   <span className="text-[12px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors">Global View</span>
-                  <span className="text-[9px] text-neutral-text-muted mt-0.5 uppercase tracking-widest font-bold opacity-60">Unified Nodes</span>
+                  <span className="text-[9px] text-neutral-text-muted mt-0.5 titlecase tracking-widest font-bold opacity-60">All 5 Nodes</span>
                 </div>
               </button>
 
@@ -92,9 +92,9 @@ const Merchants: React.FC<MerchantsProps> = ({
                     <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2.5 transition-all duration-300 transform group-hover:-translate-y-1 ${getClusterColorClass(cluster.id)}`}>
                       {getClusterIcon(cluster.id)}
                     </div>
-                    <span className="text-[12px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors uppercase tracking-tight">{cluster.name}</span>
+                    <span className="text-[12px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors titlecase tracking-tight">{cluster.name}</span>
                     <div className="flex flex-col items-center mt-1">
-                      <span className="text-[9px] text-neutral-text-muted font-bold opacity-50 uppercase">{cluster.region}</span>
+                      <span className="text-[9px] text-neutral-text-muted font-bold opacity-50 titlecase">{cluster.region}</span>
                       {cluster.gcpProject && (
                         <span className="text-[9px] bg-primary-main/5 text-primary-main px-2 py-0.5 rounded-full mt-1.5 font-bold tracking-wider">{cluster.gcpProject.replace('GCP Project Name: ', '')}</span>
                       )}

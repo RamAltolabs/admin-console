@@ -149,7 +149,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                         </button>
                         {showFilters && (
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-xl z-50 p-3 animate-in fade-in slide-in-from-top-2 duration-200">
-                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Filter by Status</div>
+                                <div className="text-[10px] font-black text-gray-400 titlecase tracking-widest mb-2 px-1">Filter by Status</div>
                                 <div className="space-y-1">
                                     {['ALL', 'ACTIVE'].map(status => (
                                         <button

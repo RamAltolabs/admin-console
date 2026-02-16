@@ -29,53 +29,30 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
     const [totalElements, setTotalElements] = useState(0);
     const [totalPages, setTotalPages] = useState(0);
 
-    const fetchContacts = async (page: number = pageIndex) => {
+    const fetchContacts = async (page = pageIndex, forceRefresh = false) => {
+        if (!merchantId) return;
         setLoading(true);
         setError(null);
         try {
-            const data = await merchantService.getContactsByMerchant(merchantId, cluster, page, pageSize);
+            const response = await merchantService.getContactsByMerchant(merchantId, cluster, page, pageSize, forceRefresh);
+            console.log('[ContactsCard] fetchContacts response:', response);
 
-            // Handle various response structures and extract pagination metadata
-            let rawList: any[] = [];
-            let total = 0;
-            let pages = 0;
+            // API response might be different based on endpoint, 
+            // usually it's { content: [], totalElements: 0, totalPages: 0 } or similar
+            const contactsList = Array.isArray(response) ? response : (response.content || response.data || []);
+            const total = response.totalElements || contactsList.length;
+            const pages = response.totalPages || Math.ceil(total / pageSize);
 
-            if (Array.isArray(data)) {
-                rawList = data;
-                total = data.length;
-                pages = 1;
-            } else if (data && typeof data === 'object') {
-                // Paginated response check
-                rawList = data.content || data.data || data.items || [];
-                total = data.totalElements || data.total || data.count || rawList.length;
-                pages = data.totalPages || Math.ceil(total / pageSize) || 1;
+            // Normalize contacts if needed
+            const normalizedContacts = contactsList.map((item: any) => {
+                const firstName = item.contactFirstName || item.firstName || '';
+                const lastName = item.contactLastName || item.lastName || '';
+                const email = item.emailAddress || item.email || '';
+                const phone = item.phone || item.phoneNumber || '';
+                const role = item.role || item.merchantStatus || '';
 
-                // If the list is empty and we still don't have rawList, try to find an array property
-                if (rawList.length === 0) {
-                    const key = Object.keys(data).find(k => Array.isArray(data[k]));
-                    if (key) rawList = data[key];
-                    if (total === 0) total = rawList.length;
-                }
-            }
-
-            // Normalize contact data (same as before)
-            const normalizedContacts = rawList.map(item => {
-                const firstName = item.first_name || item.contactFirstName || '';
-                const lastName = item.last_name || item.contactLastName || '';
-                let email = item.emailAddress || '';
-                if (Array.isArray(item.email_address)) {
-                    email = item.email_address.find((e: any) => e !== null && e !== undefined) || email;
-                }
-                let phone = item.phone || '';
-                if (Array.isArray(item.phone_number) && item.phone_number.length > 0) {
-                    const pObj = item.phone_number[0];
-                    phone = pObj.cell || pObj.home || pObj.phone || phone;
-                } else if (item.phone_number && typeof item.phone_number === 'string') {
-                    phone = item.phone_number;
-                }
-
-                const rawRole = item.role || (item.deleted ? 'Deleted' : '');
-                const finalRole = rawRole.toLowerCase() === 'contact' ? '' : rawRole;
+                // Titlecase role for display
+                const finalRole = role && role.length > 0 ? role.charAt(0).toUpperCase() + role.slice(1).toLowerCase() : '';
 
                 return {
                     ...item,
@@ -127,25 +104,25 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
         }
     };
 
-    if (loading) {
+    if (loading && customers.length === 0) {
         return (
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm min-h-[200px] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                     <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-gray-500 text-sm font-medium">Loading contacts...</p>
+                    <p className="text-gray-500 text-sm font-medium">Loading customer contacts...</p>
                 </div>
             </div>
         );
     }
 
-    if (error) {
+    if (error && customers.length === 0) {
         return (
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm min-h-[200px] flex items-center justify-center">
                 <div className="text-center text-red-500">
                     <FiAlertCircle size={24} className="mx-auto mb-2" />
                     <p className="font-medium">{error}</p>
                     <button
-                        onClick={() => fetchContacts()}
+                        onClick={() => fetchContacts(pageIndex, true)}
                         className="mt-3 text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 mx-auto"
                     >
                         <FiRefreshCw size={12} /> Retry
@@ -181,7 +158,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                 </div>
                 <div className="flex gap-2">
                     <button
-                        onClick={() => fetchContacts()}
+                        onClick={() => fetchContacts(pageIndex, true)}
                         className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm"
                         title="Refresh Customers"
                     >
@@ -217,7 +194,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                         {customer.contactFirstName} {customer.contactLastName}
                                     </h4>
                                     {customer.role && (
-                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700">
+                                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold titlecase tracking-wider bg-purple-50 text-purple-700">
                                             {customer.role}
                                         </span>
                                     )}
@@ -276,7 +253,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                 <div className="flex items-center gap-1">
                                     {[...Array(totalPages)].map((_, i) => {
                                         if (totalPages > 7) {
-                                            if (i === 0 || i === totalPages - 1 || (i >= pageIndex - 1 && i <= pageIndex + 1)) {
+                                            if (i === 0 || i === totalPages - 1 || (i >= pageIndex - 2 && i <= pageIndex + 2)) {
                                                 return (
                                                     <button
                                                         key={i}
@@ -353,14 +330,14 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                                         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg"><FiMail size={18} /></div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Email Address</p>
+                                            <p className="text-xs text-gray-500 titlecase font-bold tracking-wider">Email Address</p>
                                             <p className="text-gray-900 font-medium">{selectedCustomer.emailAddress || 'N/A'}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                                         <div className="p-2 bg-green-50 text-green-600 rounded-lg"><FiPhone size={18} /></div>
                                         <div>
-                                            <p className="text-xs text-gray-500 uppercase font-bold tracking-wider">Phone Number</p>
+                                            <p className="text-xs text-gray-500 titlecase font-bold tracking-wider">Phone Number</p>
                                             <p className="text-gray-900 font-medium">{selectedCustomer.phone || 'N/A'}</p>
                                         </div>
                                     </div>

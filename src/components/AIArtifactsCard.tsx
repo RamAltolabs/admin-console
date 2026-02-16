@@ -117,7 +117,7 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                             <h4 className="font-bold text-sm text-gray-900 truncate pr-2">
                                                 {artifact.name || 'Untitled Artifact'}
                                             </h4>
-                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase flex-shrink-0 ${artifact.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold titlecase flex-shrink-0 ${artifact.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                                 {artifact.status || 'N/A'}
                                             </span>
                                         </div>
@@ -127,7 +127,7 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                     </div>
                                 </div>
                                 <div className="mb-2">
-                                    <span className="text-[10px] font-bold text-genx-600 uppercase tracking-wider bg-genx-50 px-2 py-1 rounded">
+                                    <span className="text-[10px] font-bold text-genx-600 titlecase tracking-wider bg-genx-50 px-2 py-1 rounded">
                                         {artifact.type || 'Artifact'}
                                     </span>
                                 </div>

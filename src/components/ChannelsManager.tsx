@@ -20,8 +20,8 @@ const STYLES = `
   .channel-list .box {
     background: #fff;
     border: 1px solid #eee;
-    padding: 20px;
-    border-radius: 10px;
+    padding: 12px;
+    border-radius: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -29,13 +29,13 @@ const STYLES = `
     box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   }
   .channel-list .box:hover {
-    box-shadow: 0 8px 16px rgba(0,0,0,0.05);
-    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    transform: translateY(-1px);
   }
   .channel-list .img-box {
-    width: 60px;
-    height: 60px;
-    margin-bottom: 15px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -48,16 +48,20 @@ const STYLES = `
   .channel-list .title {
     font-weight: 700;
     color: #333;
-    font-size: 14px;
-    margin-bottom: 4px;
+    font-size: 13px;
+    margin-bottom: 2px;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
   }
   .channel-list .desc {
-    font-size: 10px;
+    font-size: 8px;
     color: #999;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     margin-bottom: 20px;
   }
   .switch-handle {
@@ -88,7 +92,8 @@ const getChannelImageUrl = (item: any, name: string) => {
         'web': 'web.svg',
         'campaign': 'email.png',
         'email': 'email.png',
-        'whatsapp business': 'whatsapp.svg',
+        'whatsapp': 'https://app30a.neocloud.ai/img/channel/whatsapp.svg',
+        'whatsapp business': 'https://app30a.neocloud.ai/img/channel/whatsapp.svg',
         'sms': 'sms.png',
         'twitter': 'twitter.svg',
         'instagram': 'instagram.png',
@@ -120,6 +125,7 @@ const getChannelImageUrl = (item: any, name: string) => {
 
     for (const key in mapping) {
         if (searchName.includes(key)) {
+            if (mapping[key].startsWith('http')) return mapping[key];
             path = `/img/channel/${mapping[key]}`;
             break;
         }
@@ -233,6 +239,7 @@ const ChannelConfigForm: React.FC<any> = ({ config, tab, viewMode, onSave, onCan
     const isEmail = String(tab?.channelId) === '53';
     const isSkype = String(tab?.channelName).toLowerCase().includes('skype');
     const isTeams = String(tab?.channelId) === '69';
+    const isFacebook = String(tab?.channelName).toLowerCase().includes('facebook');
 
     const [formState, setFormState] = useState(() => {
         const s = { ...(config || {}) };
@@ -262,12 +269,36 @@ const ChannelConfigForm: React.FC<any> = ({ config, tab, viewMode, onSave, onCan
                     </div>
                 </div>
             )}
+            {isFacebook && (
+                <div className="mb-8 p-6 bg-blue-50/30 rounded-xl border border-blue-100">
+                    <p className="text-gray-700 text-sm mb-4">Create and teach a conversational bot for Facebook Messenger.</p>
+                    <p className="text-gray-700 text-sm mb-4 font-medium">After you design and test your Inaipi agent, you can launch your Messenger bot</p>
+                    <ul className="text-gray-600 text-[13px] space-y-2 list-disc pl-5">
+                        <li>Get your Facebook Page Access Token and insert it in the field below.</li>
+                        <li>Create your own Verify Token (can be any string).</li>
+                        <li>Click 'Submit' above.</li>
+                        <li>Use the Webhook URL and Verify Token to create an event in the Facebook Messenger Webhook Setup.</li>
+                    </ul>
+                </div>
+            )}
             <div className="max-w-4xl space-y-6">
                 {isSkype && (
                     <>
                         <InputRow label="Microsoft App ID" field="microsoftAppId" formState={formState} onChange={handleChange} required />
                         <InputRow label="Microsoft App Password" field="microsoftAppPassword" formState={formState} onChange={handleChange} type="password" required />
                         {viewMode === 'edit' && <InputRow label="Request URL" field="webhook_URL" formState={formState} onChange={handleChange} required />}
+                    </>
+                )}
+                {isFacebook && (
+                    <>
+                        <InputRow label="Page Name" field="pageName" formState={formState} onChange={handleChange} required placeholder="Enter Page Name" />
+                        <InputRow label="Verify Token" field="verifyToken" formState={formState} onChange={handleChange} type="password" placeholder="Enter Verify Token" />
+                        <InputRow label="App Secret" field="appSecret" formState={formState} onChange={handleChange} type="password" placeholder="Enter App Secret" />
+                        <InputRow label="Channel Merchant Id" field="channelMerchantId" formState={formState} onChange={handleChange} required placeholder="Enter Merchant Id" />
+                        <InputRow label="Page Access Token" field="pageAccessToken" formState={formState} onChange={handleChange} type="password" placeholder="Enter Page Access Token" />
+                        <InputRow label="Session Expiry" field="sessionExpiry" formState={formState} onChange={handleChange} placeholder="Enter time in sec" />
+                        <InputRow label="Webhook ID" field="webhook_ID" formState={formState} onChange={handleChange} disabled />
+                        <InputRow label="Webhook URL" field="webhook_URL" formState={formState} onChange={handleChange} disabled />
                     </>
                 )}
                 {isVoice && (<><InputRow label="Account SID" field="accountSID" formState={formState} onChange={handleChange} required /><InputRow label="Account Token" field="accountToken" formState={formState} onChange={handleChange} type="password" required /><InputRow label="Phone Number" field="phoneNumber" formState={formState} onChange={handleChange} required /><SelectRow label="Provider" field="provider" formState={formState} onChange={handleChange} options={[{ value: 'twilio', label: 'Twilio' }]} required /></>)}
@@ -374,26 +405,26 @@ const ChannelConfigForm: React.FC<any> = ({ config, tab, viewMode, onSave, onCan
 // --- MANAGE VIEW ---
 const ManageChannelsView = ({ channels, activeIds, onToggle }: any) => (
     <div className="container channel-list animate-in fade-in zoom-in-95 duration-500">
-        <h3 className="text-2xl font-black text-gray-900 mb-8 tracking-tighter">Connect Platforms</h3>
+        <h3 className="text-xl font-black text-gray-900 mb-6 tracking-tighter">Connect Platforms</h3>
 
-        <div className="bg-white border border-blue-100 rounded-2xl p-6 mb-8 flex items-center gap-6 shadow-sm relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/50 rounded-full translate-x-16 -translate-y-16 group-hover:scale-110 transition-transform duration-700"></div>
-            <div className="w-20 h-20 shrink-0 bg-blue-900 rounded-3xl flex items-center justify-center shadow-lg shadow-blue-900/20 transform -rotate-3 group-hover:rotate-0 transition-transform">
-                <img src={`${IMAGE_BASE_URL}/img/channel/image.png`} alt="Info" className="w-12 h-12 object-contain brightness-0 invert" onError={e => e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/471/471664.png"} />
+        <div className="bg-white border border-blue-100 rounded-xl p-4 mb-6 flex items-center gap-4 shadow-sm relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full translate-x-12 -translate-y-12 group-hover:scale-110 transition-transform duration-700"></div>
+            <div className="w-14 h-14 shrink-0 bg-blue-900 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 transform -rotate-3 group-hover:rotate-0 transition-transform">
+                <img src={`${IMAGE_BASE_URL}/img/channel/image.png`} alt="Info" className="w-8 h-8 object-contain brightness-0 invert" onError={e => e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/471/471664.png"} />
             </div>
             <div className="relative z-10 max-w-3xl">
-                <p className="text-base font-medium text-gray-600 leading-relaxed italic pr-4">
+                <p className="text-[11px] font-medium text-gray-600 leading-relaxed italic pr-4">
                     "Connect your engagements to multiple platforms instantly. Enable the channels below and proceed to their respective tabs for detailed configuration."
                 </p>
-                <div className="mt-3 flex gap-2">
-                    <span className="w-2 h-2 rounded-full bg-blue-900"></span>
-                    <span className="w-2 h-2 rounded-full bg-blue-400"></span>
-                    <span className="w-2 h-2 rounded-full bg-blue-100"></span>
+                <div className="mt-2 flex gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-900"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-100"></span>
                 </div>
             </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {channels.map((item: any, i: number) => {
                 const cId = item.channelId || item.id;
                 const active = activeIds.includes(String(cId));
@@ -413,7 +444,7 @@ const ManageChannelsView = ({ channels, activeIds, onToggle }: any) => (
 
                         <label className="relative inline-flex items-center cursor-pointer mt-auto">
                             <input type="checkbox" className="sr-only peer" checked={active} onChange={e => onToggle(cId, item, e.target.checked)} />
-                            <div className="w-12 h-6 bg-gray-100 rounded-full peer peer-checked:bg-blue-900 after:content-[''] after:absolute after:top-[3px] after:left-[4px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-6 shadow-inner ring-1 ring-gray-900/5 group-hover:ring-blue-900/20"></div>
+                            <div className="w-10 h-5 bg-gray-100 rounded-full peer peer-checked:bg-blue-900 after:content-[''] after:absolute after:top-[2px] after:left-[3px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-5 shadow-inner ring-1 ring-gray-900/5 group-hover:ring-blue-900/20"></div>
                         </label>
                     </div>
                 );
@@ -476,17 +507,15 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
         } catch { }
     };
 
-    if (loading && !tabList.length) return <div className="p-20 text-center"><div className="w-12 h-12 border-4 border-blue-900/20 border-t-blue-900 rounded-full animate-spin mx-auto mb-6"></div><p className="text-gray-400 font-bold tracking-widest uppercase text-xs">Syncing Channels...</p></div>;
+    const activeTabObj = tabList.find(t => String(t.channelId) === activeTab);
+    const isWhatsAppTab = activeTab === '9';
+    const isFacebookTab = activeTab === '1' || activeTabObj?.channelName?.toLowerCase().includes('facebook');
 
-    return (
+    const content = loading && !tabList.length ? (
+        <div className="p-20 text-center"><div className="w-12 h-12 border-4 border-blue-900/20 border-t-blue-900 rounded-full animate-spin mx-auto mb-6"></div><p className="text-gray-400 font-bold tracking-widest titlecase text-xs">Syncing Channels...</p></div>
+    ) : (
         <div className="flex flex-col overflow-hidden relative">
             <style>{STYLES}</style>
-
-            {/* Title Section */}
-            <div className="px-8 pt-6 pb-2 flex items-center gap-2">
-                <h1 className="text-xl font-bold text-[#1a3a6d]">Channels</h1>
-                <div className="w-4 h-4 rounded-full border border-[#1a3a6d] flex items-center justify-center text-[10px] text-[#1a3a6d] font-bold">i</div>
-            </div>
 
             {/* Tabs Section */}
             <div className="px-8 py-4 flex gap-4 text-[13px] font-bold">
@@ -509,7 +538,7 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
 
             <div className="p-4 flex-1">
                 {activeTab === 'channel'
-                    ? <div className="max-w-[1400px] mx-auto w-full"><ManageChannelsView channels={availableChannels} activeIds={tabList.map(t => t.channelId)} onToggle={async (id: any, item: any, checked: boolean) => {
+                    ? <div className="max-w-[1400px] mx-auto w-full"><ManageChannelsView channels={availableChannels} activeIds={tabList.map(t => String(t.channelId))} onToggle={async (id: any, item: any, checked: boolean) => {
                         let cfgs = [...channelConfig];
                         if (checked) cfgs.push({ channelId: id, name: item.channelName, status: 'Active', createdDate: new Date().toISOString() });
                         else { if (!window.confirm("Are you sure you want to disable this channel? Existing configurations will be hidden.")) return; cfgs = cfgs.filter(c => String(c.channelId) !== String(id)); }
@@ -521,10 +550,10 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                                 {/* Header Bar */}
                                 <div className="bg-[#eaeff5] px-6 py-3 flex justify-between items-center border-b border-gray-200">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-[#25d366] shadow-sm">
-                                            {React.createElement(tabList.find(t => String(t.channelId) === activeTab)?.icon || BsChatDots, { size: 18 })}
+                                        <div className={`w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm ${isWhatsAppTab ? 'text-[#25d366]' : isFacebookTab ? 'text-[#0084ff]' : 'text-blue-900'}`}>
+                                            {React.createElement(activeTabObj?.icon || BsChatDots, { size: 18 })}
                                         </div>
-                                        <h2 className="text-sm font-bold text-gray-800">{tabList.find(t => String(t.channelId) === activeTab)?.channelName} Pages</h2>
+                                        <h2 className="text-sm font-bold text-gray-800">{isFacebookTab ? 'Facebook' : activeTabObj?.channelName} Pages</h2>
                                     </div>
                                     <button onClick={() => { setCurrent({}); setViewMode('add'); }} className="bg-[#1a3a6d] text-white px-4 py-1.5 rounded-md text-[11px] font-bold flex items-center gap-1.5 hover:bg-[#152e56] transition-all">
                                         <FiPlus size={14} /> Add More
@@ -539,6 +568,8 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                                             const isVoice = channelId === '51';
                                             const isWhatsApp = channelId === '9';
                                             const isTeams = channelId === '69';
+                                            const name = (cfg.name || '').toLowerCase();
+                                            const isFacebook = channelId === '1' || name.includes('facebook') || name.includes('messenger');
 
                                             return (
                                                 <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-6 relative group">
@@ -564,13 +595,14 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                                                         {isVoice && (
                                                             <>
                                                                 <div className="text-[13px]"><span className="font-semibold">Account SID:</span> {cfg.accountSID || 'N/A'}</div>
+                                                                <div className="text-[13px]"><span className="font-semibold">Phone Number:</span> {cfg.phoneNumber || cfg.phone_number || cfg.mobileNumber || cfg.mobile_number || cfg.phone || cfg.mobile || 'N/A'}</div>
                                                                 <div className="text-[13px]"><span className="font-semibold">Provider:</span> {decodeProvider(cfg.provider) || 'N/A'}</div>
                                                             </>
                                                         )}
                                                         {isWhatsApp && (
                                                             <>
-                                                                <div className="text-[13px]"><span className="font-semibold">Phone Number :</span> {cfg.phoneNumber || cfg.phone_number || cfg.mobileNumber || cfg.mobile_number || cfg.phone || 'N/A'}</div>
-                                                                <div className="text-[13px]"><span className="font-semibold">Provider :</span> {decodeProvider(cfg.provider) || 'N/A'}</div>
+                                                                <div className="text-[13px]"><span className="font-semibold">Phone Number:</span> {cfg.phoneNumber || cfg.phone_number || cfg.mobileNumber || cfg.mobile_number || cfg.phone || cfg.mobile || cfg.destination || cfg.channelMerchantId || cfg.waNumber || cfg.wa_number || 'N/A'}</div>
+                                                                <div className="text-[13px]"><span className="font-semibold">Provider:</span> {decodeProvider(cfg.provider) || 'N/A'}</div>
                                                             </>
                                                         )}
                                                         {isEmail && (
@@ -586,14 +618,19 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                                                                 <div className="text-[13px]"><span className="font-semibold">Tenant ID :</span> {cfg.tenantId || 'N/A'}</div>
                                                             </>
                                                         )}
+                                                        {isFacebook && (
+                                                            <>
+                                                                <div className="text-[13px]"><span className="font-semibold">Page Name :</span> {cfg.pageName || 'N/A'}</div>
+                                                            </>
+                                                        )}
 
                                                         <div className="text-[13px]"><span className="font-semibold">Created By:</span> {cfg.createdBy || 'meiyaps noc'}</div>
                                                         <div className="text-[13px]"><span className="font-semibold">Created Date:</span> {cfg.createdDate ? new Date(cfg.createdDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true }) : 'Aug 29, 2025 7:28 PM'}</div>
 
-                                                        {(isWhatsApp || isEmail || isTeams) && (
+                                                        {(isWhatsApp || isEmail || isTeams || isFacebook) && (
                                                             <>
                                                                 <div className="text-[13px]"><span className="font-semibold">Webhook ID:</span> {cfg.webhook_ID || '3065236979996886'}</div>
-                                                                <div className="text-[13px] break-all"><span className="font-semibold">Webhook URL:</span> <span className="text-blue-500 underline cursor-pointer">{cfg.webhook_URL || `https://api.neocloud.ai/cbk/v3/whatsapp/${cfg.id}`}</span></div>
+                                                                <div className="text-[13px] break-all"><span className="font-semibold">Webhook URL:</span> <span className="text-blue-500 underline cursor-pointer">{cfg.webhook_URL || `https://api.neocloud.ai/cbk/v3/${isFacebook ? 'facebook' : isWhatsApp ? 'whatsapp' : 'email'}/${cfg.id}`}</span></div>
                                                             </>
                                                         )}
                                                     </div>
@@ -614,6 +651,8 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
             </div>
         </div>
     );
+
+    return content;
 };
 
 export default ChannelsManager;

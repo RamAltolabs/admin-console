@@ -101,7 +101,7 @@ const BotExecutionLogs: React.FC<BotExecutionLogsProps> = ({ merchantId, cluster
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${log.status?.toLowerCase() === 'completed' || log.status?.toLowerCase() === 'success'
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold titlecase ${log.status?.toLowerCase() === 'completed' || log.status?.toLowerCase() === 'success'
                                             ? 'bg-green-100 text-green-700'
                                             : 'bg-yellow-100 text-yellow-700'
                                             }`}>

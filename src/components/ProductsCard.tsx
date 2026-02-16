@@ -161,7 +161,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                         </p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                         {filteredProducts.map((product: any, index: number) => {
                             const status = getStatus(product);
                             const isActive = status === 'Active' || status === 'Available';
@@ -169,89 +169,82 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                             const productUrl = product.attributes?.URL || product.url || product.productUrl || product.link;
                             const imageUrl = product.image?.thumbnail1 || product.image || product.imageUrl || product.img || product.thumbnail;
 
-                            const displayCategory = product.subCategory || product.category || product.categoryName || product.type || 'Uncategorized';
-
                             return (
-                                <div key={product.id || product.productId || index} className="standard-tile !p-0 flex-col items-stretch group overflow-hidden bg-white hover:border-blue-900/30 transition-all duration-300 shadow-sm hover:shadow-md animate-in fade-in zoom-in-95 duration-300">
+                                <div key={product.id || product.productId || index} className="group bg-white rounded-lg border border-gray-100 overflow-hidden flex flex-col hover:border-blue-200 hover:shadow-md transition-all duration-200 h-full">
                                     {/* Product Image Area */}
-                                    <div className="aspect-square bg-gray-50/50 relative overflow-hidden p-4 flex items-center justify-center border-b border-gray-100">
+                                    <div className="aspect-square bg-white relative overflow-hidden p-2 flex items-center justify-center border-b border-gray-50">
                                         {imageUrl ? (
                                             <img
                                                 src={imageUrl}
                                                 alt={product.name}
-                                                className="max-h-full max-w-full object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-500 will-change-transform"
+                                                className="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300 will-change-transform"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).style.display = 'none';
                                                     const parent = (e.target as HTMLImageElement).parentElement;
                                                     if (parent) {
                                                         const iconContainer = document.createElement('div');
                                                         iconContainer.className = 'text-gray-200';
-                                                        iconContainer.innerHTML = '<svg stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24" height="48" width="48" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
+                                                        iconContainer.innerHTML = '<svg stroke="currentColor" fill="none" stroke-width="1.5" viewBox="0 0 24 24" height="32" width="32" xmlns="http://www.w3.org/2000/svg"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>';
                                                         parent.appendChild(iconContainer);
                                                     }
                                                 }}
                                             />
                                         ) : (
                                             <div className="flex items-center justify-center text-gray-200">
-                                                <FiPackage size={48} strokeWidth={1.5} />
+                                                <FiPackage size={32} strokeWidth={1.5} />
                                             </div>
                                         )}
 
-                                        <div className="absolute top-2 right-2">
-                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[9px] font-black titlecase tracking-wider backdrop-blur-md shadow-sm border ${isActive
+                                        {/* Status Badge */}
+                                        <div className="absolute top-1.5 right-1.5">
+                                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider shadow-sm border ${isActive
                                                 ? 'bg-emerald-50 text-emerald-600 border-emerald-100'
                                                 : 'bg-gray-50 text-gray-500 border-gray-100'
                                                 }`}>
                                                 {status}
                                             </span>
                                         </div>
-                                    </div>
 
-                                    {/* Content */}
-                                    <div className="p-3 flex flex-col flex-1 bg-white">
-                                        <div className="mb-2">
-                                            <p className="text-[9px] font-black text-gray-400 titlecase tracking-widest mb-0.5 line-clamp-1 truncate" title={displayCategory}>
-                                                {displayCategory}
-                                            </p>
-                                            <h3 className="text-sm font-bold text-gray-900 line-clamp-2 h-10 overflow-hidden leading-tight titlecase" title={product.name || product.productName}>
-                                                {product.name || product.productName || product.title || 'Unnamed Product'}
-                                            </h3>
-                                        </div>
-
-                                        <div className="mt-auto pt-2 border-t border-gray-50">
-                                            <p className="text-[9px] font-black text-gray-400 titlecase tracking-widest">Price</p>
-                                            <p className="text-base font-black text-blue-900 tracking-tight">
-                                                {getPrice(product)}
-                                            </p>
-                                        </div>
-
-                                        {/* Absolute Action Buttons */}
-                                        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 translate-y-1 transition-transform duration-300 group-hover:translate-y-0">
+                                        {/* Overlay Actions */}
+                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-2 backdrop-blur-[1px]">
                                             <button
                                                 onClick={() => {
                                                     setSelectedProduct(product);
                                                     setEditForm(JSON.parse(JSON.stringify(product)));
                                                     setIsEditing(false);
                                                 }}
-                                                className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
+                                                className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-gray-700 hover:text-blue-600 transition-colors shadow-lg transform translate-y-2 group-hover:translate-y-0 duration-200"
                                                 title="View Details"
                                             >
                                                 <FiEye size={14} />
                                             </button>
-                                            <button
-                                                onClick={() => {
-                                                    if (productUrl) {
-                                                        window.open(productUrl, '_blank');
-                                                    } else {
-                                                        alert('Product URL not available');
-                                                    }
-                                                }}
-                                                className={`w-8 h-8 flex items-center justify-center rounded-lg bg-white/90 backdrop-blur-sm text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 ${!productUrl ? 'opacity-30 cursor-not-allowed' : ''}`}
-                                                disabled={!productUrl}
-                                                title={productUrl ? "View Product Page" : "No URL Available"}
-                                            >
-                                                <FiExternalLink size={14} />
-                                            </button>
+                                            {productUrl && (
+                                                <button
+                                                    onClick={() => window.open(productUrl, '_blank')}
+                                                    className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-gray-700 hover:text-blue-600 transition-colors shadow-lg transform translate-y-2 group-hover:translate-y-0 duration-200 delay-75"
+                                                    title="View Product Page"
+                                                >
+                                                    <FiExternalLink size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Minimal Content */}
+                                    <div className="p-2.5 flex flex-col flex-1 bg-white">
+                                        <h3 className="text-[13px] font-bold text-gray-800 line-clamp-2 leading-snug mb-1 min-h-[2.5em]" title={product.name || product.productName}>
+                                            {product.name || product.productName || product.title || 'Unnamed Product'}
+                                        </h3>
+
+                                        {/* Description */}
+                                        <p className="text-[10px] text-gray-500 line-clamp-2 mb-2 leading-relaxed" title={product.description}>
+                                            {product.description || ''}
+                                        </p>
+
+                                        <div className="mt-auto flex items-center justify-between pt-2">
+                                            <p className="text-sm font-black text-blue-900">
+                                                {getPrice(product)}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -368,7 +361,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Product URL</label>
+                                        <label className="block text-xs font-bold text-gray-500 titlecase mb-1">Product URL</label>
                                         <input
                                             type="text"
                                             value={editForm?.attributes?.URL || editForm?.url || ''}
@@ -404,25 +397,25 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                     {/* Core Info */}
                                     <div className="flex-1 space-y-4">
                                         <div className="flex flex-wrap gap-2">
-                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase border ${(selectedProduct.active || selectedProduct.available)
+                                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold titlecase border ${(selectedProduct.active || selectedProduct.available)
                                                 ? 'bg-green-50 text-green-700 border-green-100'
                                                 : 'bg-gray-50 text-gray-500 border-gray-100'
                                                 }`}>
                                                 {(selectedProduct.active || selectedProduct.available) ? 'Active' : 'Inactive'}
                                             </span>
-                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 uppercase">
+                                            <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 titlecase">
                                                 {selectedProduct.category || selectedProduct.subCategory || 'No Category'}
                                             </span>
                                         </div>
 
                                         <div>
-                                            <p className="text-sm font-bold text-gray-400 uppercase tracking-wide mb-1">Price</p>
+                                            <p className="text-sm font-bold text-gray-400 titlecase tracking-wide mb-1">Price</p>
                                             <p className="text-2xl font-black text-gray-900">{getPrice(selectedProduct)}</p>
                                         </div>
 
                                         {selectedProduct.description && (
                                             <div>
-                                                <p className="text-sm font-bold text-gray-400 uppercase tracking-wide mb-1">Description</p>
+                                                <p className="text-sm font-bold text-gray-400 titlecase tracking-wide mb-1">Description</p>
                                                 <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
                                                     {selectedProduct.description}
                                                 </p>
@@ -439,7 +432,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                                         if (key === 'URL' || key === 'LongDescription' || typeof value === 'object') return null; // Skip redundant or complex fields
                                                         return (
                                                             <div key={key} className="bg-gray-50 rounded-lg p-3">
-                                                                <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">{key}</p>
+                                                                <p className="text-[10px] font-bold text-gray-400 titlecase mb-0.5">{key}</p>
                                                                 <p className="text-sm font-medium text-gray-700 break-words">{String(value)}</p>
                                                             </div>
                                                         );

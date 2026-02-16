@@ -115,7 +115,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Version</label>
+                                    <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Version</label>
                                     <input
                                         type="text"
                                         name="version"
@@ -126,7 +126,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Gender</label>
+                                    <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Gender</label>
                                     <select
                                         name="gender"
                                         value={formData.gender || 'Male'}
@@ -139,7 +139,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Language</label>
+                                    <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Language</label>
                                     <select
                                         name="language"
                                         value={formData.language || 'en-US'}
@@ -152,7 +152,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     </select>
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Created By</label>
+                                    <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Created By</label>
                                     <input
                                         type="text"
                                         name="createdBy"
@@ -174,7 +174,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                             <div className="space-y-6">
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Persona Type</label>
+                                        <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Persona Type</label>
                                         <input
                                             type="text"
                                             name="persona"
@@ -185,7 +185,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Emotion Tone</label>
+                                        <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Emotion Tone</label>
                                         <input
                                             type="text"
                                             name="emotion"
@@ -196,7 +196,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Confidence Factor (0-1)</label>
+                                        <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Confidence Factor (0-1)</label>
                                         <input
                                             type="number"
                                             step="0.1"
@@ -210,7 +210,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2 flex items-center justify-between">
+                                    <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2 flex items-center justify-between">
                                         System Prompt (Goal)
                                         <span className="text-[10px] text-indigo-400 normal-case font-medium">Use high-quality instructions for best performance</span>
                                     </label>
@@ -236,7 +236,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                 <div className="p-6 bg-gray-50/50 rounded-2xl border-2 border-gray-200 space-y-4 shadow-sm">
                                     <h4 className="text-[10px] font-black text-blue-900 titlecase tracking-widest flex items-center gap-2 mb-4"><FiBook className="text-blue-900" /> Primary Connectivity</h4>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 ml-1">Knowledge Base ID</label>
+                                        <label className="block text-[10px] font-bold text-gray-500 titlecase mb-1.5 ml-1">Knowledge Base ID</label>
                                         <input
                                             type="text"
                                             name="primaryKnowledgeBaseId"
@@ -246,7 +246,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 ml-1">AI Model ID</label>
+                                        <label className="block text-[10px] font-bold text-gray-500 titlecase mb-1.5 ml-1">AI Model ID</label>
                                         <input
                                             type="text"
                                             name="primaryModelId"
@@ -259,7 +259,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                 <div className="p-6 bg-gray-50/50 rounded-2xl border-2 border-gray-200 space-y-4 shadow-sm">
                                     <h4 className="text-[10px] font-black text-blue-900 titlecase tracking-widest flex items-center gap-2 mb-4"><FiLayers className="text-blue-900" /> Secondary Connectivity</h4>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 ml-1">Knowledge Base ID</label>
+                                        <label className="block text-[10px] font-bold text-gray-500 titlecase mb-1.5 ml-1">Knowledge Base ID</label>
                                         <input
                                             type="text"
                                             name="secondaryKnowledgeBaseId"
@@ -269,7 +269,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5 ml-1">AI Model ID</label>
+                                        <label className="block text-[10px] font-bold text-gray-500 titlecase mb-1.5 ml-1">AI Model ID</label>
                                         <input
                                             type="text"
                                             name="secondaryModelId"
@@ -290,7 +290,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-4">
-                                    <label className="block text-xs font-bold text-gray-900 uppercase flex items-center gap-2 mb-4 ml-1"><FiVolume2 className="text-indigo-600" /> Text-to-Speech (TTS)</label>
+                                    <label className="block text-xs font-bold text-gray-900 titlecase flex items-center gap-2 mb-4 ml-1"><FiVolume2 className="text-indigo-600" /> Text-to-Speech (TTS)</label>
                                     <div className="grid grid-cols-2 gap-4">
                                         <input
                                             type="text"
@@ -311,7 +311,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <label className="block text-xs font-bold text-gray-900 uppercase flex items-center gap-2 mb-4 ml-1"><FiMic className="text-indigo-600" /> Speech-to-Text (STT)</label>
+                                    <label className="block text-xs font-bold text-gray-900 titlecase flex items-center gap-2 mb-4 ml-1"><FiMic className="text-indigo-600" /> Speech-to-Text (STT)</label>
                                     <div className="grid grid-cols-2 gap-4">
                                         <input
                                             type="text"
@@ -332,7 +332,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                                     </div>
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="block text-xs font-bold text-gray-900 uppercase flex items-center gap-2 mb-4 ml-1"><FiImage className="text-indigo-600" /> Agent Avatar URL</label>
+                                    <label className="block text-xs font-bold text-gray-900 titlecase flex items-center gap-2 mb-4 ml-1"><FiImage className="text-indigo-600" /> Agent Avatar URL</label>
                                     <input
                                         type="text"
                                         name="image"

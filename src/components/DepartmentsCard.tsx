@@ -20,11 +20,11 @@ const DepartmentsCard: React.FC<DepartmentsCardProps> = ({ merchantId, cluster }
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchDepartments = async () => {
+    const fetchDepartments = async (forceRefresh = false) => {
         setLoading(true);
         setError(null);
         try {
-            const data = await merchantService.getDepartmentByMerchant(merchantId, cluster);
+            const data = await merchantService.getDepartmentByMerchant(merchantId, cluster, forceRefresh);
             setDepartments(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Error fetching departments:', err);
@@ -66,7 +66,7 @@ const DepartmentsCard: React.FC<DepartmentsCardProps> = ({ merchantId, cluster }
                 </div>
                 <div className="flex gap-2">
                     <button
-                        onClick={fetchDepartments}
+                        onClick={() => fetchDepartments(true)}
                         className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                         title="Refresh"
                     >
@@ -91,7 +91,7 @@ const DepartmentsCard: React.FC<DepartmentsCardProps> = ({ merchantId, cluster }
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-bold text-neutral-text-main text-sm truncate">{dept.name || 'Unnamed Department'}</h4>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${dept.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold titlecase tracking-wider ${dept.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                         {dept.status || 'Active'}
                                     </span>
                                     {dept.userCount !== undefined && (

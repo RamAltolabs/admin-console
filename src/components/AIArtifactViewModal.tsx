@@ -128,7 +128,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
                                 <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Name */}
                                     <div className="col-span-1">
-                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 titlecase tracking-wide">
                                             Name <span className="text-red-500">*</span>
                                         </label>
                                         <input
@@ -142,7 +142,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
 
                                     {/* Access */}
                                     <div className="col-span-1">
-                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 titlecase tracking-wide">
                                             Access
                                         </label>
                                         <select
@@ -158,7 +158,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
 
                                     {/* Host */}
                                     <div className="col-span-1">
-                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 titlecase tracking-wide">
                                             Host
                                         </label>
                                         <input
@@ -172,7 +172,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
 
                                     {/* API Key / Token */}
                                     <div className="col-span-1">
-                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 titlecase tracking-wide">
                                             API Key
                                         </label>
                                         <div className="relative">
@@ -195,7 +195,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
 
                                     {/* Status */}
                                     <div className="col-span-1">
-                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">
+                                        <label className="block text-xs font-bold text-gray-400 mb-1.5 titlecase tracking-wide">
                                             Status
                                         </label>
                                         <select
@@ -212,7 +212,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
 
                             {/* Other Attributes */}
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-wide">
+                                <label className="block text-xs font-bold text-gray-400 mb-2 titlecase tracking-wide">
                                     Other Attributes
                                 </label>
                                 <div className="space-y-3">

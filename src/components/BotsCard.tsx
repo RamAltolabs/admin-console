@@ -160,7 +160,7 @@ const BotsCard: React.FC<BotsCardProps> = ({ merchantId, cluster }) => {
                             <div className="flex-1 min-w-0">
                                 <h4 className="font-bold text-neutral-text-main text-sm truncate">{bot.botTemplateName || 'Unnamed Bot'}</h4>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${bot.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                    <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold titlecase tracking-wider ${bot.status?.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                         {bot.status || 'Active'}
                                     </span>
                                     {bot.type && (

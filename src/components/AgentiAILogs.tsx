@@ -220,7 +220,7 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100 uppercase tracking-wider text-xs">
+                        <thead className="bg-gray-50 text-gray-500 font-medium border-b border-gray-100 titlecase tracking-wider text-xs">
                             <tr>
                                 <th className="px-6 py-3 w-10"></th>
                                 <th className="px-6 py-3">Time</th>
@@ -319,7 +319,7 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                                                 <td colSpan={logType === 'agent' ? 7 : 5} className="px-6 py-4 border-b border-gray-100">
                                                     <div className="bg-white border border-gray-200 rounded-lg p-0 shadow-sm overflow-hidden animate-fadeIn">
                                                         <div className="bg-gray-50 px-4 py-2 border-b border-gray-200 flex justify-between items-center">
-                                                            <h5 className="text-xs font-bold text-gray-500 uppercase tracking-wider">Detailed Execution Data</h5>
+                                                            <h5 className="text-xs font-bold text-gray-500 titlecase tracking-wider">Detailed Execution Data</h5>
                                                             <span className="text-xs font-mono text-gray-400">ID: {id}</span>
                                                         </div>
                                                         <div className="p-4 space-y-4">

@@ -240,30 +240,30 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                         <thead className="bg-[#f8fafc] border-b border-gray-200 sticky top-0 z-10">
                             {viewState === 'models' ? (
                                 <tr>
-                                    <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
-                                    <th className="w-64 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Model Name</th>
-                                    <th className="w-28 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100 text-center">KB</th>
-                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Training Status</th>
-                                    <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100 text-center">Training</th>
-                                    <th className="w-36 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">AI Platform</th>
-                                    <th className="w-36 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Created By</th>
-                                    <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Created Date</th>
+                                    <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider">Action</th>
+                                    <th className="w-64 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Model Name</th>
+                                    <th className="w-28 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">KB</th>
+                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Training Status</th>
+                                    <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">Training</th>
+                                    <th className="w-36 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">AI Platform</th>
+                                    <th className="w-36 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Created By</th>
+                                    <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Created Date</th>
                                 </tr>
                             ) : viewState === 'kbs' ? (
                                 <tr>
-                                    <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
-                                    <th className="w-full px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Knowledge Base Name</th>
-                                    <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100 text-center">Docs</th>
-                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Category</th>
-                                    <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Updated Date</th>
+                                    <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider">Action</th>
+                                    <th className="w-full px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Knowledge Base Name</th>
+                                    <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">Docs</th>
+                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Category</th>
+                                    <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Updated Date</th>
                                 </tr>
                             ) : (
                                 <tr>
-                                    <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Action</th>
-                                    <th className="w-full px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Document Name</th>
-                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Type</th>
-                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Size</th>
-                                    <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider border-l border-gray-100">Uploaded Date</th>
+                                    <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider">Action</th>
+                                    <th className="w-full px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Document Name</th>
+                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Type</th>
+                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Size</th>
+                                    <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Uploaded Date</th>
                                 </tr>
                             )}
                         </thead>
@@ -311,7 +311,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                     </button>
                                                 </td>
                                                 <td className="px-4 py-3 text-xs font-bold text-gray-600 border-l border-gray-50">
-                                                    <span className={`uppercase tracking - tight inline - flex items - center px - 2 py - 0.5 rounded ${item.aiTrainingStatus === 'NA' ? 'text-gray-400' : 'text-blue-600 bg-blue-50'} `}>
+                                                    <span className={`titlecase tracking - tight inline - flex items - center px - 2 py - 0.5 rounded ${item.aiTrainingStatus === 'NA' ? 'text-gray-400' : 'text-blue-600 bg-blue-50'} `}>
                                                         {item.aiTrainingStatus || 'NA'}
                                                     </span>
                                                 </td>
@@ -369,7 +369,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                 <td className="px-4 py-3 text-xs font-bold text-gray-700 border-l border-gray-50 truncate">
                                                     {item.documentName || item.fileName || 'Document.pdf'}
                                                 </td>
-                                                <td className="px-4 py-3 text-xs font-medium text-gray-600 border-l border-gray-50 uppercase">
+                                                <td className="px-4 py-3 text-xs font-medium text-gray-600 border-l border-gray-50 titlecase">
                                                     {item.type || 'PDF'}
                                                 </td>
                                                 <td className="px-4 py-3 text-xs font-medium text-gray-600 border-l border-gray-50">
@@ -400,7 +400,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                     {/* Right Columns tab sidebar - Only for Models view */}
                     {viewState === 'models' && (
                         <div className="absolute right-0 top-0 h-full w-6 bg-gray-50 border-l border-gray-100 flex flex-col items-center py-4 gap-2 z-20">
-                            <span className="[writing-mode:vertical-lr] text-[10px] font-bold text-gray-400 flex items-center gap-1 uppercase tracking-widest">
+                            <span className="[writing-mode:vertical-lr] text-[10px] font-bold text-gray-400 flex items-center gap-1 titlecase tracking-widest">
                                 <FiColumns className="rotate-90" /> Columns
                             </span>
                         </div>
@@ -409,7 +409,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
 
                 {/* Footer / Pagination */}
                 <div className="p-4 bg-gray-50/50 border-t border-gray-200 flex items-center justify-between mt-auto">
-                    <div className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                    <div className="text-[10px] font-bold text-gray-500 titlecase tracking-widest">
                         {totalElements > 0 ? (
                             `${pageIndex * pageCount + 1} to ${Math.min((pageIndex + 1) * pageCount, totalElements)} of ${totalElements} `
                         ) : '0 to 0 of 0'}
@@ -432,11 +432,11 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                 <FiChevronLeft size={16} />
                             </button>
                             <div className="flex items-center gap-1.5 mx-2">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">Page</span>
+                                <span className="text-[10px] font-bold text-gray-400 titlecase">Page</span>
                                 <span className="bg-white px-2 py-0.5 border border-gray-200 rounded text-[10px] font-bold text-[#1a365d] shadow-sm">
                                     {pageIndex + 1}
                                 </span>
-                                <span className="text-[10px] font-bold text-gray-400 uppercase">of</span>
+                                <span className="text-[10px] font-bold text-gray-400 titlecase">of</span>
                                 <span className="text-[10px] font-bold text-gray-600">{Math.ceil(totalElements / pageCount) || 1}</span>
                             </div>
                             <button

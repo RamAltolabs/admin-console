@@ -137,7 +137,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
       {/* Header */}
       <div className="border-b border-gray-200 p-6">
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <h2 className="text-xl font-bold text-neutral-text-main uppercase tracking-tight">
+          <h2 className="text-xl font-bold text-neutral-text-main titlecase tracking-tight">
             {viewMode === 'overall' ? 'Global Merchants' : 'Merchants'}
           </h2>
           <button
@@ -232,7 +232,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
               title="Reset All Filters"
             >
               <FiRotateCcw size={14} />
-              <span className="text-xs font-bold uppercase tracking-widest">Reset</span>
+              <span className="text-xs font-bold titlecase tracking-widest">Reset</span>
             </button>
           )}
         </div>
@@ -281,15 +281,15 @@ const MerchantList: React.FC<MerchantListProps> = ({
             <table className="w-full">
               <thead className="bg-genx-50 border-b border-gray-100">
                 <tr>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Actions</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Name</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Actions</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Name</th>
                   {viewMode === 'overall' && (
-                    <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Cluster</th>
+                    <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Cluster</th>
                   )}
-                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Email</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Users</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Activity</th>
-                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Email</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Users</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Activity</th>
+                  <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -494,7 +494,7 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
               <div className="w-6 h-6 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-[10px] font-bold shadow-sm">
                 {merchant.cluster?.substring(0, 1).toUpperCase() || 'N'}
               </div>
-              <span className="text-xs font-bold text-gray-600 uppercase tracking-tight">{merchant.cluster}</span>
+              <span className="text-xs font-bold text-gray-600 titlecase tracking-tight">{merchant.cluster}</span>
             </div>
           </td>
         )}
@@ -502,7 +502,7 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex flex-col">
             <span className="text-sm font-bold text-gray-800">{extraStats.users}</span>
-            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Active/Total</span>
+            <span className="text-[10px] text-gray-400 font-bold titlecase tracking-wider">Active/Total</span>
           </div>
         </td>
         <td className="px-6 py-4 whitespace-nowrap">

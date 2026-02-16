@@ -138,7 +138,7 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                             {/* Column Selector Popover */}
                             {showColumnSelector && (
                                 <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-2" onClick={e => e.stopPropagation()}>
-                                    <div className="text-xs font-bold text-gray-500 uppercase mb-2 px-2">Visible Columns</div>
+                                    <div className="text-xs font-bold text-gray-500 titlecase mb-2 px-2">Visible Columns</div>
                                     <div className="space-y-1">
                                         {Object.entries(visibleColumns).map(([key, isVisible]) => (
                                             <div key={key} className="flex items-center px-2 py-1 hover:bg-gray-50 rounded cursor-pointer" onClick={() => toggleColumn(key as any)}>
@@ -172,7 +172,7 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                             {/* Filter Popover */}
                             {showFilters && (
                                 <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4" onClick={e => e.stopPropagation()}>
-                                    <div className="text-xs font-bold text-gray-500 uppercase mb-3">Filters</div>
+                                    <div className="text-xs font-bold text-gray-500 titlecase mb-3">Filters</div>
                                     <div className="space-y-3">
                                         <div>
                                             <label className="block text-xs font-medium text-gray-700 mb-1">Knowledge Base</label>
@@ -216,7 +216,7 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                         </div>
                     ) : (
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <thead className="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-500 titlecase tracking-wider">
                                 <tr>
                                     {visibleColumns.action && <th className="px-4 py-3 w-[80px]">Action</th>}
                                     {visibleColumns.document && <th className="px-4 py-3">Document</th>}
@@ -281,7 +281,7 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                                                 </td>
                                             )}
                                             <td className="px-4 py-3 whitespace-nowrap">
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium uppercase ${(doc.status || 'Active') === 'Active'
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium titlecase ${(doc.status || 'Active') === 'Active'
                                                     ? 'bg-green-100 text-green-800'
                                                     : 'bg-gray-100 text-gray-600'
                                                     }`}>

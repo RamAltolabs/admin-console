@@ -147,7 +147,7 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ merchantId, cluster }) =>
                     <Icon size={18} />
                 </div>
                 <div>
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{label}</p>
+                    <p className="text-xs font-bold text-gray-500 titlecase tracking-wide">{label}</p>
                     {subValue && <p className="text-[10px] text-gray-400">{subValue}</p>}
                 </div>
             </div>
@@ -166,7 +166,7 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ merchantId, cluster }) =>
             </div>
             <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-0.5">
-                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wide">{label}</p>
+                    <p className="text-xs font-bold text-gray-500 titlecase tracking-wide">{label}</p>
                     <span className="text-[10px] font-medium text-gray-400 whitespace-nowrap ml-2">{time}</span>
                 </div>
                 {loading ? (
@@ -195,7 +195,7 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ merchantId, cluster }) =>
                 </h3>
                 <button
                     onClick={fetchStats}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider text-gray-500 hover:text-genx-600 hover:bg-genx-50 transition-all duration-200 border border-transparent hover:border-genx-100"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold titlecase tracking-wider text-gray-500 hover:text-genx-600 hover:bg-genx-50 transition-all duration-200 border border-transparent hover:border-genx-100"
                 >
                     <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                     {loading ? 'Refreshing...' : 'Refresh'}
@@ -258,7 +258,7 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ merchantId, cluster }) =>
                         />
                         <div className="h-px bg-gray-50 my-1 mx-2"></div>
                         <div className="p-3 bg-gray-50 rounded-lg mt-2">
-                            <p className="text-[10px] text-gray-400 text-center uppercase tracking-wider">
+                            <p className="text-[10px] text-gray-400 text-center titlecase tracking-wider">
                                 Real-time tracking enabled
                             </p>
                         </div>

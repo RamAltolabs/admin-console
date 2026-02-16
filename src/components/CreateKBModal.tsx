@@ -139,7 +139,7 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
 
                     {/* Description */}
                     <div className="grid grid-cols-4 items-center">
-                        <label className="text-sm font-bold text-gray-700 uppercase tracking-tight">
+                        <label className="text-sm font-bold text-gray-700 titlecase tracking-tight">
                             Description
                         </label>
                         <div className="col-span-3">
@@ -180,7 +180,7 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
 
                     {/* Vector Storage Radio */}
                     <div className="grid grid-cols-4 items-center">
-                        <label className="text-sm font-bold text-gray-700 flex items-center uppercase tracking-tight">
+                        <label className="text-sm font-bold text-gray-700 flex items-center titlecase tracking-tight">
                             Vector Storage <span className="text-rose-500 ml-1 mt-1">*</span>
                         </label>
                         <div className="col-span-3 flex items-center gap-8">
@@ -209,7 +209,7 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
 
                     {/* Dynamic DB/Artifact Dropdown */}
                     <div className="grid grid-cols-4 items-center">
-                        <label className="text-sm font-bold text-gray-700 flex items-center uppercase tracking-tight">
+                        <label className="text-sm font-bold text-gray-700 flex items-center titlecase tracking-tight">
                             {vectorStorageType === 'Azure' ? 'Azure AI Search' : 'Weaviate DB'} <span className="text-rose-500 ml-1 mt-1">*</span>
                         </label>
                         <div className="col-span-3 relative">

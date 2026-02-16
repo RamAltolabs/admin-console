@@ -278,11 +278,11 @@ const CustomConfigCard: React.FC<CustomConfigCardProps> = ({ merchantId, cluster
                         const renderAddRowUI = (parentId: string) => (
                             <div className="mb-6 p-5 bg-[#f0f7ff] rounded-xl border border-blue-100 flex flex-col md:flex-row gap-4 animate-in slide-in-from-top-2">
                                 <div className="flex-1">
-                                    <label className="block text-[10px] font-bold text-blue-900 uppercase tracking-widest mb-1.5">Key Name</label>
+                                    <label className="block text-[10px] font-bold text-blue-900 titlecase tracking-widest mb-1.5">Key Name</label>
                                     <input type="text" value={newKey} onChange={(e) => setNewKey(e.target.value)} placeholder="e.g. api_base_url" className="w-full px-4 py-2 text-sm border border-gray-200 rounded-md bg-white outline-none" />
                                 </div>
                                 <div className="flex-[1.5]">
-                                    <label className="block text-[10px] font-bold text-blue-900 uppercase tracking-widest mb-1.5">Value</label>
+                                    <label className="block text-[10px] font-bold text-blue-900 titlecase tracking-widest mb-1.5">Value</label>
                                     <input type="text" value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="Value content" className="w-full px-4 py-2 text-sm border border-gray-200 rounded-md bg-white outline-none" />
                                 </div>
                                 <div className="flex items-end gap-2">
@@ -365,8 +365,8 @@ const CustomConfigCard: React.FC<CustomConfigCardProps> = ({ merchantId, cluster
             </div>
 
             <div className="flex justify-between items-center px-4">
-                <div className="text-[10px] font-black text-gray-400 tracking-widest uppercase">{isEditing ? "* Changes will be applied after clicking Save" : `Last Updated: ${new Date().toLocaleTimeString()}`}</div>
-                <button onClick={fetchCustomConfig} className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-blue-900 transition-all uppercase tracking-widest bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                <div className="text-[10px] font-black text-gray-400 tracking-widest titlecase">{isEditing ? "* Changes will be applied after clicking Save" : `Last Updated: ${new Date().toLocaleTimeString()}`}</div>
+                <button onClick={fetchCustomConfig} className="flex items-center gap-2 text-[10px] font-black text-gray-400 hover:text-blue-900 transition-all titlecases tracking-widest bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
                     <FiRefreshCw size={12} className={loading ? 'animate-spin' : ''} /> Refresh Data
                 </button>
             </div>

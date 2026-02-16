@@ -304,7 +304,7 @@ const Dashboard: React.FC = () => {
           <FiUsers className="mx-auto text-primary-main/20 mb-3" size={48} />
           <h2 className="text-lg font-bold text-neutral-text-main mb-1">Cluster Selection Required</h2>
           <p className="text-[13px] text-neutral-text-secondary leading-tight mb-4">
-            Select a target cluster to initialize analytics.
+            Select a target cluster to initialize Dashboard.
           </p>
 
           {/* Cluster Selection Grid */}
@@ -324,7 +324,7 @@ const Dashboard: React.FC = () => {
                     <FiLayers size={24} />
                   </div>
                   <span className="text-[13px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors">Global Overview</span>
-                  <span className="text-[9px] text-neutral-text-muted mt-0.5 uppercase tracking-widest font-bold">All 5 Nodes</span>
+                  <span className="text-[9px] text-neutral-text-muted mt-0.5 titlecase tracking-widest font-bold">All 5 Nodes</span>
                 </div>
               </button>
 
@@ -364,9 +364,9 @@ const Dashboard: React.FC = () => {
                       <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all duration-300 transform group-hover:-translate-y-1 ${getClusterColorClass(cluster.id)}`}>
                         {getClusterIcon(cluster.id)}
                       </div>
-                      <span className="text-[13px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors uppercase tracking-tight">{cluster.name}</span>
+                      <span className="text-[13px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors titlecase tracking-tight">{cluster.name}</span>
                       <div className="flex flex-col items-center mt-1">
-                        <span className="text-[9px] text-neutral-text-muted font-bold opacity-60 uppercase">{cluster.region || 'Active Node'}</span>
+                        <span className="text-[9px] text-neutral-text-muted font-bold opacity-60 titlecase">{cluster.region || 'Active Node'}</span>
                         {cluster.gcpProject && (
                           <span className="text-[10px] bg-primary-main/5 text-primary-main px-2 py-0.5 rounded-full mt-1.5 font-bold tracking-wider">{cluster.gcpProject}</span>
                         )}
@@ -392,7 +392,7 @@ const Dashboard: React.FC = () => {
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary-main border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-xs font-bold text-neutral-text-muted uppercase tracking-widest">Initializing Datastream...</p>
+          <p className="mt-4 text-xs font-bold text-neutral-text-muted titlecase tracking-widest">Initializing Datastream...</p>
         </div>
       </div>
     );
@@ -475,7 +475,7 @@ const Dashboard: React.FC = () => {
           )}
         </div>
         <div>
-          <p className="text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.1em] mb-1 group-hover:text-neutral-text-secondary transition-colors">{title}</p>
+          <p className="text-[9px] font-bold text-neutral-text-muted titlecase tracking-[0.1em] mb-1 group-hover:text-neutral-text-secondary transition-colors">{title}</p>
           <div className="flex items-end gap-2">
             <p className="text-2xl font-bold text-neutral-text-main tracking-tight leading-none">
               {refreshing ? (
@@ -519,20 +519,20 @@ const Dashboard: React.FC = () => {
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Live Fetching</span>
+                        <span className="text-[10px] font-bold titlecase tracking-wider">Live Fetching</span>
                       </>
                     ) : (
                       <>
                         <span className="relative flex h-2 w-2">
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
                         </span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Live Fetch Paused</span>
+                        <span className="text-[10px] font-bold titlecase tracking-wider">Live Fetch Paused</span>
                       </>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2 px-2 py-0.5 bg-neutral-bg text-neutral-text-muted rounded-md border border-neutral-border/50">
-                    <span className="text-[10px] font-bold uppercase tracking-wider">
+                    <span className="text-[10px] font-bold titlecase tracking-wider">
                       Updated {Math.floor((new Date().getTime() - lastUpdated.getTime()) / 60000)}m ago
                     </span>
                   </div>
@@ -546,7 +546,7 @@ const Dashboard: React.FC = () => {
                         }`}
                     >
                       <div className={`w-1.5 h-1.5 rounded-full ${autoRefresh ? 'bg-white animate-pulse' : 'bg-neutral-border'}`}></div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider whitespace-nowrap">Sync: {autoRefresh ? 'ON' : 'OFF'}</span>
+                      <span className="text-[10px] font-bold titlecase tracking-wider whitespace-nowrap">Sync: {autoRefresh ? 'ON' : 'OFF'}</span>
                     </button>
                     <button
                       onClick={handleManualRefresh}
@@ -574,13 +574,13 @@ const Dashboard: React.FC = () => {
                   <>
                     <div className="h-3 w-[1px] bg-neutral-border mx-1" />
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-neutral-text-secondary uppercase tracking-[0.05em]">GCP Info:</span>
+                      <span className="font-semibold text-neutral-text-secondary titlecase tracking-[0.05em]">GCP Info:</span>
                       <div className="flex items-center gap-2 bg-white px-2 py-0.5 rounded border border-neutral-border/50">
-                        <span className="text-neutral-text-main font-black uppercase tracking-tight">
+                        <span className="text-neutral-text-main font-black titlecase tracking-tight">
                           {clusters.find(c => c.id === selectedCluster)?.region}
                         </span>
                         <span className="text-neutral-border font-light">|</span>
-                        <span className="text-primary-main font-bold uppercase tracking-tighter">
+                        <span className="text-primary-main font-bold titlecase tracking-tighter">
                           {clusters.find(c => c.id === selectedCluster)?.gcpProject?.replace('GCP Project Name: ', '')}
                         </span>
                       </div>
@@ -595,11 +595,11 @@ const Dashboard: React.FC = () => {
             {/* Quick Summary Metadata */}
             <div className="hidden xl:flex items-center gap-6 mr-4 pr-6 border-r border-neutral-border">
               <div className="text-center">
-                <p className="text-[10px] font-bold text-neutral-text-muted uppercase tracking-widest">Active Merchants</p>
+                <p className="text-[10px] font-bold text-neutral-text-muted titlecase tracking-widest">Active Merchants</p>
                 <p className="text-lg font-bold text-neutral-text-main leading-none mt-1">{stats.activeMerchants}</p>
               </div>
               <div className="text-center">
-                <p className="text-[10px] font-bold text-neutral-text-muted uppercase tracking-widest">Online Agents</p>
+                <p className="text-[10px] font-bold text-neutral-text-muted titlecase tracking-widest">Online Agents</p>
                 <p className="text-lg font-bold text-neutral-text-main leading-none mt-1">{userStats.onlineUsers}</p>
               </div>
             </div>
@@ -608,7 +608,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-neutral-bg/50 rounded-xl border border-neutral-border p-1 flex items-center shadow-inner">
               <button
                 onClick={() => setViewMode('cluster')}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'cluster'
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold titlecase tracking-widest transition-all ${viewMode === 'cluster'
                   ? 'bg-white text-primary-main shadow-sm'
                   : 'text-neutral-text-secondary hover:text-primary-main'
                   }`}
@@ -617,7 +617,7 @@ const Dashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setViewMode('overall')}
-                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${viewMode === 'overall'
+                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold titlecase tracking-widest transition-all ${viewMode === 'overall'
                   ? 'bg-white text-primary-main shadow-sm'
                   : 'text-neutral-text-secondary hover:text-primary-main'
                   }`}
@@ -722,7 +722,7 @@ const Dashboard: React.FC = () => {
           <div className="px-5 py-4 border-b border-neutral-border flex items-center justify-between bg-neutral-bg/20">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-primary-main"></div>
-              <h2 className="text-[11px] font-bold text-neutral-text-main uppercase tracking-[0.15em]">Recent Merchants</h2>
+              <h2 className="text-[11px] font-bold text-neutral-text-main titlecase tracking-[0.15em]">Recent Merchants</h2>
             </div>
             {isLoading && <div className="animate-spin h-4 w-4 border-2 border-primary-main border-t-transparent rounded-full"></div>}
           </div>
@@ -730,12 +730,12 @@ const Dashboard: React.FC = () => {
             <table className="min-w-full divide-y divide-neutral-border">
               <thead className="bg-neutral-bg/10">
                 <tr>
-                  <th className="px-5 py-3 text-left text-[9px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Merchant Name</th>
+                  <th className="px-5 py-3 text-left text-[9px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Merchant Name</th>
                   {viewMode === 'overall' && (
-                    <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Cluster</th>
+                    <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Cluster</th>
                   )}
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Email Address</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Status</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Email Address</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-border">
@@ -746,14 +746,14 @@ const Dashboard: React.FC = () => {
                     </td>
                     {viewMode === 'overall' && (
                       <td className="px-6 py-4">
-                        <span className="text-[10px] font-bold text-neutral-text-secondary uppercase bg-neutral-bg px-2 py-0.5 rounded border border-neutral-border/50">
+                        <span className="text-[10px] font-bold text-neutral-text-secondary titlecase bg-neutral-bg px-2 py-0.5 rounded border border-neutral-border/50">
                           {clusters.find(c => c.id === merchant.cluster)?.name || merchant.cluster}
                         </span>
                       </td>
                     )}
                     <td className="px-6 py-4 text-xs font-semibold text-neutral-text-secondary">{merchant.email || 'N/A'}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className={`text-[10px] font-bold titlecase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
                         {merchant.status || 'Active'}
                       </span>
                     </td>
@@ -769,7 +769,7 @@ const Dashboard: React.FC = () => {
           <div className="p-6 border-b border-neutral-border flex items-center justify-between bg-neutral-bg/20">
             <div className="flex items-center gap-3">
               <div className="w-1.5 h-1.5 rounded-full bg-[#36b37e]"></div>
-              <h2 className="text-sm font-bold text-neutral-text-main uppercase tracking-widest">Recent Visitors</h2>
+              <h2 className="text-sm font-bold text-neutral-text-main titlecase tracking-widest">Recent Visitors</h2>
             </div>
             {userStats.loading && <div className="animate-spin h-4 w-4 border-2 border-[#36b37e] border-t-transparent rounded-full"></div>}
           </div>
@@ -777,10 +777,10 @@ const Dashboard: React.FC = () => {
             <table className="min-w-full divide-y divide-neutral-border">
               <thead className="bg-neutral-bg/30">
                 <tr>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Visitor Name</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Merchant ID</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Engagement</th>
-                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted uppercase tracking-[0.2em]">Time</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Visitor Name</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Merchant ID</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Engagement</th>
+                  <th className="px-6 py-4 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-[0.2em]">Time</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-neutral-border">
@@ -846,7 +846,7 @@ const Dashboard: React.FC = () => {
                                 return !visitor.visitorTimestamp ? 'N/A' : d.toLocaleDateString([], { month: '2-digit', day: '2-digit' });
                               })()}
                             </span>
-                            <span className="text-[9px] font-bold text-neutral-text-muted uppercase">
+                            <span className="text-[9px] font-bold text-neutral-text-muted titlecase">
                               {(() => {
                                 const d = new Date(visitor.visitorTimestamp || 0);
                                 return !visitor.visitorTimestamp ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -895,11 +895,11 @@ const Dashboard: React.FC = () => {
                           {cluster.name} Analytics
                         </h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[9px] font-bold uppercase tracking-widest opacity-60 text-neutral-text-muted">
+                          <span className="text-[9px] font-bold titlecase tracking-widest opacity-60 text-neutral-text-muted">
                             {cluster.region}
                           </span>
                           <span className="text-neutral-border text-[9px]">|</span>
-                          <span className={`text-[9px] font-bold uppercase tracking-tighter ${isActive ? 'text-primary-main' : 'text-neutral-text-muted opacity-40'}`}>
+                          <span className={`text-[9px] font-bold titlecase tracking-tighter ${isActive ? 'text-primary-main' : 'text-neutral-text-muted opacity-40'}`}>
                             {cluster.gcpProject?.replace('GCP Project Name: ', '')}
                           </span>
                         </div>

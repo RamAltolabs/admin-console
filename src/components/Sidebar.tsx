@@ -283,7 +283,7 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
               <button
                 key={cluster.id}
                 onClick={() => handleClusterSelect(cluster.id)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold uppercase tracking-[0.1em] transition-all flex items-center justify-between group/cluster ${selectedCluster === cluster.id
+                className={`w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold titlecase tracking-[0.1em] transition-all flex items-center justify-between group/cluster ${selectedCluster === cluster.id
                   ? 'bg-blue-900 text-white shadow-sm'
                   : 'text-gray-500 hover:text-blue-900 hover:bg-blue-50'
                   }`}

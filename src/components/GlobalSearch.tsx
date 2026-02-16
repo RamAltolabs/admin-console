@@ -204,7 +204,7 @@ const GlobalSearch: React.FC = () => {
     };
 
     return (
-        <div className="relative flex-1 max-w-md mx-2 md:mx-6" ref={searchRef}>
+        <div className="relative flex-1 max-w-2xl mx-2 md:mx-6" ref={searchRef}>
             <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FiSearch className={`transition-colors duration-200 ${isOpen ? 'text-primary-main' : 'text-neutral-text-muted group-hover:text-primary-main'}`} size={18} />
@@ -212,7 +212,7 @@ const GlobalSearch: React.FC = () => {
                 <input
                     type="text"
                     className={`block w-full pl-10 pr-3 py-2 border rounded-xl bg-neutral-bg/50 border-neutral-border text-sm placeholder-neutral-text-muted transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-primary-main/20 focus:border-primary-main focus:bg-white ${isOpen ? 'shadow-lg border-primary-main ring-2 ring-primary-main/10' : 'hover:border-neutral-border-hover hover:bg-neutral-bg/80'}`}
-                    placeholder="Search menus..."
+                    placeholder="Search for ANYTHING (menus, merchants, features...)"
                     value={query}
                     onChange={(e) => {
                         setQuery(e.target.value);
@@ -250,7 +250,7 @@ const GlobalSearch: React.FC = () => {
                                             <button
                                                 key={result.id}
                                                 onClick={() => handleSelect(result)}
-                                                className="w-full flex items-center gap-3 px-4 py-3 hover:bg-primary-main/5 transition-colors text-left group"
+                                                className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-neutral-bg group transition-all duration-200"
                                             >
                                                 <div className="w-8 h-8 rounded-lg bg-neutral-bg flex items-center justify-center text-neutral-text-muted group-hover:bg-primary-main group-hover:text-white transition-all shadow-sm">
                                                     {result.icon}
@@ -261,10 +261,13 @@ const GlobalSearch: React.FC = () => {
                                                         <FiChevronRight className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-[-4px] group-hover:translate-x-0 transition-transform" />
                                                     </div>
                                                     {result.description && (
-                                                        <div className="text-[10px] text-neutral-text-muted truncate mt-0.5 font-medium letter-spacing-tight">
+                                                        <div className="text-[10px] text-neutral-text-muted mt-0.5 font-medium tracking-tight leading-normal whitespace-normal break-words">
                                                             {result.description}
                                                         </div>
                                                     )}
+                                                </div>
+                                                <div className="text-[9px] font-black text-neutral-text-muted group-hover:text-primary-main/50 transition-colors bg-neutral-bg px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                                                    {result.category}
                                                 </div>
                                             </button>
                                         ))}

@@ -341,12 +341,12 @@ const AgentiAICard: React.FC<AgentiAICardProps> = ({ merchantId, cluster }) => {
                                         </h4>
                                         <div className="flex flex-wrap gap-1.5">
                                             {bot.groupName && (
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-500 uppercase tracking-tighter">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-gray-100 text-gray-500 titlecase tracking-tighter">
                                                     {bot.groupName}
                                                 </span>
                                             )}
                                             {bot.type && (
-                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-600 uppercase tracking-tighter">
+                                                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-50 text-blue-600 titlecase tracking-tighter">
                                                     {bot.type}
                                                 </span>
                                             )}

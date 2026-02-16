@@ -1413,16 +1413,19 @@ class MerchantApiService {
   }
 
   // Departments
-  async getDepartmentByMerchant(merchantId: string, cluster?: string): Promise<any> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/departmentByMerchant/${merchantId}?access_token=${this.getAccessToken()}`;
-      const response = await this.api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch departments:', error);
-      return [];
-    }
+  async getDepartmentByMerchant(merchantId: string, cluster?: string, forceRefresh: boolean = false): Promise<any> {
+    const cacheKey = `departments:${cluster || 'all'}:${merchantId}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}chimes/departmentByMerchant/${merchantId}?access_token=${this.getAccessToken()}`;
+        const response = await this.api.get(url);
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch departments:', error);
+        return [];
+      }
+    }, this.DEFAULT_TTL, forceRefresh);
   }
 
   async createDepartment(payload: any, cluster?: string): Promise<any> {
@@ -1720,58 +1723,55 @@ class MerchantApiService {
   }
 
   // Paginated Users (New)
-  async getUsers(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<PageResponseMerchantUser> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/userDetails?merchantId=${merchantId}&pageIndex=${page}&pageCount=${size}`;
-      const response = await this.api.get<any>(url);
+  async getUsers(merchantId: string, page: number = 0, size: number = 20, cluster?: string, forceRefresh: boolean = false): Promise<PageResponseMerchantUser> {
+    const cacheKey = `users-paginated:${cluster || 'all'}:${merchantId}:${page}:${size}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}curo/userDetails?merchantId=${merchantId}&pageIndex=${page}&pageCount=${size}`;
+        const response = await this.api.get<any>(url);
 
-      const rawData = response.data;
-      const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
+        const rawData = response.data;
+        const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
 
-      let content: any[] = [];
-      if (Array.isArray(responseData)) {
-        content = responseData;
-      } else if (responseData && typeof responseData === 'object' && Array.isArray(responseData.content)) {
-        content = responseData.content;
-      } else if (responseData && typeof responseData === 'object') {
-        // Fallback: search for any array property
-        for (const key in responseData) {
-          if (Array.isArray(responseData[key])) {
-            content = responseData[key];
-            break;
+        let content: any[] = [];
+        if (Array.isArray(responseData)) {
+          content = responseData;
+        } else if (responseData && typeof responseData === 'object' && Array.isArray(responseData.content)) {
+          content = responseData.content;
+        } else if (responseData && typeof responseData === 'object') {
+          for (const key in responseData) {
+            if (Array.isArray(responseData[key])) {
+              content = responseData[key];
+              break;
+            }
           }
         }
+
+        const normalizedContent = content.map(u => this.normalizeUser(u));
+
+        return {
+          content: normalizedContent,
+          pageNumber: responseData?.pageNumber ?? responseData?.pageIndex ?? page,
+          pageSize: responseData?.pageSize ?? responseData?.pageCount ?? size,
+          totalElements: responseData?.totalElements ?? responseData?.total ?? normalizedContent.length,
+          totalPages: responseData?.totalPages ?? responseData?.pages ?? 1,
+          last: responseData?.last ?? (normalizedContent.length < size),
+          first: responseData?.first ?? (page === 0),
+        };
+      } catch (error) {
+        console.error('Failed to get users:', error);
+        return {
+          content: [],
+          pageNumber: page,
+          pageSize: size,
+          totalElements: 0,
+          totalPages: 0,
+          last: true,
+          first: true
+        };
       }
-
-      // If no array found, check if responseData itself is an object (single user?) unlikely for getAll but just in case
-      if (content.length === 0 && !Array.isArray(responseData) && typeof responseData === 'object' && responseData !== null) {
-        // Check if it's a pagination object with empty content or something else
-      }
-
-      const users = content.map(user => this.normalizeUser(user));
-
-      return {
-        content: users,
-        pageNumber: responseData?.pageNumber ?? responseData?.pageIndex ?? page,
-        pageSize: responseData?.pageSize ?? responseData?.pageCount ?? size,
-        totalElements: responseData?.totalElements ?? responseData?.total ?? users.length,
-        totalPages: responseData?.totalPages ?? responseData?.pages ?? 1,
-        last: responseData?.last ?? true,
-        first: responseData?.first ?? true,
-      };
-    } catch (error) {
-      console.error('Failed to fetch merchant users:', error);
-      return {
-        content: [],
-        pageNumber: page,
-        pageSize: size,
-        totalElements: 0,
-        totalPages: 0,
-        last: true,
-        first: true
-      };
-    }
+    }, this.DEFAULT_TTL, forceRefresh);
   }
 
   // Users (Legacy)
@@ -1917,17 +1917,20 @@ class MerchantApiService {
   }
 
   // Contacts
-  async getContactsByMerchant(merchantId: string, cluster?: string, pageIndex: number = 0, pageCount: number = 10): Promise<any> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/contactByMerchant/${merchantId}?access_token=${this.getAccessToken()}&pageIndex=${pageIndex}&pageCount=${pageCount}`;
-      console.log(`[getContactsByMerchant] Request URL: ${url}`);
-      const response = await this.api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch contacts:', error);
-      return [];
-    }
+  async getContactsByMerchant(merchantId: string, cluster?: string, pageIndex: number = 0, pageCount: number = 10, forceRefresh: boolean = false): Promise<any> {
+    const cacheKey = `contacts:${cluster || 'all'}:${merchantId}:${pageIndex}:${pageCount}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}chimes/contactByMerchant/${merchantId}?access_token=${this.getAccessToken()}&pageIndex=${pageIndex}&pageCount=${pageCount}`;
+        console.log(`[getContactsByMerchant] Request URL: ${url}`);
+        const response = await this.api.get(url);
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch contacts:', error);
+        return [];
+      }
+    }, this.DEFAULT_TTL, forceRefresh);
   }
 
   async updatePrompt(merchantId: string, promptId: string | number, payload: any, cluster?: string): Promise<any> {

@@ -92,7 +92,7 @@ const ChannelViewModal: React.FC<ChannelViewModalProps> = ({ isOpen, onClose, ch
                                 {channel.name || 'Channel Details'}
                             </h2>
                             <div className="flex items-center mt-1 space-x-4">
-                                <span className="flex items-center text-xs font-semibold text-indigo-600 uppercase tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md">
+                                <span className="flex items-center text-xs font-semibold text-indigo-600 titlecase tracking-wider bg-indigo-50 px-2 py-0.5 rounded-md">
                                     <FiCpu className="mr-1" /> {channel.provider || 'Unknown'}
                                 </span>
                                 {channel.createdDate && (
@@ -126,7 +126,7 @@ const ChannelViewModal: React.FC<ChannelViewModalProps> = ({ isOpen, onClose, ch
                                 </div>
                                 <div className="flex justify-between py-2 border-b border-gray-50">
                                     <span className="text-gray-500 text-sm">Provider</span>
-                                    <span className="text-gray-900 text-sm font-semibold uppercase">{channel.provider || 'N/A'}</span>
+                                    <span className="text-gray-900 text-sm font-semibold titlecase">{channel.provider || 'N/A'}</span>
                                 </div>
 
                                 {providerFields.length > 0 ? (
@@ -151,7 +151,7 @@ const ChannelViewModal: React.FC<ChannelViewModalProps> = ({ isOpen, onClose, ch
                                 <FiGlobe className="mr-2 text-green-500" /> Connection Details
                             </h3>
                             <div className="space-y-2">
-                                <label className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Webhook URL</label>
+                                <label className="text-[10px] titlecase tracking-wider text-gray-400 font-bold">Webhook URL</label>
                                 <div className="bg-gray-50 p-2 rounded-lg break-all text-xs font-mono text-indigo-600 border border-gray-100">
                                     {channel.webhook_URL || channel.webhookUrl || 'No Webhook Configured'}
                                 </div>
@@ -180,11 +180,11 @@ const ChannelViewModal: React.FC<ChannelViewModalProps> = ({ isOpen, onClose, ch
                     {/* Raw JSON View */}
                     <div className="bg-gray-900 rounded-2xl p-6 shadow-inner relative overflow-hidden group">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-indigo-300 text-xs font-bold uppercase tracking-widest flex items-center">
+                            <h3 className="text-indigo-300 text-xs font-bold titlecase tracking-widest flex items-center">
                                 <span className="w-2 h-2 bg-indigo-400 rounded-full mr-2"></span>
                                 Raw Configuration JSON
                             </h3>
-                            <span className="text-[10px] text-gray-500 uppercase font-bold">Read-Only</span>
+                            <span className="text-[10px] text-gray-500 titlecase font-bold">Read-Only</span>
                         </div>
                         <pre className="text-green-400 font-mono text-xs overflow-x-auto leading-relaxed custom-scrollbar">
                             {JSON.stringify(channel, null, 4)}

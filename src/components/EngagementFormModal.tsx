@@ -73,7 +73,6 @@ const EngagementFormModal: React.FC<EngagementFormModalProps> = ({
                     name: selectedAgent.identifier || selectedAgent.name,
                     proactFlag: selectedAgent.proactFlag || false
                 },
-                // Some APIs expect uppercase AIAgent too
                 AIAgent: {
                     ...selectedAgent
                 }
@@ -118,7 +117,7 @@ const EngagementFormModal: React.FC<EngagementFormModalProps> = ({
                     <div className="p-8 space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Engagement Name</label>
+                                <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Engagement Name</label>
                                 <input
                                     type="text"
                                     name="name"
@@ -131,7 +130,7 @@ const EngagementFormModal: React.FC<EngagementFormModalProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">Status</label>
+                                <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">Status</label>
                                 <select
                                     name="status"
                                     value={formData.status || 'Active'}
@@ -144,7 +143,7 @@ const EngagementFormModal: React.FC<EngagementFormModalProps> = ({
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">ID (Read Only)</label>
+                                <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">ID (Read Only)</label>
                                 <input
                                     type="text"
                                     value={formData.engagementId || ''}
@@ -154,7 +153,7 @@ const EngagementFormModal: React.FC<EngagementFormModalProps> = ({
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-bold text-gray-400 uppercase tracking-tighter mb-2">AI Agent Assignment</label>
+                                <label className="block text-xs font-bold text-gray-400 titlecase tracking-tighter mb-2">AI Agent Assignment</label>
                                 <div className="relative">
                                     <select
                                         value={formData.aiAgent?.id || ''}
