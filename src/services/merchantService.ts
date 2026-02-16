@@ -7,6 +7,9 @@ import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantA
 class MerchantApiService {
   private api: AxiosInstance;
   private baseURL: string = process.env.REACT_APP_IT_APP_BASE_URL || 'https://apin.neocloud.ai/';
+  private cache = new Map<string, { data: any; timestamp: number }>();
+  private ongoingRequests = new Map<string, Promise<any>>();
+  private readonly DEFAULT_TTL = 30000; // 30 seconds
 
   constructor() {
     this.api = axios.create({
@@ -20,7 +23,10 @@ class MerchantApiService {
     this.api.interceptors.response.use(
       response => response,
       error => {
-        if (error.response?.status === 401) {
+        // Skip auto-logout for the publish endpoint to prevent disruptive reloads during that specific flow
+        const isPublishEndpoint = error.config?.url?.includes('jelloBuilder/storyDialog/publish');
+
+        if (error.response?.status === 401 && !isPublishEndpoint) {
           console.warn('[Session Terminated] 401 Unauthorized detected. Logging out...');
           localStorage.removeItem('auth_token');
           localStorage.removeItem('user_info');
@@ -33,6 +39,68 @@ class MerchantApiService {
         return Promise.reject(error);
       }
     );
+  }
+
+  /**
+   * Helper to perform a cached request.
+   * Prevents duplicate simultaneous requests and caches previous results.
+   */
+  private async requestWithCache<T>(
+    key: string,
+    fetcher: () => Promise<T>,
+    ttl: number = this.DEFAULT_TTL,
+    forceRefresh: boolean = false
+  ): Promise<T> {
+    // 1. Check if we have a valid cache entry
+    if (!forceRefresh && this.cache.has(key)) {
+      const cached = this.cache.get(key)!;
+      if (Date.now() - cached.timestamp < ttl) {
+        console.log(`[Cache Hit] ${key}`);
+        return cached.data;
+      }
+      this.cache.delete(key);
+    }
+
+    // 2. Check if there's an ongoing request for the same key
+    if (this.ongoingRequests.has(key)) {
+      console.log(`[Deduplicating Request] ${key}`);
+      return this.ongoingRequests.get(key)!;
+    }
+
+    // 3. Perform the request and store the promise
+    const requestPromise = fetcher()
+      .then(data => {
+        this.cache.set(key, { data, timestamp: Date.now() });
+        this.ongoingRequests.delete(key);
+        return data;
+      })
+      .catch(err => {
+        this.ongoingRequests.delete(key);
+        throw err;
+      });
+
+    this.ongoingRequests.set(key, requestPromise);
+    return requestPromise;
+  }
+
+  /**
+   * Manually clear the cache
+   */
+  public clearCache(): void {
+    console.log('[Cache] Clearing entire cache');
+    this.cache.clear();
+  }
+
+  /**
+   * Invalidate specific cache keys starting with a prefix
+   */
+  public invalidateCache(prefix: string): void {
+    console.log(`[Cache] Invalidating keys with prefix: ${prefix}`);
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key);
+      }
+    }
   }
 
   // Helper to parse weird API dates like "03/21/2018 05:03:649"
@@ -204,6 +272,8 @@ class MerchantApiService {
       timeZone: merchant.timeZone || '',
       contactFirstName: merchant.contactFirstName || merchant.firstName || '',
       contactLastName: merchant.contactLastName || merchant.lastName || '',
+      settings: merchant.settings || merchant.customConfig || {},
+      aiConfigs: merchant.aiConfigs || item.aiConfigs || {},
     };
   }
 
@@ -282,94 +352,100 @@ class MerchantApiService {
   }
 
   // Merchant operations - Using regular merchants endpoint
-  async getMerchants(cluster?: string, page: number = 0, size: number = 100): Promise<Merchant[]> {
-    try {
-      const params: any = {};
+  async getMerchants(cluster?: string, page: number = 0, size: number = 100, forceRefresh: boolean = false): Promise<Merchant[]> {
+    const cacheKey = `merchants:${cluster || 'all'}:${page}:${size}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const params: any = {};
 
-      // Determine the correct base URL for this request
-      const baseURL = this.getClusterBaseURL(cluster);
+        // Determine the correct base URL for this request
+        const baseURL = this.getClusterBaseURL(cluster);
 
-      // Axios treats full URLs as absolute, overriding the instance baseURL
-      // Ensure we construct the full URL correctly
-      const url = `${baseURL}curo/merchant/getMerchants`;
+        // Axios treats full URLs as absolute, overriding the instance baseURL
+        // Ensure we construct the full URL correctly
+        const url = `${baseURL}curo/merchant/getMerchants`;
 
-      const response = await this.api.get<any>(url, { params });
+        const response = await this.api.get<any>(url, { params });
 
-      console.log(`[getMerchants] API response for cluster=${cluster} (${url}):`, response.data);
+        console.log(`[getMerchants] API response for cluster=${cluster} (${url}):`, response.data);
 
-      // Handle cases where response.data might be a stringified JSON
-      let rawData = response.data;
-      if (typeof rawData === 'string') {
-        try {
-          rawData = JSON.parse(rawData);
-          console.log('[getMerchants] Parsed stringified JSON response');
-        } catch (e) {
-          console.warn('[getMerchants] Response is a string but not valid JSON');
+        // Handle cases where response.data might be a stringified JSON
+        let rawData = response.data;
+        if (typeof rawData === 'string') {
+          try {
+            rawData = JSON.parse(rawData);
+            console.log('[getMerchants] Parsed stringified JSON response');
+          } catch (e) {
+            console.warn('[getMerchants] Response is a string but not valid JSON');
+          }
         }
+
+        // Handle different response formats
+        let merchantsData: any[] = [];
+
+        if (rawData && rawData.content && Array.isArray(rawData.content)) {
+          merchantsData = rawData.content;
+        } else if (Array.isArray(rawData)) {
+          merchantsData = rawData;
+        } else if (rawData && rawData.data && Array.isArray(rawData.data)) {
+          merchantsData = rawData.data;
+        } else {
+          console.error('Unexpected API response format:', rawData);
+          // Fallback or empty return
+        }
+
+        // Normalize the response to match the Merchant type
+        return merchantsData.map(item => this.normalizeMerchant(item, cluster));
+      } catch (error) {
+        console.error('Failed to fetch merchants:', error);
+        // Return empty array with a message instead of throwing
+        return [];
       }
-
-      // Handle different response formats
-      let merchantsData: any[] = [];
-
-      if (rawData && rawData.content && Array.isArray(rawData.content)) {
-        merchantsData = rawData.content;
-      } else if (Array.isArray(rawData)) {
-        merchantsData = rawData;
-      } else if (rawData && rawData.data && Array.isArray(rawData.data)) {
-        merchantsData = rawData.data;
-      } else {
-        console.error('Unexpected API response format:', rawData);
-        // Fallback or empty return
-      }
-
-      // Normalize the response to match the Merchant type
-      return merchantsData.map(item => this.normalizeMerchant(item, cluster));
-    } catch (error) {
-      console.error('Failed to fetch merchants:', error);
-      // Return empty array with a message instead of throwing
-      return [];
-    }
+    }, this.DEFAULT_TTL * 2, forceRefresh); // 1 minute cache for merchant list
   }
 
-  async getMerchantById(id: string, cluster?: string): Promise<Merchant | null> {
-    try {
-      console.log(`[getMerchantById] Fetching full merchant data for ID ${id} on cluster ${cluster}`);
+  async getMerchantById(id: string, cluster?: string, forceRefresh: boolean = false): Promise<Merchant | null> {
+    const cacheKey = `merchant:${cluster || 'all'}:${id}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        console.log(`[getMerchantById] Fetching full merchant data for ID ${id} on cluster ${cluster}`);
 
-      // Step 1: Try fetching full attributes first since it contains "full merchant informations"
-      // like AI Artifacts, AI Configs, etc.
-      const attributesResponse = await this.getMerchantAttributes(id, 0, 1, cluster);
+        // Step 1: Try fetching full attributes first since it contains "full merchant informations"
+        // like AI Artifacts, AI Configs, etc.
+        const attributesResponse = await this.getMerchantAttributes(id, 0, 1, cluster, forceRefresh);
 
-      if (attributesResponse.content && attributesResponse.content.length > 0) {
-        console.log(`[getMerchantById] Successfully fetched full attributes for ID ${id}`);
-        return this.normalizeMerchant(attributesResponse.content[0], cluster);
-      }
+        if (attributesResponse.content && attributesResponse.content.length > 0) {
+          console.log(`[getMerchantById] Successfully fetched full attributes for ID ${id}`);
+          return this.normalizeMerchant(attributesResponse.content[0], cluster);
+        }
 
-      // Step 2: Fallback to direct merchant ID endpoint if attributes are not found
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/merchant/merchantId/${id}`;
+        // Step 2: Fallback to direct merchant ID endpoint if attributes are not found
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}curo/merchant/merchantId/${id}`;
 
-      const response = await this.api.get<any>(url);
-      console.log(`[getMerchantById] Fallback API response for id=${id}:`, response.data);
+        const response = await this.api.get<any>(url);
+        console.log(`[getMerchantById] Fallback API response for id=${id}:`, response.data);
 
-      const rawData = response.data;
-      let merchantData: any = null;
+        const rawData = response.data;
+        let merchantData: any = null;
 
-      if (Array.isArray(rawData) && rawData.length > 0) {
-        merchantData = rawData[0];
-      } else if (rawData && typeof rawData === 'object') {
-        merchantData = rawData.merchant || rawData.data || rawData;
-      }
+        if (Array.isArray(rawData) && rawData.length > 0) {
+          merchantData = rawData[0];
+        } else if (rawData && typeof rawData === 'object') {
+          merchantData = rawData.merchant || rawData.data || rawData;
+        }
 
-      if (!merchantData) {
-        console.warn(`[getMerchantById] No merchant data found for ID ${id}`);
+        if (!merchantData) {
+          console.warn(`[getMerchantById] No merchant data found for ID ${id}`);
+          return null;
+        }
+
+        return this.normalizeMerchant(merchantData, cluster);
+      } catch (error) {
+        console.error(`Failed to fetch merchant ${id}:`, error);
         return null;
       }
-
-      return this.normalizeMerchant(merchantData, cluster);
-    } catch (error) {
-      console.error(`Failed to fetch merchant ${id}:`, error);
-      return null;
-    }
+    }, this.DEFAULT_TTL * 5, forceRefresh); // 2.5 minutes cache for merchant details
   }
 
   async createMerchant(payload: CreateMerchantPayload, cluster?: string): Promise<Merchant> {
@@ -510,8 +586,8 @@ class MerchantApiService {
 
   async publishAgenticAI(botName: string, groupName: string, merchantRef: string, cluster?: string): Promise<any> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}jelloBuilder/storyDialog/publish?access_token=${this.getAccessToken()}`;
+      const baseURL = this.getClusterBaseURL(cluster).replace(/\/+$/, '');
+      const url = `${baseURL}/jelloBuilder/storyDialog/publish?access_token=${this.getAccessToken()}`;
 
       const payload = {
         botName,
@@ -521,14 +597,15 @@ class MerchantApiService {
       };
 
       console.log(`[publishAgenticAI] Request: ${url}`, payload);
+
       const response = await this.api.post(url, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'context': 'Chimes'
+          'Accept': 'application/json, text/plain, */*'
         }
       });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to publish Agentic AI for ${botName}:`, error);
       throw error;
     }
@@ -537,13 +614,13 @@ class MerchantApiService {
   async deleteMerchant(id: string, cluster?: string): Promise<boolean> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/merchant/deleteMerchant`;
+      const url = `${baseURL} curo / merchant / deleteMerchant`;
       const response = await this.api.delete<ApiResponse<{ id: string }>>(url, {
         params: { merchantId: id }
       });
       return response.data.success;
     } catch (error) {
-      console.error(`Failed to delete merchant ${id}:`, error);
+      console.error(`Failed to delete merchant ${id}: `, error);
       throw error;
     }
   }
@@ -552,7 +629,7 @@ class MerchantApiService {
     try {
       const payload: UpdateStatusRequest = { status };
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}merchants/${id}/status`;
+      const url = `${baseURL} merchants / ${id}/status`;
 
       const response = await this.api.patch<any>(url, payload);
 
@@ -684,67 +761,61 @@ class MerchantApiService {
     }
   }
 
-  async getPrompts(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<PageResponsePrompt> {
-    try {
-      // Use dynamic base URL based on cluster
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}model-service/promptlab/getPrompt`;
+  async getPrompts(merchantId: string, page: number = 0, size: number = 20, cluster?: string, forceRefresh: boolean = false): Promise<PageResponsePrompt> {
+    const cacheKey = `prompts:${cluster || 'all'}:${merchantId}:${page}:${size}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        // Use dynamic base URL based on cluster
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}model-service/promptlab/getPrompt`;
 
-      const payload = { merchantId };
+        const payload = { merchantId };
 
-      console.log(`[getPrompts] POST ${url}`, payload);
+        console.log(`[getPrompts] POST ${url}`, payload);
 
-      const response = await this.api.post<any>(url, payload, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+        const response = await this.api.post<any>(url, payload, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
 
-      console.log(`[getPrompts] API response:`, response.data);
+        console.log(`[getPrompts] API response:`, response.data);
 
-      const rawData = response.data;
-      const promptsArray = Array.isArray(rawData?.prompt) ? rawData.prompt : [];
+        const rawData = response.data;
+        const promptsArray = Array.isArray(rawData?.prompt) ? rawData.prompt : [];
 
-      console.log(`[getPrompts] Found ${promptsArray.length} prompts`);
+        console.log(`[getPrompts] Found ${promptsArray.length} prompts`);
 
-      // Map new structure to Prompt interface
-      const mappedPrompts: Prompt[] = promptsArray.map((p: any) => ({
-        id: String(p.promptId),
-        merchantId: p.merchantId || merchantId,
-        promptText: p.promptDescription || 'N/A',
-        title: p.promptTitle || 'Untitled',
-        type: p.promptType || 'N/A',
-        modelId: p.modelId,
-        createdAt: p.createdDate,
-        updatedAt: p.modifiedDate,
-        version: p.version,
-        requestParams: p.requestParams,
-        isDeleted: p.deleted || false,
-        status: p.deleted ? 'Deleted' : 'Active',
-      }));
+        // Map new structure to Prompt interface
+        const mappedPrompts: Prompt[] = promptsArray.map((p: any) => ({
+          id: String(p.promptId),
+          merchantId: p.merchantId || merchantId,
+          promptText: p.promptDescription || 'N/A',
+          title: p.promptTitle || 'Untitled',
+          type: p.promptType || 'N/A',
+          modelId: p.modelId,
+          createdAt: p.createdDate,
+          updatedAt: p.modifiedDate,
+          version: p.version,
+          requestParams: p.requestParams,
+          isDeleted: p.deleted || false,
+          status: p.deleted ? 'Deleted' : 'Active',
+        }));
 
-      // Return as paginated response
-      return {
-        content: mappedPrompts,
-        pageNumber: 0,
-        pageSize: mappedPrompts.length || size,
-        totalElements: mappedPrompts.length,
-        totalPages: 1,
-        last: true,
-        first: true
-      };
-    } catch (error) {
-      console.error(`Failed to fetch prompts for merchant ${merchantId}:`, error);
-      return {
-        content: [],
-        pageNumber: page,
-        pageSize: size,
-        totalElements: 0,
-        totalPages: 0,
-        last: true,
-        first: true
-      };
-    }
+        return {
+          content: mappedPrompts,
+          pageNumber: page,
+          pageSize: size,
+          totalElements: mappedPrompts.length,
+          totalPages: Math.ceil(mappedPrompts.length / size),
+          last: true,
+          first: true,
+        };
+      } catch (error) {
+        console.error('Failed to fetch prompts:', error);
+        return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true, first: true };
+      }
+    }, this.DEFAULT_TTL * 2, forceRefresh);
   }
 
   async getChatHistory(sessionId: string, cluster?: string): Promise<any> {
@@ -756,6 +827,36 @@ class MerchantApiService {
     } catch (error) {
       console.error(`Failed to fetch chat history for sessionId ${sessionId}:`, error);
       return [];
+    }
+  }
+
+  async endVisitorSession(merchantId: string, sessionId: string, cluster?: string): Promise<boolean> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}webchnl/userAgent/clearMessageReadVisitor`;
+
+      const payload = {
+        merchantID: merchantId,
+        id: "893", // Using constant ID from example, or could maybe use random/actual ID if available
+        visitorReadMessages: [
+          {
+            visitorSessionId: sessionId
+          }
+        ]
+      };
+
+      console.log(`[endVisitorSession] Terminating session: ${sessionId} for merchant: ${merchantId}`);
+
+      await this.api.post(url, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to end visitor session ${sessionId}:`, error);
+      return false;
     }
   }
 
@@ -933,79 +1034,45 @@ class MerchantApiService {
 
 
   // Raw Visitors by Merchant (Legacy)
-  async getRawVisitors(merchantId: string, page: number = 0, size: number = 20, cluster?: string, startDate?: string, endDate?: string): Promise<PageResponseRawVisitor> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
+  async getRawVisitors(merchantId: string, page: number = 0, size: number = 10, cluster?: string, forceRefresh: boolean = false): Promise<PageResponseRawVisitor> {
+    const cacheKey = `visitors:${cluster || 'all'}:${merchantId}:${page}:${size}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        console.log(`[getRawVisitors] Request: /curo/visitor/getVisitorsByMerchantId/${merchantId} cluster=${cluster}`);
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}curo/visitor/getVisitorsByMerchantId/${merchantId}`;
 
-      // Default date range: last 30 days
-      const now = new Date();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(now.getDate() - 30);
+        const response = await this.api.get<any>(url, {
+          params: { page, size }
+        });
 
-      const formatApiDate = (date: Date) => date.toISOString().split('.')[0]; // YYYY-MM-DDTHH:MM:SS
+        console.log(`[getRawVisitors] API response:`, response.data);
 
-      const params: any = {
-        merchantID: merchantId,
-        pageIndex: page,
-        pageCount: size,
-        startDate: startDate || formatApiDate(thirtyDaysAgo),
-        endDate: endDate || formatApiDate(now),
-        access_token: this.getAccessToken()
-      };
+        const rawData = response.data;
+        let content: RawVisitor[] = [];
 
-      console.log(`[getRawVisitors] Calling API /chimes/visitorsList with params: `, params);
-      const url = `${baseURL}chimes/visitorsList`;
-
-      const response = await this.api.get<any>(url, { params });
-
-      console.log(`[getRawVisitors] API response for merchantId = ${merchantId}: `, response.data);
-
-      const rawData = response.data;
-      // Handle various response formats including stringified JSON and nested structures
-      let responseData = rawData;
-
-      if (typeof rawData === 'string') {
-        try {
-          responseData = JSON.parse(rawData);
-          console.log('[getRawVisitors] Parsed stringified JSON response');
-        } catch (e) {
-          console.warn('[getRawVisitors] Response is a string but not valid JSON');
+        if (Array.isArray(rawData)) {
+          content = rawData;
+        } else if (rawData && rawData.content && Array.isArray(rawData.content)) {
+          content = rawData.content;
+        } else if (rawData && rawData.data && Array.isArray(rawData.data)) {
+          content = rawData.data;
         }
-      }
 
-      // Unwrap .data if present
-      if (responseData && responseData.data) {
-        responseData = responseData.data;
+        return {
+          content: content,
+          pageNumber: page,
+          pageSize: size,
+          totalElements: content.length,
+          totalPages: 1,
+          last: true,
+          first: true,
+        };
+      } catch (error) {
+        console.error(`Failed to fetch raw visitors for merchant ${merchantId}: `, error);
+        return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true, first: true };
       }
-
-      let content: RawVisitor[] = [];
-      if (Array.isArray(responseData)) {
-        content = responseData;
-      } else if (responseData && typeof responseData === 'object') {
-        // Look for common array properties in paginated responses
-        const potentialArrays = ['content', 'items', 'list', 'rawVisitors', 'visitors'];
-        for (const key of potentialArrays) {
-          if (Array.isArray(responseData[key])) {
-            content = responseData[key];
-            break;
-          }
-        }
-      }
-
-      // Return the paginated response
-      return {
-        content: content,
-        pageNumber: responseData?.pageNumber ?? responseData?.pageIndex ?? page,
-        pageSize: responseData?.pageSize ?? responseData?.pageCount ?? size,
-        totalElements: responseData?.totalElements ?? responseData?.total ?? content.length,
-        totalPages: responseData?.totalPages ?? responseData?.pages ?? 1,
-        last: responseData?.last ?? true,
-        first: responseData?.first ?? true,
-      };
-    } catch (error) {
-      console.error(`Failed to fetch raw visitors for merchant ${merchantId}: `, error);
-      return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true, first: true };
-    }
+    }, this.DEFAULT_TTL, forceRefresh);
   }
 
   // Cluster-wide Visitors
@@ -1072,7 +1139,7 @@ class MerchantApiService {
         first: responseData?.first ?? true,
       };
     } catch (error) {
-      console.error(`Failed to fetch cluster visitors for cluster ${cluster}: `, error);
+      console.error(`Failed to fetch cluster visitors for cluster ${cluster}:`, error);
       return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true, first: true };
     }
   }
@@ -1103,61 +1170,64 @@ class MerchantApiService {
   }
 
   // Merchant Attributes (Legacy)
-  async getMerchantAttributes(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<PageResponseMerchantAttribute> {
-    try {
-      console.log(`[getMerchantAttributes] Request: /chimes/getMerchantAttributes merchantId = ${merchantId} cluster = ${cluster} `);
-      const baseURL = this.getClusterBaseURL(cluster);
+  async getMerchantAttributes(merchantId: string, page: number = 0, size: number = 20, cluster?: string, forceRefresh: boolean = false): Promise<PageResponseMerchantAttribute> {
+    const cacheKey = `attributes:${cluster || 'all'}:${merchantId}:${page}:${size}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        console.log(`[getMerchantAttributes] Request: /chimes/getMerchantAttributes merchantId = ${merchantId} cluster = ${cluster} `);
+        const baseURL = this.getClusterBaseURL(cluster);
 
-      // Legacy API pattern: chimes/getMerchantAttributes?access_token=...&merchantId=...
-      // Ensuring it uses the exact requested structure
-      const url = `${baseURL}chimes/getMerchantAttributes?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
+        // Legacy API pattern: chimes/getMerchantAttributes?access_token=...&merchantId=...
+        // Ensuring it uses the exact requested structure
+        const url = `${baseURL}chimes/getMerchantAttributes?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
 
-      const response = await this.api.get<any>(url);
+        const response = await this.api.get<any>(url);
 
-      console.log(`[getMerchantAttributes] API response: `, response.data);
+        console.log(`[getMerchantAttributes] API response: `, response.data);
 
-      const rawData = response.data;
-      const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
+        const rawData = response.data;
+        const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
 
-      let content: any[] = [];
+        let content: any[] = [];
 
-      // Flexible extraction logic for legacy response
-      if (responseData?.content && Array.isArray(responseData.content)) {
-        content = responseData.content;
-      } else if (Array.isArray(responseData)) {
-        content = responseData;
-      } else if (responseData && typeof responseData === 'object') {
-        const potentialArrays = ['items', 'list', 'merchantAttributes', 'attributes', 'results', 'data'];
-        for (const key of potentialArrays) {
-          if (Array.isArray(responseData[key])) {
-            content = responseData[key];
-            break;
+        // Flexible extraction logic for legacy response
+        if (responseData?.content && Array.isArray(responseData.content)) {
+          content = responseData.content;
+        } else if (Array.isArray(responseData)) {
+          content = responseData;
+        } else if (responseData && typeof responseData === 'object') {
+          const potentialArrays = ['items', 'list', 'merchantAttributes', 'attributes', 'results', 'data'];
+          for (const key of potentialArrays) {
+            if (Array.isArray(responseData[key])) {
+              content = responseData[key];
+              break;
+            }
+          }
+
+          // Fallback: sometimes single object returned
+          if (content.length === 0 && !Array.isArray(responseData) && Object.keys(responseData).length > 0) {
+            // If responseData itself looks like an attribute or map of attributes
+            content = [responseData];
           }
         }
 
-        // Fallback: sometimes single object returned
-        if (content.length === 0 && !Array.isArray(responseData) && Object.keys(responseData).length > 0) {
-          // If responseData itself looks like an attribute or map of attributes
-          content = [responseData];
-        }
+        console.log('[getMerchantAttributes] Final extracted content:', content);
+
+        // Construct a compatible PageResponse
+        return {
+          content: content,
+          pageNumber: 0, // Legacy API might not support pagination same way
+          pageSize: content.length,
+          totalElements: content.length,
+          totalPages: 1,
+          last: true,
+          first: true,
+        };
+      } catch (error) {
+        console.error(`Failed to fetch merchant attributes for merchant ${merchantId}: `, error);
+        return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true, first: true };
       }
-
-      console.log('[getMerchantAttributes] Final extracted content:', content);
-
-      // Construct a compatible PageResponse
-      return {
-        content: content,
-        pageNumber: 0, // Legacy API might not support pagination same way
-        pageSize: content.length,
-        totalElements: content.length,
-        totalPages: 1,
-        last: true,
-        first: true,
-      };
-    } catch (error) {
-      console.error(`Failed to fetch merchant attributes for merchant ${merchantId}: `, error);
-      return { content: [], pageNumber: 0, pageSize: size, totalElements: 0, totalPages: 0, last: true, first: true };
-    }
+    }, this.DEFAULT_TTL * 5, forceRefresh); // 2.5 minutes cache
   }
 
   // Merchant Channels by Merchant
@@ -1167,11 +1237,10 @@ class MerchantApiService {
       const baseURL = this.getClusterBaseURL(cluster);
       const url = `${baseURL}curo/channels/getChannels`;
 
-      // The new API endpoint provided by user seems generic.
-      // Assuming it accepts merchantId to filter, otherwise it might return all or context-based.
-      // We will pass merchantId as a query param.
+      // API call to get channels. The endpoint returns a flat list of channels.
+      // We pass merchantId to filter/contextualize if supported by the API.
       const response = await this.api.get<any>(url, {
-        params: { merchantId, page, size }
+        params: { merchantId }
       });
 
       console.log(`[getMerchantChannels] API response:`, response.data);
@@ -1179,22 +1248,22 @@ class MerchantApiService {
       const rawData = response.data;
       let content: any[] = [];
 
-      // The user provided sample response is a flat array of objects
+      // The response is expected to be a flat array of objects
       if (Array.isArray(rawData)) {
         content = rawData;
-      } else if (rawData && typeof rawData === 'object' && 'data' in rawData) {
+      } else if (rawData && typeof rawData === 'object') {
         // Fallback for wrapped data
-        content = Array.isArray(rawData.data) ? rawData.data : [];
+        if (Array.isArray(rawData.data)) content = rawData.data;
+        else if (Array.isArray(rawData.content)) content = rawData.content;
       }
 
-      // Since the API returns a flat list (all channels), we can simulate pagination or just return all
-      // The UI expects a paginated structure
+      // Return pseudo-paginated response structure expected by UI
       return {
         content: content,
         pageNumber: 0,
         pageSize: content.length,
         totalElements: content.length,
-        totalPages: 1, // All channels returned in one go
+        totalPages: 1,
         last: true,
         first: true,
       };
@@ -1381,19 +1450,22 @@ class MerchantApiService {
   }
 
   // Bots
-  async getMerchantBots(merchantId: string, botId?: string, cluster?: string): Promise<any> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      let url = `${baseURL}chimes/getMerchantBot?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
-      if (botId) {
-        url += `&botId=${botId}`;
+  async getMerchantBots(merchantId: string, botId?: string, cluster?: string, forceRefresh: boolean = false): Promise<any> {
+    const cacheKey = `bots:${cluster || 'all'}:${merchantId}${botId ? `:${botId}` : ''}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const baseURL = this.getClusterBaseURL(cluster);
+        let url = `${baseURL}chimes/getMerchantBot?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
+        if (botId) {
+          url += `&botId=${botId}`;
+        }
+        const response = await this.api.get(url);
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch merchant bots:', error);
+        return [];
       }
-      const response = await this.api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch merchant bots:', error);
-      return [];
-    }
+    }, this.DEFAULT_TTL, forceRefresh);
   }
 
   async createMerchantBot(payload: any, merchantId: string, cluster?: string): Promise<any> {
@@ -1703,34 +1775,37 @@ class MerchantApiService {
   }
 
   // Users (Legacy)
-  async getAllUsers(merchantId: string, cluster?: string): Promise<MerchantUser[]> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/userDetails?merchantId=${merchantId}`;
-      const response = await this.api.get<any>(url);
+  async getAllUsers(merchantId: string, cluster?: string, forceRefresh: boolean = false): Promise<MerchantUser[]> {
+    const cacheKey = `users:${cluster || 'all'}:${merchantId}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}curo/userDetails?merchantId=${merchantId}`;
+        const response = await this.api.get<any>(url);
 
-      const rawData = response.data;
-      const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
+        const rawData = response.data;
+        const responseData = (rawData && typeof rawData === 'object' && 'data' in rawData && rawData.data) ? rawData.data : rawData;
 
-      let users: any[] = [];
-      if (Array.isArray(responseData)) {
-        users = responseData;
-      } else if (responseData && typeof responseData === 'object' && Array.isArray(responseData.content)) {
-        users = responseData.content;
-      } else if (responseData && typeof responseData === 'object') {
-        for (const key in responseData) {
-          if (Array.isArray(responseData[key])) {
-            users = responseData[key];
-            break;
+        let users: any[] = [];
+        if (Array.isArray(responseData)) {
+          users = responseData;
+        } else if (responseData && typeof responseData === 'object' && Array.isArray(responseData.content)) {
+          users = responseData.content;
+        } else if (responseData && typeof responseData === 'object') {
+          for (const key in responseData) {
+            if (Array.isArray(responseData[key])) {
+              users = responseData[key];
+              break;
+            }
           }
         }
-      }
 
-      return users.map(user => this.normalizeUser(user));
-    } catch (error) {
-      console.error('Failed to fetch merchant users:', error);
-      return [];
-    }
+        return users.map(user => this.normalizeUser(user));
+      } catch (error) {
+        console.error('Failed to fetch merchant users:', error);
+        return [];
+      }
+    }, this.DEFAULT_TTL * 2, forceRefresh); // 1 minute cache for users
   }
 
   // Cluster-wide Users
@@ -1924,16 +1999,19 @@ class MerchantApiService {
     }
   }
 
-  async getAIArtifactsList(merchantId: string, cluster?: string): Promise<any> {
-    try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/api/aiArtifact/search/merchant/${merchantId}?access_token=${this.getAccessToken()}`;
-      const response = await this.api.get(url);
-      return response.data;
-    } catch (error) {
-      console.error('Failed to fetch AI artifacts:', error);
-      return [];
-    }
+  async getAIArtifactsList(merchantId: string, cluster?: string, forceRefresh: boolean = false): Promise<any> {
+    const cacheKey = `ai-artifacts:${cluster || 'all'}:${merchantId}`;
+    return this.requestWithCache(cacheKey, async () => {
+      try {
+        const baseURL = this.getClusterBaseURL(cluster);
+        const url = `${baseURL}chimes/api/aiArtifact/search/merchant/${merchantId}?access_token=${this.getAccessToken()}`;
+        const response = await this.api.get(url);
+        return response.data;
+      } catch (error) {
+        console.error('Failed to fetch AI artifacts:', error);
+        return [];
+      }
+    }, this.DEFAULT_TTL, forceRefresh);
   }
 
   private sanitizeEngagementPayload(payload: any): any {
@@ -1958,10 +2036,16 @@ class MerchantApiService {
     return cleanPayload;
   }
 
-  async getEngagementList(merchantId: string, cluster?: string, page: number = 0, size: number = 20): Promise<any> {
+
+  async getEngagementList(merchantId: string, cluster?: string, page?: number, size?: number): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/engagementList?access_token=${this.getAccessToken()}&merchantId=${merchantId}&page=${page}&size=${size}`;
+      let url = `${baseURL}chimes/engagementList?access_token=${this.getAccessToken()}&merchantId=${merchantId}`;
+
+      if (typeof page === 'number' && typeof size === 'number') {
+        url += `&page=${page}&size=${size}`;
+      }
+
       const response = await this.api.get(url);
       return response.data;
     } catch (error) {
@@ -2414,6 +2498,25 @@ class MerchantApiService {
     }
   }
 
+  async getChannelConfig(merchantId: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/search/merchant/${merchantId}?access_token=${this.getAccessToken()}`;
+
+      console.log(`[getChannelConfig] Request: ${url}`);
+      const response = await this.api.get(url);
+
+      console.log(`[getChannelConfig] Response:`, response.data);
+      return response.data;
+    } catch (error) {
+      // console.error(`Failed to fetch channel config for merchant ${merchantId}:`, error);
+      return [];
+    }
+  }
+
+  public getPublicBaseURL(cluster?: string): string {
+    return this.getClusterBaseURL(cluster);
+  }
 }
 
 export default new MerchantApiService();

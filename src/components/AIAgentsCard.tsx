@@ -120,7 +120,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                 <div className="flex items-center gap-2">
                     <FiLayers className="text-blue-900" size={16} />
                     <h3 className="font-bold text-gray-800 text-sm">AI Agents</h3>
-                    <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-900 text-[10px] font-black rounded-md uppercase tracking-wider">
+                    <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-900 text-[10px] font-black rounded-md titlecase tracking-wider">
                         {filteredAgents.length} Agents
                     </span>
                 </div>
@@ -192,7 +192,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                 ) : (
                     <div className="space-y-4">
                         {filteredAgents.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {filteredAgents.map((agent, index) => {
                                     const agentTitle = agent.identifier || agent.agentName || 'AI Agent';
                                     const agentImg = (agent.agentImage && agent.agentImage[0]) || agent.image;
@@ -291,7 +291,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                 {aiAgents.length > 0 && (
                                     <button
                                         onClick={() => { setSearchTerm(''); setStatusFilter('ALL'); }}
-                                        className="mt-4 text-[10px] font-bold text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors"
+                                        className="mt-4 text-[10px] font-bold text-indigo-600 titlecase tracking-widest hover:text-indigo-800 transition-colors"
                                     >
                                         Clear All Filters
                                     </button>

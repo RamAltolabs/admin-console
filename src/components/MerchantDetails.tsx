@@ -13,10 +13,13 @@ import AnalyticsCard from './AnalyticsCard';
 import MerchantAnalytics from './MerchantAnalytics';
 import PromptLab from './PromptLab';
 import KnowledgeBasesCard from './KnowledgeBasesCard';
+import BotSettingsCard from './BotSettingsCard';
+import AIPlatformsCard from './AIPlatformsCard';
 
 import CustomConfigCard from './CustomConfigCard';
 import AIArtifactsCard from './AIArtifactsCard';
-import ChannelsCard from './ChannelsCard';
+import ChannelsManager from './ChannelsManager';
+
 import EngagementsCard from './EngagementsCard';
 import AIModelCard from './AIModelCard';
 import AIAgentsCard from './AIAgentsCard';
@@ -87,6 +90,7 @@ const MerchantDetails: React.FC = () => {
                 { id: 'users', label: 'Users', icon: FiUserCheck },
                 { id: 'departments', label: 'Departments', icon: FiUsers },
                 { id: 'contacts', label: 'Customers', icon: FiUser },
+                { id: 'bot-settings', label: 'Bot Settings', icon: FiMessageSquare },
             ]
         },
         {
@@ -96,6 +100,7 @@ const MerchantDetails: React.FC = () => {
                 { id: 'agenti-ai', label: 'Agentic AI', icon: FiZap },
                 { id: 'ai-agents', label: 'AI Agents', icon: FiLayers },
                 { id: 'artifacts', label: 'AI Artifacts', icon: FiPackage },
+                { id: 'ai-platforms', label: 'AI Platforms', icon: FiCpu },
             ]
         },
         {
@@ -496,13 +501,15 @@ const MerchantDetails: React.FC = () => {
                                         {(activeTab === 'users' || (mainTab === 'general' && activeTab === 'users')) && <UsersCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'departments' && <DepartmentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'contacts' && <ContactsCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'bot-settings' && <BotSettingsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'agenti-ai' && <AgentiAICard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'ai-agents' && <AIAgentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'prompts' && <PromptLab merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'knowledge' && <KnowledgeBasesCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'artifacts' && <AIArtifactsCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'ai-platforms' && <AIPlatformsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'engagements' && <EngagementsCard merchantId={merchant.id} cluster={merchant.cluster} />}
-                                        {activeTab === 'channels' && <ChannelsCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'channels' && <ChannelsManager merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'products' && <ProductsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'orders' && <OrdersCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'payments' && <PaymentDetailsCard merchantId={merchant.id} cluster={merchant.cluster} />}

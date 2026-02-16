@@ -50,6 +50,8 @@ export interface Merchant {
   timeZone?: string;
   contactFirstName?: string;
   contactLastName?: string;
+  settings?: any;
+  aiConfigs?: any;
 }
 
 // API Response structures
@@ -365,24 +367,25 @@ export interface PageResponseEngagement {
 // Payload for updateMerchantAttributes API
 export interface UpdateMerchantAttributesPayload {
   id: string;
-  merchantName: string;
-  type: string;
-  address: {
+  merchantName?: string;
+  type?: string;
+  address?: {
     email_addresses: string[];
     phone_numbers: string[];
   };
-  contacts: {
+  contacts?: {
     first_name: string;
     last_name: string;
   }[];
-  timeZone: string;
-  other_params: {
+  timeZone?: string;
+  other_params?: {
     caption: string;
     workinghours: any[];
     website: string;
     location: string;
   };
   customConfig?: Record<string, any>;
+  aiConfigs?: any[]; // For AI Platform updates
 }
 
 export interface MerchantUser {

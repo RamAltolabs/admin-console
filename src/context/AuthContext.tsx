@@ -143,12 +143,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Extract merchant ID from the nested structure (merchants or user.merchant)
             const mId = response.merchant?.id || response.user?.merchant?.id;
 
-            // Strict Merchant ID filtering: only allow merchantId 100
-            if (Number(mId) !== 100) {
-                authService.logout();
-                throw new Error('Access Denied: Your account does not have authorization for this portal.');
-            }
-
             setIsAuthenticated(true);
             localStorage.setItem('last_activity', Date.now().toString()); // Initialize activity on login
             if (response.user) {
@@ -180,6 +174,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Note: Merchant ID check removed for Google Login as requested
             // We accept any valid Google user and assign them to a default context if needed
+
+            // Domain Check: Only allow @altolabs.ai emails
+            if (!response.user?.email?.endsWith('@altolabs.ai')) {
+                authService.logout(); // Clear the session we just potentially created
+                throw new Error('Access Denied: Please use an @altolabs.ai email address.');
+            }
 
             setIsAuthenticated(true);
             localStorage.setItem('last_activity', Date.now().toString()); // Initialize activity upon Google login

@@ -52,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
               {/* Proper Header with Toggle Icon */}
               <div className={`flex items-center ${isMinimized ? 'justify-center' : 'justify-between px-4'} mb-4 h-8`}>
                 {!isMinimized && (
-                  <h2 className="text-[10px] font-bold tracking-[0.2em] text-neutral-text-muted uppercase opacity-70 truncate">
+                  <h2 className="text-[10px] font-bold tracking-[0.2em] text-neutral-text-muted title-case opacity-70 truncate">
                     Admin Console
                   </h2>
                 )}

@@ -14,9 +14,9 @@ const Login: React.FC = () => {
         onSuccess: async (tokenResponse) => {
             try {
                 await loginWithGoogle(tokenResponse.access_token, true);
-            } catch (err) {
+            } catch (err: any) {
                 console.error('Google login failed', err);
-                setLocalError('Google Sign-In failed');
+                setLocalError(err.message || 'Google Sign-In failed');
             }
         },
         onError: () => {
