@@ -109,7 +109,7 @@ const GlobalSearch: React.FC = () => {
             {
                 cat: 'Model Studio', items: [
                     { id: 'model-mgmt', label: 'Model Management', icon: <FiCpu /> },
-                    { id: 'private-llm', label: 'Private LLM', icon: <FiLock /> },
+                    { id: 'private-llm', label: 'Private Model', icon: <FiLock /> },
                     { id: 'studio-prompts', label: 'Prompts', icon: <FiFileText /> },
                     { id: 'studio-knowledge', label: 'Knowledge Base', icon: <FiBook /> },
                     { id: 'documents', label: 'Documents', icon: <FiFolder /> },

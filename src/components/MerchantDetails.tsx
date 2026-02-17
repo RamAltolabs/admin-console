@@ -70,7 +70,7 @@ const MerchantDetails: React.FC = () => {
     }, [location.search]);
 
     // Top-Level Tab State
-    const [mainTab, setMainTab] = useState<'details' | 'overview' | 'analytics' | 'general' | 'ai-suite' | 'model-studio' | 'communication' | 'system'>('details');
+    const [mainTab, setMainTab] = useState<'details' | 'overview' | 'analytics' | 'general' | 'ai-suite' | 'model-studio' | 'knowledge-base' | 'communication' | 'system'>('details');
 
     // Visitor Sub-Tab State
     const [visitorSubTab, setVisitorSubTab] = useState<'recent' | 'online' | 'history'>('online');
@@ -108,12 +108,21 @@ const MerchantDetails: React.FC = () => {
             title: 'Model Studio',
             items: [
                 { id: 'model-mgmt', label: 'Model Management', icon: FiCpu },
-                { id: 'private-llm', label: 'Private LLM', icon: FiLock },
+                // { id: 'private-llm', label: 'Private Model', icon: FiLock },
                 { id: 'studio-prompts', label: 'Prompts', icon: FiFileText },
-                { id: 'ml-models', label: 'ML Models', icon: FiActivity },
+                // { id: 'ml-models', label: 'ML Models', icon: FiActivity },
                 { id: 'studio-knowledge', label: 'Knowledge Base', icon: FiBook },
                 { id: 'documents', label: 'Documents', icon: FiFolder },
                 { id: 'ontologies', label: 'Ontologies', icon: FiLayers },
+            ]
+        },
+        {
+            id: 'knowledge-base',
+            title: 'Knowledge Base',
+            items: [
+                { id: 'kb-knowledge', label: 'Knowledge Base', icon: FiBook },
+                { id: 'kb-documents', label: 'Documents', icon: FiFolder },
+                { id: 'kb-ontologies', label: 'Ontologies', icon: FiLayers },
             ]
         },
         {
@@ -259,7 +268,7 @@ const MerchantDetails: React.FC = () => {
                         <FiArrowLeft className="mr-1.5" size={14} /> Back to List
                     </button>
                     <div className="flex space-x-2">
-                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${merchant.status === 'active' ? 'bg-green-100 text-green-700' :
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold titlecase tracking-wider ${merchant.status === 'active' ? 'bg-green-100 text-green-700' :
                             merchant.status === 'inactive' ? 'bg-red-100 text-red-700' :
                                 merchant.status === 'suspended' ? 'bg-yellow-100 text-yellow-800' :
                                     'bg-gray-100 text-gray-600'
@@ -277,7 +286,7 @@ const MerchantDetails: React.FC = () => {
                             </div>
                             <div>
                                 <h1 className="text-lg font-bold text-neutral-text-main tracking-tight">{merchant.name}</h1>
-                                <p className="text-[10px] font-bold text-neutral-text-muted flex items-center mt-0.5 uppercase tracking-widest">
+                                <p className="text-[10px] font-bold text-neutral-text-muted flex items-center mt-0.5 titlecase tracking-widest">
                                     <FiHash size={10} className="mr-1" /> {merchant.id}
                                 </p>
                             </div>
@@ -381,7 +390,7 @@ const MerchantDetails: React.FC = () => {
 
                                     {/* Business Info */}
                                     <div className="p-2.5 border-b border-gray-100">
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Business Information</h4>
+                                        <h4 className="text-xs font-bold text-gray-400 titlecase tracking-wide mb-1.5">Business Information</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                                             <DetailItem icon={FiFileText} label="Caption" value={merchant.caption} color="text-blue-500" />
                                             <DetailItem icon={FiGlobe} label="Website" value={merchant.website} color="text-blue-500" />
@@ -390,7 +399,7 @@ const MerchantDetails: React.FC = () => {
 
                                     {/* Location Section */}
                                     <div className="p-2.5">
-                                        <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-1.5">Location</h4>
+                                        <h4 className="text-xs font-bold text-gray-400 titlecase tracking-wide mb-1.5">Location</h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-1">
                                             <DetailItem icon={FiMapPin} label="Address" value={merchant.address} color="text-blue-500" />
                                             <DetailItem icon={FiGlobe} label="Region / Cluster" value={merchant.cluster} color="text-blue-500" />
@@ -476,9 +485,9 @@ const MerchantDetails: React.FC = () => {
                                 {/* Management Sidebar */}
                                 <div className="w-48 shrink-0">
                                     <div className="bg-white rounded-xl border border-gray-200 p-2 space-y-1 shadow-sm">
-                                        <div className="px-3 py-2 mb-1 border-b border-gray-100">
-                                            <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{section.title}</h3>
-                                        </div>
+                                        {/* <div className="px-3 py-2 mb-1 border-b border-gray-100">
+                                            <h3 className="text-[10px] font-bold text-gray-400 titlecase tracking-widest">{section.title}</h3>
+                                        </div> */}
                                         {section.items.map((item) => (
                                             <button
                                                 key={item.id}
@@ -521,12 +530,30 @@ const MerchantDetails: React.FC = () => {
 
                                         {/* Model Studio Placeholders */}
                                         {activeTab === 'model-mgmt' && <AIModelCard merchantId={merchant.id} cluster={merchant.cluster} initialTab="Model Management" />}
-                                        {activeTab === 'private-llm' && <AIModelCard merchantId={merchant.id} cluster={merchant.cluster} initialTab="Private LLM" />}
+                                        {activeTab === 'private-llm' && <AIModelCard merchantId={merchant.id} cluster={merchant.cluster} initialTab="Private Model" />}
                                         {activeTab === 'studio-prompts' && <PromptLab merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'ml-models' && <AIModelCard merchantId={merchant.id} cluster={merchant.cluster} initialTab="ML Models" />}
-                                        {activeTab === 'studio-knowledge' && <KnowledgeBasesCard merchantId={merchant.id} cluster={merchant.cluster} />}
-                                        {activeTab === 'documents' && <DocumentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'studio-knowledge' && (
+                                            <KnowledgeBasesCard
+                                                merchantId={merchant.id}
+                                                cluster={merchant.cluster}
+                                                onDocumentsClick={(kb) => setActiveTab('documents')}
+                                            />
+                                        )}
+                                        {activeTab === 'documents' && <DocumentsCard key="model-studio-documents" merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'ontologies' && <OntologiesCard merchantId={merchant.id} cluster={merchant.cluster} />}
+
+                                        {/* Knowledge Base Menu (Separate) - Same functionality */}
+                                        {activeTab === 'kb-knowledge' && (
+                                            <KnowledgeBasesCard
+                                                key="kb-menu-knowledge"
+                                                merchantId={merchant.id}
+                                                cluster={merchant.cluster}
+                                                onDocumentsClick={(kb) => setActiveTab('kb-documents')}
+                                            />
+                                        )}
+                                        {activeTab === 'kb-documents' && <DocumentsCard key="kb-menu-documents" merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'kb-ontologies' && <OntologiesCard key="kb-menu-ontologies" merchantId={merchant.id} cluster={merchant.cluster} />}
                                     </div>
                                 </div>
                             </div>

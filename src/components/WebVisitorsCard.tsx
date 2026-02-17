@@ -153,7 +153,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                         </div>
                         <button
                             onClick={() => fetchHistory(0)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center gap-2"
+                            className="bg-blue-900 hover:bg-blue-700 text-white px-4 py-1.5 rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center gap-2"
                         >
                             <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                             Filter
@@ -401,10 +401,10 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                             {selectedVisitor?.contacts?.phone?.cell || 'No Phone Registered'}
                         </p>
                         <div className="flex gap-4 mt-6">
-                            <button className="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-sm border border-blue-100">
+                            <button className="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-900 hover:text-white transition-all transform hover:scale-110 shadow-sm border border-blue-100">
                                 <FiVideo size={18} />
                             </button>
-                            <button className="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-600 hover:text-white transition-all transform hover:scale-110 shadow-sm border border-blue-100">
+                            <button className="w-10 h-10 flex items-center justify-center bg-blue-50 text-blue-600 rounded-full hover:bg-blue-900 hover:text-white transition-all transform hover:scale-110 shadow-sm border border-blue-100">
                                 <FiPhone size={18} />
                             </button>
                             <button className="w-10 h-10 flex items-center justify-center bg-red-50 text-red-600 rounded-full hover:bg-red-600 hover:text-white transition-all transform hover:scale-110 shadow-sm border border-red-100">
@@ -466,7 +466,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                                 <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Contextual Tags</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {currentEngagement?.allConversations?.[0]?.context?.map((ctx: string, i: number) => (
-                                        <span key={i} className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-sm">
+                                        <span key={i} className="px-3 py-1.5 bg-blue-900 text-white rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-sm">
                                             {ctx}
                                         </span>
                                     )) || (
@@ -552,7 +552,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                                 </button>
                             </div>
                         </div>
-                        <button className="w-14 h-14 bg-blue-600 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 transform active:scale-90 group-hover:scale-105">
+                        <button className="w-14 h-14 bg-blue-900 text-white rounded-2xl flex items-center justify-center hover:bg-blue-700 transition-all shadow-xl shadow-blue-100 transform active:scale-90 group-hover:scale-105">
                             <FiSend size={22} className="relative -mr-1" />
                         </button>
                     </div>

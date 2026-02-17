@@ -474,7 +474,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                                 alert('Failed to update product');
                                             }
                                         }}
-                                        className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm"
+                                        className="px-4 py-2 bg-blue-900 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm"
                                     >
                                         Save Changes
                                     </button>

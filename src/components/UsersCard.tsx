@@ -575,7 +575,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                 <button
                                     type="submit"
                                     disabled={inviting}
-                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md disabled:bg-blue-300 transform active:scale-[0.98]"
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 bg-blue-900 text-white rounded-xl font-bold hover:bg-blue-700 transition-all shadow-md disabled:bg-blue-300 transform active:scale-[0.98]"
                                 >
                                     {inviting ? (
                                         <>

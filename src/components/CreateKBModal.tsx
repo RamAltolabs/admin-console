@@ -9,10 +9,11 @@ interface CreateKBModalProps {
     cluster?: string;
     models: any[];
     onSuccess: () => void;
+    preSelectedModelId?: string;
 }
 
 const CreateKBModal: React.FC<CreateKBModalProps> = ({
-    isOpen, onClose, merchantId, cluster, models, onSuccess
+    isOpen, onClose, merchantId, cluster, models, onSuccess, preSelectedModelId
 }) => {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -31,8 +32,11 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
     useEffect(() => {
         if (isOpen) {
             fetchArtifacts();
+            if (preSelectedModelId) {
+                setSelectedModelId(preSelectedModelId);
+            }
         }
-    }, [isOpen]);
+    }, [isOpen, preSelectedModelId]);
 
     const fetchArtifacts = async () => {
         setLoading(true);

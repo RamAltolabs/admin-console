@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FiHome, FiUsers, FiSettings, FiX, FiChevronDown, FiChevronRight, FiChevronLeft, FiLogOut, FiActivity, FiServer, FiGlobe, FiDatabase, FiCpu, FiTerminal, FiGrid, FiPieChart, FiShoppingBag, FiBarChart2, FiMenu } from 'react-icons/fi';
+import {
+  FiSettings, FiX, FiChevronDown, FiChevronRight, FiChevronLeft,
+  FiLogOut, FiDatabase, FiCpu, FiTerminal,
+  FiGrid, FiPieChart, FiShoppingBag, FiMenu, FiServer, FiGlobe
+} from 'react-icons/fi';
 import { useMerchantContext } from '../context/MerchantContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -125,6 +129,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
                 onClose={onClose}
                 isMinimized={isMinimized}
               />
+
+
             </div>
           </div>
 
@@ -275,7 +281,7 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
                 case 'app30a': return <FiDatabase size={12} />;
                 case 'app30b': return <FiCpu size={12} />;
                 case 'app6e': return <FiTerminal size={12} />;
-                default: return <div className={`w-1.5 h-1.5 rounded-full ${selectedCluster === cluster.id ? 'bg-white' : 'bg-gray-300 group-hover/cluster:bg-blue-600'}`} />;
+                default: return <div className={`w-1.5 h-1.5 rounded-full ${selectedCluster === cluster.id ? 'bg-white' : 'bg-gray-300 group-hover/cluster:bg-blue-900'}`} />;
               }
             };
 

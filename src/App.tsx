@@ -15,6 +15,14 @@ import { NotificationProps } from './components/Notification';
 import { useAuth } from './context/AuthContext';
 import Login from './components/Login';
 import Settings from './components/Settings';
+import AIModelCard from './components/AIModelCard';
+import KnowledgeBasesCard from './components/KnowledgeBasesCard';
+import DocumentsCard from './components/DocumentsCard';
+import PromptLab from './components/PromptLab';
+import OntologiesCard from './components/OntologiesCard';
+import AIPlatformsCard from './components/AIPlatformsCard';
+import ComingSoonCard from './components/ComingSoonCard';
+import { FiGrid, FiShare2, FiBarChart2, FiBook, FiCommand, FiLayers, FiPlus, FiLink, FiInfo, FiAlertCircle, FiZap } from 'react-icons/fi';
 
 const App: React.FC = () => {
   const {
@@ -253,6 +261,29 @@ const App: React.FC = () => {
               />
               <Route path="/merchants/:id" element={<MerchantDetails />} />
               <Route path="/settings" element={<Settings />} />
+
+              {/* Model Studio Routes */}
+              <Route path="/model-studio/models" element={<AIModelCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} initialTab="Model Management" />} />
+              <Route path="/model-studio/ml-models" element={<AIModelCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} initialTab="ML Models" />} />
+              <Route path="/model-studio/playground" element={<AIPlatformsCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+
+              <Route path="/model-studio/knowledge-base" element={<KnowledgeBasesCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/documents" element={<DocumentsCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/datasets" element={<ComingSoonCard title="Datasets" description="Manage large scale training data for your custom models." icon={<FiGrid size={48} />} />} />
+              <Route path="/model-studio/knowledge-graph" element={<ComingSoonCard title="Knowledge Graph" description="Visualize and manage structured knowledge relationships." icon={<FiShare2 size={48} />} />} />
+
+              <Route path="/model-studio/prompt-lab" element={<PromptLab merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/prompt-stats" element={<ComingSoonCard title="Prompt Stats" description="Analyze prompt performance and token usage metrics." icon={<FiBarChart2 size={48} />} />} />
+              <Route path="/model-studio/ontology" element={<OntologiesCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/notebook" element={<ComingSoonCard title="Notebook" description="Interactive environment for model testing and data exploration." icon={<FiBook size={48} />} />} />
+
+              <Route path="/model-studio/intents" element={<ComingSoonCard title="Intents" description="Define and manage natural language intent classification patterns." icon={<FiZap size={48} />} />} />
+              <Route path="/model-studio/entities" element={<ComingSoonCard title="Entities" description="Define and manage named entity recognition patterns." icon={<FiLayers size={48} />} />} />
+              <Route path="/model-studio/extensions" element={<ComingSoonCard title="Extensions" description="Configure third-party API extensions for your agents." icon={<FiPlus size={48} />} />} />
+              <Route path="/model-studio/plugins" element={<ComingSoonCard title="Plugins" description="Manage custom plugins to extend platform functionality." icon={<FiLink size={48} />} />} />
+
+              <Route path="/model-studio/business-faq" element={<ComingSoonCard title="Business FAQ" description="Manage standard business question and answer pairs." icon={<FiInfo size={48} />} />} />
+              <Route path="/model-studio/unanswered" element={<ComingSoonCard title="Un Trained Utterances" description="Review and train unanswered messages from your users." icon={<FiAlertCircle size={48} />} />} />
             </Routes>
           </main>
         </div>

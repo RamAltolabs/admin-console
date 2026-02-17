@@ -274,7 +274,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                                     <button
                                                         key={i}
                                                         onClick={() => handlePageChange(i)}
-                                                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${pageIndex === i ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
+                                                        className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${pageIndex === i ? 'bg-blue-900 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
                                                     >
                                                         {i + 1}
                                                     </button>
@@ -289,7 +289,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                                             <button
                                                 key={i}
                                                 onClick={() => handlePageChange(i)}
-                                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${pageIndex === i ? 'bg-blue-600 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
+                                                className={`w-8 h-8 rounded-lg text-sm font-medium transition-all ${pageIndex === i ? 'bg-blue-900 text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
                                             >
                                                 {i + 1}
                                             </button>

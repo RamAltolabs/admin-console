@@ -205,7 +205,7 @@ const BotSettingsCard: React.FC<BotSettingsCardProps> = ({ merchantId, cluster }
                     {/* Bot Dot */}
                     <div className={`
                         absolute rounded-t-sm shadow-sm transition-all
-                        ${isSelected ? 'bg-blue-600' : 'bg-yellow-400'}
+                        ${isSelected ? 'bg-blue-900' : 'bg-yellow-400'}
                         ${!isSelected && !isEditing ? 'bg-gray-300' : ''} 
                     `}
                         style={{

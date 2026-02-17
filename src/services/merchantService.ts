@@ -968,6 +968,103 @@ class MerchantApiService {
     }
   }
 
+  async deleteKnowledgeBase(merchantId: string, knowledgeBaseId: string, cluster?: string): Promise<boolean> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/knowledgeBase/remove/${merchantId}/${knowledgeBaseId}`;
+
+      console.log(`[deleteKnowledgeBase] DELETE ${url}`);
+
+      const response = await this.api.delete(url, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log(`[deleteKnowledgeBase] API response:`, response.data);
+
+      // Invalidate cache for knowledge bases
+      this.invalidateCache(`kb_${merchantId}`);
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to delete knowledge base ${knowledgeBaseId} for merchant ${merchantId}:`, error);
+      throw error;
+    }
+  }
+
+  async updateKnowledgeBase(
+    merchantId: string,
+    knowledgeBaseId: string,
+    payload: {
+      knowledgeBaseName: string;
+      knowledgeBaseDesc: string;
+      modelId: string;
+      vectorStorage: string;
+      artifactId?: number;
+    },
+    cluster?: string
+  ): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/knowledgeBase/update/${merchantId}/${knowledgeBaseId}`;
+
+      console.log(`[updateKnowledgeBase] PUT ${url}`, payload);
+
+      const response = await this.api.put(url, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      console.log(`[updateKnowledgeBase] API response:`, response.data);
+
+      // Invalidate cache for knowledge bases
+      this.invalidateCache(`kb_${merchantId}`);
+
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update knowledge base ${knowledgeBaseId} for merchant ${merchantId}:`, error);
+      throw error;
+    }
+  }
+
+  async getAIArtifactsByCategory(merchantId: string, category: 'azure-ai-search' | 'weaviate-db', cluster?: string): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/getByCategory?merchantId=${merchantId}&category=${category}`;
+
+      console.log(`[getAIArtifactsByCategory] GET ${url}`);
+
+      const response = await this.api.get(url);
+
+      console.log(`[getAIArtifactsByCategory] API response:`, response.data);
+
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error(`Failed to fetch AI artifacts for category ${category}:`, error);
+      return [];
+    }
+  }
+
+  async searchAIArtifacts(merchantId: string, cluster?: string): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/search/merchant/${merchantId}`;
+
+      console.log(`[searchAIArtifacts] GET ${url}`);
+
+      const response = await this.api.get(url);
+
+      console.log(`[searchAIArtifacts] API response:`, response.data);
+
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error(`Failed to search AI artifacts for merchant ${merchantId}:`, error);
+      return [];
+    }
+  }
+
 
   // Documents
   async getDocuments(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<any> {
@@ -995,6 +1092,18 @@ class MerchantApiService {
     } catch (error) {
       console.error(`Failed to fetch documents for merchant ${merchantId}:`, error);
       return {};
+    }
+  }
+
+  async addDocument(payload: any, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/knowledgeBaseDocument/create?access_token=${this.getAccessToken()}`;
+      const response = await this.api.post(url, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to add document:', error);
+      throw error;
     }
   }
 

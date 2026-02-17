@@ -512,7 +512,7 @@ const Dashboard: React.FC = () => {
                     <button
                       onClick={() => setAutoRefresh(!autoRefresh)}
                       className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border transition-all ${autoRefresh
-                        ? 'bg-blue-600 text-white border-blue-700 shadow-sm'
+                        ? 'bg-blue-900 text-white border-blue-700 shadow-sm'
                         : 'bg-white border-neutral-border text-neutral-text-muted hover:border-primary-main/30'
                         }`}
                     >

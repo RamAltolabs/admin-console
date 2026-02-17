@@ -3,9 +3,9 @@ import {
     FiFileText, FiSearch, FiPlay, FiTrash2, FiSave, FiCopy,
     FiLayers, FiPlus, FiChevronDown, FiChevronRight, FiX,
     FiTerminal, FiCode, FiCpu, FiPlusCircle,
-    FiAlertCircle, FiCheckCircle, FiZap
+    FiAlertCircle, FiCheckCircle, FiZap, FiEdit2, FiCheck
 } from 'react-icons/fi';
-import { Prompt, KnowledgeBase, Ontology, Intent } from '../types/merchant';
+import { Prompt } from '../types/merchant';
 import merchantService from '../services/merchantService';
 
 interface PromptLabProps {
@@ -15,11 +15,7 @@ interface PromptLabProps {
 
 const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
     const [prompts, setPrompts] = useState<Prompt[]>([]);
-    const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
-    const [ontologies, setOntologies] = useState<Ontology[]>([]);
-    const [intents, setIntents] = useState<Intent[]>([]);
-    const [documents, setDocuments] = useState<any[]>([]);
-    const [activeTab, setActiveTab] = useState<'prompts' | 'intents' | 'ontologies' | 'documents'>('prompts');
+    const [activeTab] = useState<'prompts'>('prompts');
     const [loading, setLoading] = useState(false);
     const [running, setRunning] = useState(false);
     const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
@@ -35,6 +31,8 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
 
     const [formData, setFormData] = useState<Partial<Prompt>>({});
     const [activeParam, setActiveParam] = useState<string | null>(null);
+    const [editingParam, setEditingParam] = useState<string | null>(null);
+    const [renameValue, setRenameValue] = useState('');
     const [runResult, setRunResult] = useState<any>(null);
 
     const fetchPrompts = async () => {
@@ -54,72 +52,18 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
         }
     };
 
-    const fetchKnowledgeBases = async () => {
-        try {
-            const response = await merchantService.getKnowledgeBases(merchantId, 0, 100, cluster);
-            setKnowledgeBases(response.content || []);
-        } catch (error) {
-            console.error('Error fetching knowledge bases:', error);
-        }
-    };
-
-    const fetchOntologies = async () => {
-        try {
-            const response: any = await merchantService.getOntologies(merchantId, cluster);
-            // Handling array response directly or inside a property
-            let data: any[] = [];
-            if (Array.isArray(response)) {
-                data = response;
-            } else if (response && Array.isArray(response.entity)) {
-                data = response.entity;
-            } else if (response && Array.isArray(response.data)) {
-                data = response.data;
-            }
-            setOntologies(data);
-        } catch (error) {
-            console.error('Error fetching ontologies:', error);
-        }
-    };
-
-    const fetchIntents = async () => {
-        try {
-            const response = await merchantService.getIntents(merchantId, cluster);
-            // Handling array response directly or inside a property
-            const data = Array.isArray(response) ? response : (response.data || []);
-            setIntents(data);
-        } catch (error) {
-            console.error('Error fetching intents:', error);
-        }
-    };
 
 
-    const fetchDocuments = async () => {
-        try {
-            const response = await merchantService.getDocuments(merchantId, 0, 50, cluster);
-            // Handle response structure (it matches the curl output structure likely)
-            // Assuming response has content or data
-            const data = Array.isArray(response) ? response : (response.content || response.data || []);
-            if (Array.isArray(data)) {
-                setDocuments(data);
-            } else if (response.knowledgeBaseDocuments) {
-                setDocuments(response.knowledgeBaseDocuments);
-            } else {
-                setDocuments([]);
-            }
-        } catch (error) {
-            console.error('Error fetching documents:', error);
-        }
-    };
+
+
+
+
 
     useEffect(() => {
         if (merchantId) {
             fetchPrompts();
-            fetchKnowledgeBases();
-            fetchOntologies();
-            fetchIntents();
-            fetchDocuments();
         }
-    }, [merchantId]);
+    }, [merchantId, cluster]);
 
     const handleSelectPrompt = (prompt: Prompt) => {
         setSelectedPrompt(prompt);
@@ -191,6 +135,33 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
         delete newParams[param];
         setFormData(prev => ({ ...prev, requestParams: newParams }));
         if (activeParam === param) setActiveParam(null);
+        if (editingParam === param) setEditingParam(null);
+    };
+
+    const handleStartRename = (e: React.MouseEvent, param: string) => {
+        e.stopPropagation();
+        setEditingParam(param);
+        setRenameValue(param);
+    };
+
+    const handleRenameConfirm = (e: React.FormEvent | React.MouseEvent, oldName: string) => {
+        if (e) e.stopPropagation();
+        if (!renameValue || renameValue.trim() === '' || renameValue === oldName) {
+            setEditingParam(null);
+            return;
+        }
+
+        const trimmedNewName = renameValue.trim();
+        setFormData(prev => {
+            const newParams = { ...prev.requestParams };
+            const value = newParams[oldName];
+            delete newParams[oldName];
+            newParams[trimmedNewName] = value;
+            return { ...prev, requestParams: newParams };
+        });
+
+        if (activeParam === oldName) setActiveParam(trimmedNewName);
+        setEditingParam(null);
     };
 
     const handleSave = async () => {
@@ -336,105 +307,87 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
     }, {} as Record<string, Prompt[]>);
 
     return (
-        <div className="h-full flex flex-col bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="h-full flex flex-col bg-[#fdfdfd] animate-in fade-in duration-500">
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+            <div className="bg-white border-b border-gray-100 px-4 py-2.5">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
-                            <FiFileText className="text-white" size={20} />
+                    <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 bg-blue-900 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-900/20">
+                            <FiTerminal className="text-white" size={18} />
                         </div>
                         <div>
-                            <h1 className="text-xl font-semibold text-gray-900">Prompt Lab</h1>
-                            <p className="text-sm text-gray-500">Manage AI prompts</p>
+                            <h1 className="text-sm font-black text-blue-900 tracking-tight">Prompt Lab</h1>
+                            {/* <p className="text-xs font-bold text-gray-400 titlecase tracking-widest mt-0.5">Prompt Engineering & Automation Hub</p> */}
                         </div>
                     </div>
-                    <button
-                        onClick={handleNewPrompt}
-                        className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-                    >
-                        <FiPlus size={16} />
-                        New Prompt
-                    </button>
+
+                    <div className="flex items-center gap-4">
+                        {/* <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full border border-blue-100">
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-blue-700 titlecase tracking-wider">Live Sandbox</span>
+                        </div> */}
+                        <button
+                            onClick={handleNewPrompt}
+                            className="px-4 py-1.5 bg-gradient-to-r from-blue-900 to-indigo-950 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:brightness-110 hover:shadow-blue-900/20 transition-all shadow-lg flex items-center gap-2 active:scale-95 border border-white/10"
+                        >
+                            <FiPlusCircle size={12} className="text-blue-200" />
+                            Create Prompt
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Main Content */}
             <div className="flex-1 flex overflow-hidden">
                 {/* Left Sidebar */}
-                <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
-                    {/* Tabs */}
-                    <div className="p-2 border-b border-gray-200 bg-gray-50">
-                        <div className="flex bg-gray-200/50 p-1 rounded-lg">
-                            <button
-                                onClick={() => setActiveTab('prompts')}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'prompts' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
-                            >
-                                Prompts
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('intents')}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'intents' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
-                            >
-                                Intents
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('ontologies')}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'ontologies' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
-                            >
-                                Ontology
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('documents')}
-                                className={`flex-1 py-1.5 text-xs font-bold rounded-md transition-all ${activeTab === 'documents' ? 'bg-blue-900 text-white shadow-sm' : 'text-gray-500 hover:text-blue-900 hover:bg-gray-100'}`}
-                            >
-                                Docs
-                            </button>
-                        </div>
-                    </div>
+                <div className="w-80 bg-white border-r border-gray-100 flex flex-col">
 
-                    <div className="p-4 border-b border-gray-200 bg-white">
-                        <div className="relative">
+
+                    <div className="p-4 bg-white">
+                        <div className="relative group">
                             <input
                                 type="text"
-                                placeholder={`Search ${activeTab}...`}
+                                placeholder={`Filter ${activeTab}...`}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-900 focus:bg-white focus:border-blue-900 transition-all"
+                                className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[12px] font-medium focus:outline-none focus:ring-2 focus:ring-blue-900/5 focus:bg-white focus:border-blue-900 transition-all"
                             />
-                            <FiSearch className="absolute left-3 top-2.5 text-gray-400" size={16} />
+                            <FiSearch className="absolute left-3 top-2 text-gray-400 group-focus-within:text-blue-900" size={12} />
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar">
                         {/* Prompts List */}
                         {activeTab === 'prompts' && Object.entries(promptsByCategory).map(([category, catPrompts]) => (
-                            <div key={category} className="border-b border-gray-100">
+                            <div key={category} className="border-b border-gray-50">
                                 <button
                                     onClick={() => toggleCategory(category)}
-                                    className="w-full px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors bg-white group"
+                                    className="w-full px-4 py-2 flex items-center justify-between hover:bg-gray-50 transition-colors bg-white group"
                                 >
                                     <div className="flex items-center gap-2">
-                                        {expandedCategories[category] ? <FiChevronDown size={14} className="text-gray-400 group-hover:text-blue-900" /> : <FiChevronRight size={14} className="text-gray-400 group-hover:text-blue-900" />}
-                                        <span className="text-sm font-bold text-gray-700 group-hover:text-blue-900">{category}</span>
+                                        {expandedCategories[category] ? <FiChevronDown size={12} className="text-blue-900" /> : <FiChevronRight size={12} className="text-gray-400" />}
+                                        <span className="text-[9px] font-black titlecase tracking-[0.15em] text-gray-400 group-hover:text-blue-900">{category}</span>
                                     </div>
-                                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full group-hover:bg-blue-50 group-hover:text-blue-900">{catPrompts.length}</span>
+                                    <span className="text-[9px] bg-gray-100 text-gray-500 font-black px-1.5 py-0.5 rounded-full">{catPrompts.length}</span>
                                 </button>
 
                                 {expandedCategories[category] && (
-                                    <div className="bg-gray-50">
+                                    <div className="space-y-0.5 pb-2">
                                         {catPrompts.map(p => (
                                             <button
                                                 key={p.id}
                                                 onClick={() => handleSelectPrompt(p)}
-                                                className={`w-full text-left px-8 py-2.5 border-l-2 text-sm transition-all ${selectedPrompt?.id === p.id
-                                                    ? 'bg-blue-50 border-blue-900 text-blue-900 font-medium'
-                                                    : 'border-transparent text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                                className={`w-full text-left px-8 py-2 transition-all relative group ${selectedPrompt?.id === p.id
+                                                    ? 'bg-blue-50 text-blue-900'
+                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-blue-900'
                                                     }`}
                                             >
-                                                <div className="truncate">{p.title || 'Untitled'}</div>
-                                                <div className="text-xs text-gray-400 truncate mt-0.5 font-normal">{p.id}</div>
-                                                <div className="text-xs text-gray-400 truncate mt-1 opacity-70 font-normal">{p.promptText || 'No description'}</div>
+                                                {selectedPrompt?.id === p.id && <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-900" />}
+                                                <div className="text-[12px] font-bold truncate">{p.title || 'Untitled'}</div>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className="text-[9px] font-black text-gray-300">#{p.id}</span>
+                                                    <span className="text-[9px] text-gray-400 truncate opacity-70 italic">{p.promptText?.substring(0, 25)}...</span>
+                                                </div>
                                             </button>
                                         ))}
                                     </div>
@@ -442,84 +395,35 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
                             </div>
                         ))}
 
-                        {/* Intents List */}
-                        {activeTab === 'intents' && (
-                            <div className="bg-white">
-                                {intents.length === 0 ? (
-                                    <div className="p-4 text-center text-sm text-gray-500">No intents found.</div>
-                                ) : (
-                                    intents.filter(i => !searchQuery || i.name?.toLowerCase().includes(searchQuery.toLowerCase())).map(intent => (
-                                        <div key={intent.id} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                            <div className="text-sm font-medium text-gray-800">{intent.name}</div>
-                                            <div className="text-xs text-gray-500 mt-1">{intent.description || 'No description'}</div>
-                                            <div className="flex gap-2 mt-2">
-                                                <span className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full border border-purple-100">
-                                                    {(intent.utterances?.length || 0) + ' utterances'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
 
-                        {/* Ontologies List */}
-                        {activeTab === 'ontologies' && (
-                            <div className="bg-white">
-                                {ontologies.length === 0 ? (
-                                    <div className="p-4 text-center text-sm text-gray-500">No ontologies found.</div>
-                                ) : (
-                                    ontologies.filter(o => !searchQuery || o.name?.toLowerCase().includes(searchQuery.toLowerCase())).map(ontology => (
-                                        <div key={ontology.id} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                            <div className="text-sm font-medium text-gray-800">{ontology.name}</div>
-                                            <div className="text-xs text-gray-500 mt-1">{ontology.description || 'No description'}</div>
-                                            <div className="text-xs text-gray-400 mt-1">ID: {ontology.id}</div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
 
-                        {/* Documents List */}
-                        {activeTab === 'documents' && (
-                            <div className="bg-white">
-                                {documents.length === 0 ? (
-                                    <div className="p-4 text-center text-sm text-gray-500">No documents found.</div>
-                                ) : (
-                                    documents.filter(d => !searchQuery || d.documentName?.toLowerCase().includes(searchQuery.toLowerCase())).map(doc => (
-                                        <div key={doc.id || doc.documentId} className="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                            <div className="text-sm font-medium text-gray-800">{doc.documentName || doc.name || 'Untitled Document'}</div>
-                                            <div className="flex gap-2 mt-1">
-                                                <span className="text-xs text-gray-500">{doc.documentType || 'Unknown Type'}</span>
-                                                {doc.status && <span className="text-xs bg-green-50 text-green-600 px-1.5 rounded">{doc.status}</span>}
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        )}
+
                     </div>
                 </div>
 
                 {/* Main Workspace */}
-                <div className="flex-1 flex flex-col bg-white shadow-sm">
+                <div className="flex-1 flex flex-col bg-[#f8fafc]">
                     {(selectedPrompt || isNewPrompt) ? (
                         <>
                             {/* Toolbar */}
-                            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white">
-                                <div className="flex items-center gap-2">
-                                    <FiCode className="text-gray-600" size={18} />
-                                    <span className="font-medium text-gray-900">
-                                        {isNewPrompt ? 'New Prompt' : `Prompt #${selectedPrompt?.id}`}
-                                    </span>
+                            <div className="px-4 py-2 border-b border-gray-100 flex items-center justify-between bg-white shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className="px-2 py-0.5 bg-gray-100 rounded border border-gray-200">
+                                        <span className="text-[9px] font-black text-gray-500 titlecase tracking-widest">
+                                            {isNewPrompt ? 'Draft' : `ID: ${selectedPrompt?.id}`}
+                                        </span>
+                                    </div>
+                                    <h2 className="text-sm font-black text-blue-900 truncate max-w-md">
+                                        {formData.title || 'Untitled Prompt'}
+                                    </h2>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-3">
                                     {!isNewPrompt && (
                                         <>
-                                            <button onClick={handleCopyCurl} className="p-2 text-gray-600 hover:bg-gray-100 hover:text-blue-600 rounded-lg transition-colors" title="Copy cURL">
+                                            <button onClick={handleCopyCurl} className="p-2.5 text-gray-400 hover:text-blue-900 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100" title="Copy cURL">
                                                 <FiCopy size={16} />
                                             </button>
-                                            <button onClick={handleClone} className="p-2 text-gray-600 hover:bg-gray-100 hover:text-blue-600 rounded-lg transition-colors" title="Clone">
+                                            <button onClick={handleClone} className="p-2.5 text-gray-400 hover:text-blue-900 hover:bg-blue-50 rounded-xl transition-all border border-transparent hover:border-blue-100" title="Clone">
                                                 <FiLayers size={16} />
                                             </button>
                                         </>
@@ -527,205 +431,255 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
                                 </div>
                             </div>
 
-                            {/* Content */}
-                            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                                <div className="p-6 max-w-5xl">
+                            {/* Editor Content */}
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-5">
+                                <div className="max-w-6xl mx-auto space-y-5">
                                     {message && (
-                                        <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 ${message.type === 'success' ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'
+                                        <div className={`p-2.5 rounded-lg flex items-center gap-2.5 border shadow-sm animate-in slide-in-from-top-2 ${message.type === 'success' ? 'bg-green-50 border-green-100 text-green-800' : 'bg-red-50 border-red-100 text-red-800'
                                             }`}>
-                                            {message.type === 'success' ? <FiCheckCircle size={16} /> : <FiAlertCircle size={16} />}
-                                            <span className="text-sm">{message.text}</span>
+                                            {message.type === 'success' ? <FiCheckCircle size={12} className="text-green-500" /> : <FiAlertCircle size={12} className="text-red-500" />}
+                                            <span className="text-[10px] font-bold titlecase tracking-tight">{message.text}</span>
                                         </div>
                                     )}
 
-                                    <div className="space-y-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Prompt Text</label>
+                                    <div className="bg-white rounded-3xl shadow-xl shadow-blue-900/5 border border-gray-100 overflow-hidden">
+                                        <div className="px-4 py-2 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                                                <span className="text-[9px] font-black text-gray-400 titlecase tracking-[0.2em]">Prompt Definition</span>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-[9px] font-bold text-gray-400">
+                                                <span className="flex items-center gap-1"><FiCode size={10} /> Markdown</span>
+                                                <span className="flex items-center gap-1"><FiTerminal size={10} /> UTF-8</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="relative">
                                             <textarea
                                                 value={formData.promptText || ''}
                                                 onChange={(e) => handleInputChange('promptText', e.target.value)}
-                                                rows={12}
-                                                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all"
-                                                placeholder="Enter your prompt with $parameters..."
+                                                rows={10}
+                                                className="w-full p-5 bg-white text-blue-900 text-xs font-mono leading-relaxed focus:outline-none placeholder:text-gray-200 resize-none"
+                                                placeholder="Write your prompt here..."
                                             />
-                                        </div>
-
-                                        <div className="flex items-center gap-3 pt-4 border-t border-gray-200">
-                                            <button
-                                                onClick={handleRun}
-                                                disabled={running || !formData.promptText}
-                                                className="px-4 py-2 bg-gray-800 text-white rounded-lg text-sm font-semibold hover:bg-gray-900 disabled:opacity-50 shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-                                            >
-                                                {running && !selectedPrompt ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FiPlay size={14} />}
-                                                Run
-                                            </button>
-                                            {!isNewPrompt && (
-                                                <button
-                                                    onClick={handleExecute}
-                                                    disabled={running}
-                                                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 shadow-md hover:shadow-lg transition-all flex items-center gap-2"
-                                                >
-                                                    {running && selectedPrompt ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <FiZap size={14} />}
-                                                    Execute
-                                                </button>
-                                            )}
-                                            <div className="flex-1"></div>
-                                            {!isNewPrompt && (
-                                                <button onClick={handleDelete} disabled={loading} className="px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-semibold hover:bg-red-100 hover:border-red-300 disabled:opacity-50 transition-all">
-                                                    Delete
-                                                </button>
-                                            )}
-                                            <button onClick={handleSave} disabled={loading} className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 shadow-sm hover:shadow transition-all flex items-center gap-2">
-                                                {loading ? <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" /> : <FiSave size={14} />}
-                                                {isNewPrompt ? 'Create' : 'Save'}
-                                            </button>
-                                        </div>
-
-                                        {/* Response */}
-                                        <div className="pt-6">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <FiTerminal size={16} />
-                                                <h3 className="text-sm font-medium text-gray-900">Response</h3>
+                                            <div className="absolute right-4 bottom-4 px-3 py-1 bg-blue-900/5 text-blue-900 rounded-full text-[10px] font-black titlecase">
+                                                {formData.promptText?.length || 0} Characters
                                             </div>
-                                            {runResult ? (
-                                                <div className="bg-gray-900 rounded-xl p-5 relative shadow-lg">
-                                                    <button onClick={() => setRunResult(null)} className="absolute top-2 right-2 text-gray-400 hover:text-white">
-                                                        <FiX size={16} />
-                                                    </button>
-                                                    <pre className="text-green-400 text-xs font-mono whitespace-pre-wrap overflow-auto max-h-96">
-                                                        {JSON.stringify(runResult, null, 2)}
-                                                    </pre>
-                                                </div>
-                                            ) : (
-                                                <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50">
-                                                    <div className="text-gray-400 mb-2">
-                                                        {running ? <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" /> : <FiPlay size={32} className="mx-auto" />}
-                                                    </div>
-                                                    <p className="text-sm text-gray-500">{running ? 'Processing...' : 'Run prompt to see results'}</p>
-                                                </div>
-                                            )}
                                         </div>
+
+                                        <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+                                            <div className="flex items-center gap-1.5">
+                                                <button
+                                                    onClick={handleRun}
+                                                    disabled={running || !formData.promptText}
+                                                    className="px-3.5 py-1.5 bg-blue-900 text-white rounded-lg text-[8px] font-black titlecase tracking-widest hover:bg-black transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-1.5"
+                                                >
+                                                    {running && !selectedPrompt ? <div className="w-2 h-2 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiPlay size={10} />}
+                                                    Debug Run
+                                                </button>
+                                                {!isNewPrompt && (
+                                                    <button
+                                                        onClick={handleExecute}
+                                                        disabled={running}
+                                                        className="px-3.5 py-1.5 bg-blue-900 text-white rounded-lg text-[8px] font-black titlecase tracking-widest hover:bg-blue-700 transition-all shadow-md active:scale-95 disabled:opacity-50 flex items-center gap-1"
+                                                    >
+                                                        {running && selectedPrompt ? <div className="w-2 h-2 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <FiZap size={10} />}
+                                                        Run API
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5">
+                                                {!isNewPrompt && (
+                                                    <button onClick={handleDelete} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                                        <FiTrash2 size={10} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={handleSave}
+                                                    className="px-3.5 py-1.5 bg-white border border-blue-900 text-blue-900 rounded-lg text-[8px] font-black titlecase tracking-widest hover:bg-blue-50 transition-all active:scale-95 flex items-center gap-1.5"
+                                                >
+                                                    {loading ? <div className="w-2 h-2 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" /> : <FiSave size={10} />}
+                                                    {isNewPrompt ? 'Deploy' : 'Update'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Response Hub */}
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                                <FiTerminal className="text-blue-900" size={16} />
+                                            </div>
+                                            <h3 className="text-sm font-black text-blue-900 titlecase tracking-widest">Execution Output</h3>
+                                        </div>
+
+                                        {runResult ? (
+                                            <div className="bg-blue-900 rounded-2xl p-6 relative shadow-2xl border border-white/5 group">
+                                                <button onClick={() => setRunResult(null)} className="absolute top-4 right-4 p-1.5 text-gray-600 hover:text-white hover:bg-white/10 rounded-lg transition-all">
+                                                    <FiX size={14} />
+                                                </button>
+                                                <pre className="text-blue-400 text-[11px] font-mono whitespace-pre-wrap overflow-auto max-h-[400px] leading-relaxed custom-scrollbar selection:bg-blue-500/30">
+                                                    {typeof runResult === 'string' ? runResult : JSON.stringify(runResult, null, 2)}
+                                                </pre>
+                                            </div>
+                                        ) : (
+                                            <div className="bg-white border-2 border-dashed border-gray-200 rounded-3xl p-12 text-center">
+                                                {running ? (
+                                                    <div className="flex flex-col items-center gap-4">
+                                                        <div className="w-12 h-12 border-4 border-blue-900/10 border-t-blue-900 rounded-full animate-spin" />
+                                                        <span className="text-xs font-black text-blue-900 titlecase tracking-widest animate-pulse">Analyzing Vectors & Generating Response...</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-4 grayscale opacity-40">
+                                                        <FiPlay size={48} className="text-gray-300" />
+                                                        <p className="text-xs font-black text-gray-400 titlecase tracking-widest">Ready for Debugging</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
                         </>
                     ) : (
-                        <div className="flex-1 flex items-center justify-center">
-                            <div className="text-center">
-                                <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-md">
-                                    <FiLayers size={32} className="text-gray-400" />
+                        <div className="flex-1 flex items-center justify-center p-20">
+                            <div className="text-center max-w-sm">
+                                <div className="w-24 h-24 bg-white rounded-3xl shadow-2xl shadow-blue-900/5 flex items-center justify-center mx-auto mb-8 border border-gray-100 border-b-4">
+                                    <FiCode size={40} className="text-blue-900" />
                                 </div>
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">No Prompt Selected</h3>
-                                <p className="text-sm text-gray-500 mb-4">Select a prompt from the list or create a new one</p>
-                                <button onClick={handleNewPrompt} className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-semibold hover:from-blue-700 hover:to-blue-800 shadow-md hover:shadow-lg transition-all inline-flex items-center gap-2">
-                                    <FiPlusCircle size={16} />
-                                    Create New Prompt
+                                <h3 className="text-lg font-black text-blue-900 mb-2 tracking-tight">System Ready</h3>
+                                <p className="text-[11px] text-gray-500 font-medium mb-6 leading-relaxed">
+                                    Select an automated prompt template or intent to begin refinement. You can also create a custom logic bridge.
+                                </p>
+                                <button onClick={handleNewPrompt} className="px-6 py-2.5 bg-gradient-to-r from-blue-900 to-indigo-950 text-white rounded-xl text-[9px] font-black uppercase tracking-[0.2em] hover:brightness-110 transition-all shadow-xl shadow-blue-900/20 flex items-center gap-2 mx-auto active:scale-95 border border-white/10">
+                                    <FiPlusCircle size={14} className="text-blue-200" />
+                                    Initialize Prompt
                                 </button>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Right Sidebar */}
+                {/* Right Sidebar - Config */}
                 {(selectedPrompt || isNewPrompt) && (
-                    <div className="w-80 bg-white border-l border-gray-200 flex flex-col shadow-sm">
-                        <div className="p-5 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                            <h3 className="text-sm font-semibold text-gray-900 mb-4 pb-3 border-b border-gray-200">Configuration</h3>
+                    <div className="w-[240px] bg-white border-l border-gray-100 flex flex-col shadow-xl">
+                        <div className="p-3.5 overflow-y-auto custom-scrollbar">
 
-                            <div className="space-y-4">
+
+                            <div className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Title</label>
+                                    <label className="text-[9px] font-black text-gray-400 titlecase tracking-widest mb-1 block">Prompt Title</label>
                                     <input
                                         type="text"
                                         value={formData.title || ''}
                                         onChange={(e) => handleInputChange('title', e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all"
-                                        placeholder="Prompt title"
+                                        className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[9px] font-bold text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-900/5 focus:bg-white focus:border-blue-900 transition-all font-sans"
+                                        placeholder="Internal Name"
                                     />
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Type</label>
-                                    <select
-                                        value={formData.type || ''}
-                                        onChange={(e) => handleInputChange('type', e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all"
-                                    >
-                                        <option value="Standard">Standard</option>
-                                        <option value="Extraction">Extraction</option>
-                                        <option value="Generation">Generation</option>
-                                        <option value="Classification">Classification</option>
-                                    </select>
+                                <div className="grid grid-cols-1 gap-6">
+                                    <div>
+                                        <label className="text-[9px] font-black text-gray-400 titlecase tracking-widest mb-1 block">Type</label>
+                                        <select
+                                            value={formData.type || ''}
+                                            onChange={(e) => handleInputChange('type', e.target.value)}
+                                            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[9px] font-bold text-blue-900 focus:outline-none focus:border-blue-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%231E3A8A%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:12px] bg-[right_0.5rem_center] bg-no-repeat transition-all"
+                                        >
+                                            <option value="Standard">Standard API</option>
+                                            <option value="Extraction">NER Extraction</option>
+                                            <option value="Generation">Dynamic Gen</option>
+                                            <option value="Classification">Router Logic</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="text-[9px] font-black text-gray-400 titlecase tracking-widest mb-1 block">Model</label>
+                                        <select
+                                            value={formData.modelId || ''}
+                                            onChange={(e) => handleInputChange('modelId', e.target.value)}
+                                            className="w-full px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-[9px] font-bold text-blue-900 focus:outline-none focus:ring-1 focus:ring-blue-900/10 focus:border-blue-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207L10%2012L15%207%22%20stroke%3D%22%231E3A8A%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:12px] bg-[right_0.5rem_center] bg-no-repeat transition-all"
+                                        >
+                                            <option value={391}>TP PUBLIC (391)</option>
+                                            <option value={400}>O1 PREVIEW (400)</option>
+                                            <option value={500}>CLAUDE 3.5 (500)</option>
+                                        </select>
+                                    </div>
+
                                 </div>
 
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Model</label>
-                                    <select
-                                        value={formData.modelId || ''}
-                                        onChange={(e) => handleInputChange('modelId', e.target.value)}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all"
-                                    >
-                                        <option value={391}>TeleperformancePublicLLM (391)</option>
-                                        <option value={400}>GPT-4o (400)</option>
-                                        <option value={500}>Claude-3.5-Sonnet (500)</option>
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-xs font-medium text-gray-700 mb-1">Knowledge Base</label>
-                                    <select
-                                        value={formData.knowledgeBaseId || ''}
-                                        onChange={(e) => handleInputChange('knowledgeBaseId', e.target.value ? Number(e.target.value) : undefined)}
-                                        className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all"
-                                    >
-                                        <option value="">None</option>
-                                        {knowledgeBases.map(kb => (
-                                            <option key={kb.knowledgeBaseId} value={kb.knowledgeBaseId}>
-                                                {kb.knowledgeBaseName} ({kb.knowledgeBaseId})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="pt-4 border-t border-gray-200">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h4 className="text-xs font-semibold text-gray-900">Parameters</h4>
-                                        <button onClick={handleAddParam} className="text-xs text-blue-600 hover:text-blue-700 font-semibold hover:bg-blue-50 px-2 py-1 rounded transition-colors">
-                                            + Add
+                                <div className="pt-6 border-t border-gray-100 mt-2">
+                                    <div className="flex items-center justify-between mb-4 titlecase">
+                                        <h4 className="text-[9px] font-black text-gray-400 tracking-widest uppercase">Params</h4>
+                                        <button onClick={handleAddParam} className="px-2 py-0.5 bg-blue-50 text-blue-900 rounded-md text-[8px] font-black hover:bg-blue-100 transition-all border border-blue-100 uppercase">
+                                            + ADD
                                         </button>
                                     </div>
 
-                                    <div className="space-y-2">
+                                    <div className="space-y-3">
                                         {Object.keys(formData.requestParams || {}).map(param => (
-                                            <div key={param}>
-                                                <button
+                                            <div key={param} className="space-y-1.5">
+                                                <div className={`w-full px-3 py-1.5 rounded-lg text-[9px] font-black titlecase tracking-wider flex items-center justify-between transition-all cursor-pointer border group/item ${activeParam === param ? 'bg-blue-900 text-white border-blue-900 shadow-lg' : 'bg-white text-gray-500 border-gray-100 hover:border-blue-200'
+                                                    }`}
                                                     onClick={() => setActiveParam(param)}
-                                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-all ${activeParam === param ? 'bg-blue-50 text-blue-700 border border-blue-200 shadow-sm' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-transparent'
-                                                        }`}
                                                 >
-                                                    <span className="font-medium">{param}</span>
+                                                    <div className="flex items-center gap-2 flex-1">
+                                                        <FiPlay size={10} className={activeParam === param ? 'text-blue-300' : 'text-gray-300'} />
+                                                        {editingParam === param ? (
+                                                            <div className="flex items-center gap-1 flex-1" onClick={e => e.stopPropagation()}>
+                                                                <input
+                                                                    autoFocus
+                                                                    type="text"
+                                                                    value={renameValue}
+                                                                    onChange={e => setRenameValue(e.target.value)}
+                                                                    onKeyDown={e => e.key === 'Enter' && handleRenameConfirm(null as any, param)}
+                                                                    onBlur={e => handleRenameConfirm(null as any, param)}
+                                                                    className={`border-none focus:ring-1 rounded px-1 py-0.5 w-full outline-none text-xs font-bold ${activeParam === param
+                                                                        ? 'bg-white/10 text-white focus:ring-white/30'
+                                                                        : 'bg-gray-100 text-blue-900 focus:ring-blue-900/20'
+                                                                        }`}
+                                                                />
+                                                                <button onClick={e => handleRenameConfirm(e, param)}>
+                                                                    <FiCheck size={12} className="text-green-400" />
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 group-hover/item:text-blue-900">
+                                                                <span className={activeParam === param ? 'text-white' : ''}>{param}</span>
+                                                                <FiEdit2
+                                                                    size={10}
+                                                                    className="opacity-0 group-hover/item:opacity-100 transition-opacity text-blue-400 hover:text-blue-600"
+                                                                    onClick={e => handleStartRename(e, param)}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                     <FiX
                                                         size={14}
-                                                        className="text-gray-400 hover:text-red-600"
+                                                        className={activeParam === param ? 'text-white/50 hover:text-white' : 'text-gray-300 hover:text-red-500'}
                                                         onClick={(e) => {
                                                             e.stopPropagation();
                                                             handleRemoveParam(param);
                                                         }}
                                                     />
-                                                </button>
+                                                </div>
                                                 {activeParam === param && (
                                                     <textarea
                                                         value={formData.requestParams?.[activeParam] || ''}
                                                         onChange={(e) => handleParamValueChange(activeParam, e.target.value)}
-                                                        rows={6}
-                                                        className="w-full mt-2 px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white focus:border-blue-500 transition-all font-mono"
-                                                        placeholder={`Value for ${activeParam}...`}
+                                                        rows={4}
+                                                        className="w-full px-3 py-2 bg-white border border-blue-900/10 rounded-lg text-[10px] font-bold text-blue-900 focus:outline-none focus:border-blue-900 transition-all shadow-inner"
+                                                        placeholder={`Injection value for $${activeParam}...`}
                                                     />
                                                 )}
                                             </div>
                                         ))}
                                         {Object.keys(formData.requestParams || {}).length === 0 && (
-                                            <p className="text-xs text-gray-500 text-center py-4">No parameters</p>
+                                            <div className="py-10 text-center bg-gray-50/50 rounded-3xl border border-dashed border-gray-200">
+                                                <p className="text-[9px] font-black text-gray-300 title-case tracking-widest font-mono">Zero Parameters Defined</p>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

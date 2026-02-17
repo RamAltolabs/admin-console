@@ -30,10 +30,13 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
     const [showFilters, setShowFilters] = useState(false);
     const [filterKB, setFilterKB] = useState('');
 
-    const fetchDocuments = async () => {
+    const fetchDocuments = async (signal?: AbortSignal) => {
         setLoading(true);
         try {
             const response = await merchantService.getDocuments(merchantId, page, pageSize, cluster);
+            // Check if the request was aborted
+            if (signal?.aborted) return;
+
             // Response structure: { documents: [...], totalElements: 9, totalPages: 1, ... }
             if (response && response.documents) {
                 setDocuments(response.documents);
@@ -43,17 +46,25 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                 setDocuments([]);
             }
         } catch (error) {
+            if (signal?.aborted) return;
             console.error('Error fetching documents:', error);
             setDocuments([]);
         } finally {
-            setLoading(false);
+            if (!signal?.aborted) {
+                setLoading(false);
+            }
         }
     };
 
     useEffect(() => {
-        if (merchantId) {
-            fetchDocuments();
-        }
+        if (!merchantId) return;
+
+        const abortController = new AbortController();
+        fetchDocuments(abortController.signal);
+
+        return () => {
+            abortController.abort();
+        };
     }, [merchantId, cluster, page, pageSize]);
 
     const filteredDocuments = documents.filter(doc => {
