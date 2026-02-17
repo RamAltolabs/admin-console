@@ -39,16 +39,32 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
 
             // API response might be different based on endpoint, 
             // usually it's { content: [], totalElements: 0, totalPages: 0 } or similar
-            const contactsList = Array.isArray(response) ? response : (response.content || response.data || []);
-            const total = response.totalElements || contactsList.length;
+            const contactsList = Array.isArray(response) ? response : (response.contacts || response.content || response.data || []);
+            const total = response.totalElements || response.total || contactsList.length;
             const pages = response.totalPages || Math.ceil(total / pageSize);
 
             // Normalize contacts if needed
             const normalizedContacts = contactsList.map((item: any) => {
-                const firstName = item.contactFirstName || item.firstName || '';
-                const lastName = item.contactLastName || item.lastName || '';
-                const email = item.emailAddress || item.email || '';
-                const phone = item.phone || item.phoneNumber || '';
+                const firstName = item.first_name || item.contactFirstName || item.firstName || '';
+                const lastName = item.last_name || item.contactLastName || item.lastName || '';
+
+                // Extract email from array if it exists
+                let email = '';
+                if (item.email_address && Array.isArray(item.email_address) && item.email_address.length > 0) {
+                    email = item.email_address[0] || '';
+                } else {
+                    email = item.emailAddress || item.email || '';
+                }
+
+                // Extract phone from nested object in array if it exists
+                let phone = '';
+                if (item.phone_number && Array.isArray(item.phone_number) && item.phone_number.length > 0) {
+                    const phoneObj = item.phone_number[0];
+                    phone = phoneObj?.cell || phoneObj?.home || '';
+                } else {
+                    phone = item.phone || item.phoneNumber || '';
+                }
+
                 const role = item.role || item.merchantStatus || '';
 
                 // Titlecase role for display
@@ -218,17 +234,17 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                             <div className="flex items-center gap-1.5 opacity-100 transition-all shrink-0">
                                 <button
                                     onClick={(e) => { e.stopPropagation(); setSelectedCustomer(customer); }}
-                                    className="tile-btn-view h-8 w-8 flex items-center justify-center"
+                                    className="tile-btn-view h-7 w-7 flex items-center justify-center"
                                     title="View Customer"
                                 >
                                     <FiEye size={12} />
                                 </button>
                                 <button
                                     onClick={(e) => handleDeleteCustomer(e, customer)}
-                                    className="tile-btn-delete h-8 w-8 flex items-center justify-center"
+                                    className="tile-btn-delete h-7 w-7 flex items-center justify-center"
                                     title="Delete Customer"
                                 >
-                                    <FiTrash2 size={12} />
+                                    <FiTrash2 size={11} />
                                 </button>
                             </div>
                         </div>

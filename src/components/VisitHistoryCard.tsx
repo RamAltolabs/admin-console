@@ -25,11 +25,18 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
             try {
                 // Calculate date range based on selection
                 const endDate = new Date();
+                endDate.setHours(23, 59, 59, 999); // End of today
+
                 let startDate = new Date();
+                startDate.setHours(0, 0, 0, 0); // Start of today
 
                 if (dateRange === 'custom' && customStartDate && customEndDate) {
                     startDate = new Date(customStartDate);
-                    endDate.setTime(new Date(customEndDate).getTime());
+                    startDate.setHours(0, 0, 0, 0);
+
+                    const customEnd = new Date(customEndDate);
+                    customEnd.setHours(23, 59, 59, 999);
+                    endDate.setTime(customEnd.getTime());
                 } else if (dateRange === '7days') {
                     startDate.setDate(startDate.getDate() - 7);
                 } else if (dateRange === '30days') {
@@ -107,7 +114,12 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
             const ln = c?.lastName || c?.last_name || c?.LastName || '';
             if (fn || ln) return `${fn} ${ln}`.trim();
         }
-        return visitor.referenceID?.substring(0, 8) || visitor.id || 'Unknown Visitor';
+
+        const idStr = visitor.sessionId || visitor.sessionID || visitor.id || visitor.visitorId || visitor.referenceID || '';
+        if (idStr && idStr.includes('-')) {
+            return `visitor.${idStr.split('-')[0]}`;
+        }
+        return idStr ? `visitor.${idStr.substring(0, 8)}` : 'Unknown Visitor';
     };
 
     const getVisitorInitial = (visitor: any) => {
@@ -170,7 +182,10 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
                         ].map((preset) => (
                             <button
                                 key={preset.id}
-                                onClick={() => setDateRange(preset.id as any)}
+                                onClick={() => {
+                                    setDateRange(preset.id as any);
+                                    setCurrentPage(0);
+                                }}
                                 className={`px-4 py-1.5 rounded-lg text-[10px] font-black titlecase tracking-widest transition-all duration-200 ${dateRange === preset.id
                                     ? 'bg-blue-900 text-white shadow-md'
                                     : 'text-gray-500 hover:text-blue-900 hover:bg-white'

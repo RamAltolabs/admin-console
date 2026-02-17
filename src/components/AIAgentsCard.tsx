@@ -233,11 +233,11 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                                             {agent.language || 'en-US'}
                                                         </span>
                                                     </p>
-                                                    {agent.primaryKnowledgeBaseName && (
+                                                    {(agent.primaryKnowledgeBaseName || agent.knowledge || agent.knowledgeBaseName) && (
                                                         <p className="flex items-center gap-1.5 text-blue-900 mt-0.5 bg-blue-50/50 px-1.5 py-0.5 rounded border border-blue-100/50 w-fit">
                                                             <span className="text-blue-400 font-black titlecase tracking-widest bg-transparent px-0 py-0">KB:</span>
                                                             <span className="font-bold truncate block max-w-[140px]">
-                                                                {agent.primaryKnowledgeBaseName}
+                                                                {agent.primaryKnowledgeBaseName || agent.knowledge || agent.knowledgeBaseName}
                                                             </span>
                                                         </p>
                                                     )}

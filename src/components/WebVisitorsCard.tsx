@@ -196,7 +196,18 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                                             <tr key={i} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="px-6 py-4 font-bold text-gray-700">
                                                     <div className="flex flex-col">
-                                                        <span className="text-blue-600">{v.contacts?.firstName || 'Guest'}</span>
+                                                        <span className="text-blue-600">
+                                                            {(() => {
+                                                                const name = v.contacts?.firstName || v.contacts?.first_name || v.FirstName || v.firstName;
+                                                                if (name) return name;
+
+                                                                const idStr = v.sessionId || v.sessionID || v.id || v.visitorId || '';
+                                                                if (idStr && idStr.includes('-')) {
+                                                                    return `visitor.${idStr.split('-')[0]}`;
+                                                                }
+                                                                return idStr ? `visitor.${idStr.substring(0, 8)}` : 'Guest';
+                                                            })()}
+                                                        </span>
                                                         <span className="text-[10px] text-gray-400 font-normal flex items-center gap-1">
                                                             {v.contacts?.phone?.cell || 'No Phone'}
                                                         </span>
@@ -369,11 +380,22 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                 <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-white to-gray-50/50">
                     <div className="flex flex-col items-center text-center">
                         <div className="w-24 h-24 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 text-4xl font-black mb-4 shadow-inner ring-4 ring-white ring-offset-2 ring-offset-blue-100">
-                            {selectedVisitor?.contacts?.firstName?.charAt(0) || 'V'}
+                            {(() => {
+                                const name = selectedVisitor?.contacts?.firstName || selectedVisitor?.contacts?.first_name || selectedVisitor?.FirstName || selectedVisitor?.firstName;
+                                if (name) return name.charAt(0).toUpperCase();
+                                const idStr = selectedVisitor?.sessionId || selectedVisitor?.sessionID || selectedVisitor?.id || selectedVisitor?.visitorId || '';
+                                return idStr ? 'V' : '?';
+                            })()}
                         </div>
                         <h2 className="text-2xl font-black text-gray-800 flex items-center gap-2">
-                            {selectedVisitor?.contacts?.firstName || 'Anonymous'}
-                            <span className={`w - 3 h - 3 rounded - full shadow - sm ring - 2 ring - white ${selectedVisitor?.blockVisitor ? 'bg-red-500' : 'bg-green-500 animate-pulse'} `}></span>
+                            {(() => {
+                                const name = selectedVisitor?.contacts?.firstName || selectedVisitor?.contacts?.first_name || selectedVisitor?.FirstName || selectedVisitor?.firstName;
+                                if (name) return name;
+                                const idStr = selectedVisitor?.sessionId || selectedVisitor?.sessionID || selectedVisitor?.id || selectedVisitor?.visitorId || '';
+                                if (idStr && idStr.includes('-')) return `visitor.${idStr.split('-')[0]}`;
+                                return idStr ? `visitor.${idStr.substring(0, 8)}` : 'Anonymous';
+                            })()}
+                            <span className={`w-3 h-3 rounded-full shadow-sm ring-2 ring-white ${selectedVisitor?.blockVisitor ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></span>
                         </h2>
                         <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
                             {selectedVisitor?.contacts?.phone?.cell || 'No Phone Registered'}
@@ -585,16 +607,25 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                                         } `}
                                 >
                                     <div className="relative shrink-0">
-                                        <div className={`w - 14 h - 14 rounded - 2xl flex items - center justify - center text - gray - 700 font - black text - xl shadow - md transition - all ${isSelected ? 'bg-white ring-2 ring-blue-400 scale-105' : 'bg-gray-100 group-hover:bg-white'
-                                            } `}>
-                                            {visitor.contacts?.firstName?.charAt(0) || 'V'}
+                                        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-gray-700 font-black text-xl shadow-md transition-all ${isSelected ? 'bg-white ring-2 ring-blue-400 scale-105' : 'bg-gray-100 group-hover:bg-white'}`}>
+                                            {(() => {
+                                                const name = visitor.contacts?.firstName || visitor.contacts?.first_name || visitor.FirstName || visitor.firstName;
+                                                if (name) return name.charAt(0).toUpperCase();
+                                                return 'V';
+                                            })()}
                                         </div>
-                                        <div className={`absolute - bottom - 1 - right - 1 w - 5 h - 5 border - 4 border - white rounded - full shadow - sm ${visitor.blockVisitor ? 'bg-red-500' : 'bg-green-500 animate-pulse'} `}></div>
+                                        <div className={`absolute -bottom-1 -right-1 w-5 h-5 border-4 border-white rounded-full shadow-sm ${visitor.blockVisitor ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></div>
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
-                                            <h4 className={`font - bold text - sm truncate flex items - center gap - 1.5 ${isSelected ? 'text-blue-700' : 'text-gray-700'} `}>
-                                                {visitor.contacts?.firstName || 'Anonymous'}
+                                            <h4 className={`font-bold text-sm truncate flex items-center gap-1.5 ${isSelected ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                {(() => {
+                                                    const name = visitor.contacts?.firstName || visitor.contacts?.first_name || visitor.FirstName || visitor.firstName;
+                                                    if (name) return name;
+                                                    const idStr = visitor.sessionId || visitor.sessionID || visitor.id || visitor.visitorId || '';
+                                                    if (idStr && idStr.includes('-')) return `visitor.${idStr.split('-')[0]}`;
+                                                    return idStr ? `visitor.${idStr.substring(0, 8)}` : 'Anonymous';
+                                                })()}
                                                 <span className="text-[10px] text-gray-400 font-medium">{visitor.totalMessages || 0}</span>
                                                 <FiActivity className="text-orange-400 animate-pulse" size={12} />
                                             </h4>

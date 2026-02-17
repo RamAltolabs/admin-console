@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { useMerchantContext } from '../context/MerchantContext';
 import { calculateDashboardStats, calculatePercentage, formatNumber } from '../utils/analytics';
 import merchantService from '../services/merchantService';
+import { formatDate, formatTime, getValidDate } from '../utils/dateUtils';
+
 import { Merchant } from '../types/merchant';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import { FiUsers, FiCheckCircle, FiXCircle, FiAlertCircle, FiTrendingUp, FiHelpCircle, FiActivity, FiLayout, FiRefreshCw, FiServer, FiGlobe, FiLayers, FiInfo, FiRotateCcw } from 'react-icons/fi';
@@ -96,20 +98,18 @@ const Dashboard: React.FC = () => {
 
       let totalAcc = 0;
       let activeU = 0;
-      let onlineUsersCount = 0;
       let totalV = 0;
       let totalE = 0;
-      let onlineV = 0;
+      let onlineUsersCount = 0;
       let combinedVisitors: any[] = [];
 
       try {
         const results = await Promise.all(
           targetClusters.map(async (clusterId) => {
             try {
-              const [users, visitorsResponse, liveVisitors, engagementsResponse] = await Promise.all([
+              const [users, visitorsResponse, engagementsResponse] = await Promise.all([
                 merchantService.getClusterUsers(clusterId),
                 merchantService.getClusterVisitors(0, 50, clusterId),
-                merchantService.getClusterLiveVisitors(clusterId),
                 merchantService.getEngagementList('All', clusterId)
               ]);
 
@@ -135,12 +135,11 @@ const Dashboard: React.FC = () => {
                 users: users || [],
                 totalVisitors: visitorsResponse?.totalElements || 0,
                 totalEngagements: engagementCount,
-                visitors: visitorsResponse?.content || [],
-                liveVisitors: liveVisitors || []
+                visitors: visitorsResponse?.content || []
               };
             } catch (err) {
               console.error(`Failed to fetch data for cluster ${clusterId}:`, err);
-              return { clusterId, users: [], totalVisitors: 0, totalEngagements: 0, visitors: [], liveVisitors: [] };
+              return { clusterId, users: [], totalVisitors: 0, totalEngagements: 0, visitors: [] };
             }
           })
         );
@@ -156,35 +155,19 @@ const Dashboard: React.FC = () => {
           const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
 
           const getVisitorTimestamp = (v: any) => {
-            const d = v.visitedAt || v.lastAccessedDate_dt || v.createTime || v.lastAccessedDate || v.lastModifiedDate || v.visited_at || v.timestamp || v.modifiedDate;
-            if (!d) return 0;
+            const dateCandidates = [
+              v.visitedAt, v.lastAccessedDate_dt, v.createdDate, v.lastAccessedDate,
+              v.createTime, v.createdAt, v.lastModifiedDate, v.accessDate,
+              v.visitTime, v.timestamp, v.date, v.updatedAt,
+              v.engagements?.[0]?.accessDate,
+              v.engagements?.[0]?.allConversations?.[0]?.startTime
+            ];
 
-            let timestamp: number = 0;
-            if (typeof d === 'number') {
-              timestamp = d < 10000000000 ? d * 1000 : d;
-            } else if (typeof d === 'string') {
-              let dateStr = d.trim();
-              if (dateStr.includes('T') || dateStr.includes('Z')) {
-                timestamp = new Date(dateStr).getTime();
-              } else if (dateStr.includes('-')) {
-                const parts = dateStr.split(' ')[0].split('-');
-                const timePart = dateStr.split(' ')[1] || '00:00:00';
-                if (parts[0].length === 4) { // YYYY-MM-DD
-                  timestamp = new Date(`${parts[0]}-${parts[1]}-${parts[2]}T${timePart}Z`).getTime();
-                } else { // DD-MM-YYYY
-                  timestamp = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T${timePart}Z`).getTime();
-                }
-              } else {
-                timestamp = new Date(dateStr).getTime();
-              }
+            for (const candidate of dateCandidates) {
+              const validDate = getValidDate(candidate);
+              if (validDate) return validDate.getTime();
             }
-
-            if (isNaN(timestamp) && typeof d === 'string' && /^\d+$/.test(d)) {
-              const num = parseInt(d);
-              timestamp = num < 10000000000 ? num * 1000 : num;
-            }
-
-            return isNaN(timestamp) ? 0 : timestamp;
+            return 0;
           };
 
           const clusterOnlineVisitors = (res.visitors || []).filter((v: any) => {
@@ -196,19 +179,7 @@ const Dashboard: React.FC = () => {
             // Consistent 60-minute window
             return timestamp > (Date.now() - 60 * 60 * 1000);
           });
-
-          onlineV += res.liveVisitors.length;
-
-          // Map and combine live visitors
           const clusterMerchants = merchants.filter(m => m.cluster === res.clusterId);
-
-          const mappedLive = (res.liveVisitors || []).map((v: any) => ({
-            ...v,
-            cluster: res.clusterId,
-            isOnline: true,
-            visitorTimestamp: Date.now(), // Real-time
-            merchantName: v.merchantName || clusterMerchants.find((m: any) => m.id === v.merchantID || m.id === v.merchantId)?.name || (v.merchantID || v.merchantId || `Visitor.${Math.floor(Math.random() * 10000)}`)
-          }));
 
           const mappedRecent = (res.visitors || []).map((v: any) => {
             if (!v) return null;
@@ -222,7 +193,7 @@ const Dashboard: React.FC = () => {
             };
           }).filter(Boolean);
 
-          combinedVisitors = [...combinedVisitors, ...mappedLive, ...mappedRecent];
+          combinedVisitors = [...combinedVisitors, ...mappedRecent];
         });
 
         // De-duplicate visitors by ID
@@ -753,7 +724,7 @@ const Dashboard: React.FC = () => {
                     )}
                     <td className="px-6 py-4 text-xs font-semibold text-neutral-text-secondary">{merchant.email || 'N/A'}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold titlecase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className={`text-[10px] font-bold uppercase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
                         {merchant.status || 'Active'}
                       </span>
                     </td>
@@ -841,16 +812,10 @@ const Dashboard: React.FC = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="flex flex-col">
                             <span className="text-[10px] font-bold text-neutral-text-main">
-                              {(() => {
-                                const d = new Date(visitor.visitorTimestamp || 0);
-                                return !visitor.visitorTimestamp ? 'N/A' : d.toLocaleDateString([], { month: '2-digit', day: '2-digit' });
-                              })()}
+                              {visitor.visitorTimestamp ? formatDate(new Date(visitor.visitorTimestamp)) : 'N/A'}
                             </span>
-                            <span className="text-[9px] font-bold text-neutral-text-muted titlecase">
-                              {(() => {
-                                const d = new Date(visitor.visitorTimestamp || 0);
-                                return !visitor.visitorTimestamp ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                              })()}
+                            <span className="text-[9px] font-bold text-neutral-text-muted titlecase tracking-wider">
+                              {visitor.visitorTimestamp ? formatTime(new Date(visitor.visitorTimestamp)) : ''}
                             </span>
                           </div>
                         </td>

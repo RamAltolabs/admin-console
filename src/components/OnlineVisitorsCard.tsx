@@ -3,6 +3,8 @@ import { FiUser, FiSmile, FiRefreshCw, FiGlobe } from 'react-icons/fi';
 import { FaSignOutAlt } from 'react-icons/fa';
 import { MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import merchantService from '../services/merchantService';
+import { formatTime, getValidDate } from '../utils/dateUtils';
+
 
 interface OnlineVisitorsCardProps {
     merchantId: string;
@@ -156,7 +158,7 @@ const OnlineVisitorsCard: React.FC<OnlineVisitorsCardProps> = ({ merchantId, clu
                                                 {visitor.totalConversations || 0} Msgs
                                             </span>
                                             <span className="text-[9px] font-medium text-gray-400 uppercase">
-                                                {visitor.lastAccessedDate?.split(' ')[1] || 'Just now'}
+                                                {formatTime(getValidDate(visitor.lastAccessedDate) || getValidDate(visitor.timestamp) || 'Just now')}
                                             </span>
                                             <button
                                                 onClick={async (e) => {

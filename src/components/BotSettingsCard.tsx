@@ -95,12 +95,16 @@ const BotSettingsCard: React.FC<BotSettingsCardProps> = ({ merchantId, cluster }
                 engagementList = (engagementListResponse as any).engagements;
             }
 
-            // Filter for only Web type or channel name 'Web'
-            const webEngagements = engagementList.filter((e: any) =>
-                e.channel?.name === 'Web' || e.type === 'Website' || e.type === 'Landing Page'
-            );
+            // Filter for only chatbot/website type on website channel
+            const botEngagements = engagementList.filter((e: any) => {
+                const type = (e.engagementType || e.type || '').toLowerCase();
+                const channel = (e.channelName || e.channel?.name || '').toLowerCase();
+                const isWebsiteType = type === 'chatbot' || type === 'website';
+                const isWebsiteChannel = channel === 'website' || channel === 'web';
+                return isWebsiteType && isWebsiteChannel;
+            });
 
-            setEngagements(webEngagements);
+            setEngagements(botEngagements);
         } catch (error) {
             console.error('Failed to load bot settings data:', error);
             setMessage({ type: 'error', text: 'Failed to load configuration' });
@@ -375,11 +379,15 @@ const BotSettingsCard: React.FC<BotSettingsCardProps> = ({ merchantId, cluster }
                             `}
                         >
                             <option value="">Select an engagement...</option>
-                            {engagements.map(engagement => (
-                                <option key={engagement.id} value={engagement.id}>
-                                    {engagement.engagementName || engagement.name || `Engagement ${engagement.id}`}
-                                </option>
-                            ))}
+                            {engagements.map(engagement => {
+                                const agentName = engagement.aiAgentName || engagement.aiAgent?.name;
+                                return (
+                                    <option key={engagement.id} value={engagement.id}>
+                                        {engagement.engagementName || engagement.name || `Engagement ${engagement.id}`}
+                                        {agentName ? ` (${agentName})` : ''}
+                                    </option>
+                                );
+                            })}
                         </select>
                         <div className={`absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none ${isEditing ? 'text-blue-900' : 'text-gray-400'}`}>
                             <FiCheck className="w-4 h-4" />

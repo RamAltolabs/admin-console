@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FiActivity, FiClock, FiMapPin, FiRefreshCw, FiGlobe } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
+import { formatDate, formatTime, getValidDate } from '../utils/dateUtils';
+
 
 interface RecentVisitorsCardProps {
     merchantId: string;
     cluster?: string;
     isEmbedded?: boolean;
 }
+
 
 const RecentVisitorsCard: React.FC<RecentVisitorsCardProps> = ({ merchantId, cluster, isEmbedded = false }) => {
     const [visitors, setVisitors] = useState<any[]>([]);
@@ -135,20 +138,61 @@ const RecentVisitorsCard: React.FC<RecentVisitorsCardProps> = ({ merchantId, clu
                                         <div className="flex flex-col items-end">
                                             <span className="text-[10px] font-bold text-gray-700">
                                                 {(() => {
-                                                    const d = new Date(v.visitedAt || v.lastAccessedDate_dt || v.createTime || v.lastAccessedDate || v.lastModifiedDate);
-                                                    return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString([], { month: '2-digit', day: '2-digit', year: 'numeric' });
+                                                    const dateCandidates = [
+                                                        v.visitedAt, 
+                                                        v.lastAccessedDate_dt, 
+                                                        v.lastAccessedDate, 
+                                                        v.createdDate,
+                                                        v.createTime, 
+                                                        v.createdAt,
+                                                        v.lastModifiedDate, 
+                                                        v.accessDate,
+                                                        v.visitTime, 
+                                                        v.timestamp, 
+                                                        v.date, 
+                                                        v.updatedAt,
+                                                        v.engagements?.[0]?.accessDate,
+                                                        v.engagements?.[0]?.allConversations?.[0]?.startTime
+                                                    ];
+                                                    let validDate: Date | null = null;
+                                                    for (const c of dateCandidates) {
+                                                        validDate = getValidDate(c);
+                                                        if (validDate) break;
+                                                    }
+                                                    return formatDate(validDate);
                                                 })()}
                                             </span>
                                             <span className="text-[9px] font-medium text-gray-400 uppercase">
                                                 {(() => {
-                                                    const d = new Date(v.visitedAt || v.lastAccessedDate_dt || v.createTime || v.lastAccessedDate || v.lastModifiedDate);
-                                                    return isNaN(d.getTime()) ? '' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                                                    const dateCandidates = [
+                                                        v.visitedAt, 
+                                                        v.lastAccessedDate_dt, 
+                                                        v.lastAccessedDate, 
+                                                        v.createdDate,
+                                                        v.createTime, 
+                                                        v.createdAt,
+                                                        v.lastModifiedDate, 
+                                                        v.accessDate,
+                                                        v.visitTime, 
+                                                        v.timestamp, 
+                                                        v.date, 
+                                                        v.updatedAt,
+                                                        v.engagements?.[0]?.accessDate,
+                                                        v.engagements?.[0]?.allConversations?.[0]?.startTime
+                                                    ];
+                                                    let validDate: Date | null = null;
+                                                    for (const c of dateCandidates) {
+                                                        validDate = getValidDate(c);
+                                                        if (validDate) break;
+                                                    }
+                                                    return formatTime(validDate);
                                                 })()}
                                             </span>
                                         </div>
                                     </td>
                                 </tr>
                             ))
+
                         ) : (
                             <tr>
                                 <td colSpan={4} className="px-6 py-12 text-center text-xs font-medium text-gray-400 uppercase tracking-widest">

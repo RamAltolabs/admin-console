@@ -106,59 +106,91 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                                     <FiLayers className="text-blue-900" /> Intelligence Layer
                                 </h3>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    {/* Primary Knowledge Base */}
-                                    <div className="space-y-4">
-                                        <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 hover:border-blue-900/30 transition-all shadow-sm">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
-                                                    <FiBook size={18} />
+                                    {(agent.primaryKnowledgeBaseName || agent.secondaryKnowledgeBaseName) ? (
+                                        <>
+                                            {/* Primary Knowledge Base */}
+                                            <div className="space-y-4">
+                                                <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 hover:border-blue-900/30 transition-all shadow-sm">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
+                                                            <FiBook size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Primary Knowledge Base</p>
+                                                            <h4 className="font-black text-blue-900 mt-2 truncate text-sm">{agent.primaryKnowledgeBaseName || 'None'}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-400 font-mono mt-2 bg-white/50 px-2 py-1 rounded inline-block">Ref: {agent.primaryKnowledgeBaseId || 'N/A'}</p>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Primary Knowledge Base</p>
-                                                    <h4 className="font-black text-blue-900 mt-2 truncate text-sm">{agent.primaryKnowledgeBaseName || 'None'}</h4>
+                                                <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 hover:border-blue-900/30 transition-all shadow-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
+                                                            <FiCpu size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Primary AI Model</p>
+                                                            <h4 className="font-black text-blue-900 mt-2 text-sm">ID: {agent.primaryModelId || 'N/A'}</h4>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <p className="text-[10px] text-gray-400 font-mono mt-2 bg-white/50 px-2 py-1 rounded inline-block">Ref: {agent.primaryKnowledgeBaseId || 'N/A'}</p>
-                                        </div>
-                                        <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 hover:border-blue-900/30 transition-all shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
-                                                    <FiCpu size={18} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Primary AI Model</p>
-                                                    <h4 className="font-black text-blue-900 mt-2 text-sm">ID: {agent.primaryModelId || 'N/A'}</h4>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Secondary Knowledge Base */}
-                                    <div className="space-y-4">
-                                        <div className="p-4 bg-gray-50/30 rounded-2xl border-2 border-gray-100 hover:border-blue-900/20 transition-all opacity-80 scale-[0.98]">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <div className="p-2 bg-gray-200 text-gray-600 rounded-lg text-opacity-40">
-                                                    <FiDatabase size={18} />
+                                            {/* Secondary Knowledge Base */}
+                                            <div className="space-y-4">
+                                                <div className="p-4 bg-gray-50/30 rounded-2xl border-2 border-gray-100 hover:border-blue-900/20 transition-all opacity-80 scale-[0.98]">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <div className="p-2 bg-gray-200 text-gray-600 rounded-lg text-opacity-40">
+                                                            <FiDatabase size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-300 titlecase tracking-widest leading-none">Secondary Knowledge Base</p>
+                                                            <h4 className="font-black text-gray-400 mt-2 truncate text-sm">{agent.secondaryKnowledgeBaseName || 'None'}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-[10px] text-gray-300 font-mono mt-2">Ref: {agent.secondaryKnowledgeBaseId || 'N/A'}</p>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-gray-300 titlecase tracking-widest leading-none">Secondary Knowledge Base</p>
-                                                    <h4 className="font-black text-gray-400 mt-2 truncate text-sm">{agent.secondaryKnowledgeBaseName || 'None'}</h4>
+                                                <div className="p-4 bg-gray-50/30 rounded-2xl border-2 border-gray-100 hover:border-blue-900/20 transition-all opacity-80 scale-[0.98]">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-2 bg-gray-200 text-gray-600 rounded-lg text-opacity-40">
+                                                            <FiCpu size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-gray-300 titlecase tracking-widest leading-none">Secondary AI Model</p>
+                                                            <h4 className="font-black text-gray-400 mt-2 text-sm">ID: {agent.secondaryModelId || 'N/A'}</h4>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <p className="text-[10px] text-gray-300 font-mono mt-2">Ref: {agent.secondaryKnowledgeBaseId || 'N/A'}</p>
-                                        </div>
-                                        <div className="p-4 bg-gray-50/30 rounded-2xl border-2 border-gray-100 hover:border-blue-900/20 transition-all opacity-80 scale-[0.98]">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-gray-200 text-gray-600 rounded-lg text-opacity-40">
-                                                    <FiCpu size={18} />
+                                        </>
+                                    ) : (
+                                        <div className="sm:col-span-2 space-y-4">
+                                            <div className="p-4 bg-blue-50/50 rounded-2xl border-2 border-blue-100 hover:border-blue-900/30 transition-all shadow-sm">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
+                                                        <FiBook size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Knowledge</p>
+                                                        <h4 className="font-black text-blue-900 mt-2 text-sm">{agent.knowledge || agent.knowledgeBaseName || 'No Specific Knowledge Base Assigned'}</h4>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="text-[10px] font-black text-gray-300 titlecase tracking-widest leading-none">Secondary AI Model</p>
-                                                    <h4 className="font-black text-gray-400 mt-2 text-sm">ID: {agent.secondaryModelId || 'N/A'}</h4>
+                                                {(agent.knowledgeId || agent.knowledgeBaseId) && (
+                                                    <p className="text-[10px] text-gray-400 font-mono mt-2 bg-white/50 px-2 py-1 rounded inline-block">Ref: {agent.knowledgeId || agent.knowledgeBaseId}</p>
+                                                )}
+                                            </div>
+                                            <div className="p-4 bg-gray-50/50 rounded-2xl border-2 border-gray-200 shadow-sm">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="p-2 bg-blue-100 text-blue-900 rounded-lg">
+                                                        <FiCpu size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-gray-400 titlecase tracking-widest leading-none">Intelligence Engine</p>
+                                                        <h4 className="font-black text-blue-900 mt-2 text-sm">Model: {agent.primaryModelId || agent.modelId || 'Default LLM'}</h4>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
 

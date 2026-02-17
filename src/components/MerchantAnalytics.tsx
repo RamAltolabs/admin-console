@@ -480,7 +480,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                             { name: 'Returning', value: stats.returningVisitors, color: '#8b5cf6' }
                                         ]}
                                         layout="vertical"
-                                        margin={{ top: 0, left: 0, right: 0, bottom: 0 }}
+                                        margin={{ top: 10, left: 45, right: 20, bottom: 10 }}
                                     >
                                         <XAxis type="number" hide />
                                         <YAxis
@@ -488,6 +488,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                             dataKey="name"
                                             axisLine={false}
                                             tickLine={false}
+                                            width={50}
                                             tick={{ fontSize: 11, fontWeight: 800, fill: '#475569' }}
                                         />
                                         <Tooltip
@@ -499,7 +500,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                                 return [`${value} visitors (${percentage}%)`, 'Count'];
                                             }}
                                         />
-                                        <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={32}>
+                                        <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={24}>
                                             <Cell fill="#3b82f6" />
                                             <Cell fill="#8b5cf6" />
                                         </Bar>
@@ -507,19 +508,19 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                 </ResponsiveContainer>
                             </div>
                             <div className="mt-4 space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                                        <span className="text-[11px] font-bold text-gray-600 titlecase">New Visitors</span>
+                                <div className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-blue-500 flex-shrink-0"></div>
+                                        <span className="text-[11px] font-bold text-gray-600 titlecase truncate">New Visitors</span>
                                     </div>
-                                    <span className="text-xs font-black text-gray-900">{stats.newVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.newVisitors / stats.totalVisitors) * 100) : 0}%)</span>
+                                    <span className="text-xs font-black text-gray-900 ml-2 flex-shrink-0">{stats.newVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.newVisitors / stats.totalVisitors) * 100) : 0}%)</span>
                                 </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                                        <span className="text-[11px] font-bold text-gray-600 titlecase">Returning</span>
+                                <div className="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-purple-500 flex-shrink-0"></div>
+                                        <span className="text-[11px] font-bold text-gray-600 titlecase truncate">Returning</span>
                                     </div>
-                                    <span className="text-xs font-black text-gray-900">{stats.returningVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.returningVisitors / stats.totalVisitors) * 100) : 0}%)</span>
+                                    <span className="text-xs font-black text-gray-900 ml-2 flex-shrink-0">{stats.returningVisitors} ({stats.totalVisitors > 0 ? Math.round((stats.returningVisitors / stats.totalVisitors) * 100) : 0}%)</span>
                                 </div>
                             </div>
                         </div>

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FiGlobe, FiMonitor, FiClock, FiMapPin, FiRefreshCw, FiAlertTriangle, FiFilter } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
+import { formatDate, getValidDate } from '../utils/dateUtils';
 import { RawVisitor, PageResponseRawVisitor } from '../types/merchant';
+
 
 interface VisitorsCardProps {
     merchantId: string;
@@ -113,7 +115,13 @@ const VisitorsCard: React.FC<VisitorsCardProps> = ({ merchantId, cluster }) => {
                                 <tr key={visitor.id || index} className="hover:bg-gray-50 transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="font-medium text-gray-900 truncate max-w-[150px]" title={visitor.visitorId}>
-                                            {visitor.visitorId || 'Anonymous'}
+                                            {(() => {
+                                                const idStr = visitor.sessionId || visitor.sessionID || visitor.id || visitor.visitorId || '';
+                                                if (idStr && idStr.includes('-')) {
+                                                    return `visitor.${idStr.split('-')[0]}`;
+                                                }
+                                                return idStr ? `visitor.${idStr.substring(0, 8)}` : 'Anonymous';
+                                            })()}
                                         </div>
                                         <div className="text-xs text-gray-500 font-mono mt-0.5">
                                             {visitor.ipAddress || 'Unknown IP'}
@@ -137,7 +145,10 @@ const VisitorsCard: React.FC<VisitorsCardProps> = ({ merchantId, cluster }) => {
                                     <td className="px-6 py-4 text-gray-600">
                                         <div className="flex items-center gap-2">
                                             <FiClock className="text-gray-400" size={12} />
-                                            {visitor.visitedAt ? new Date(visitor.visitedAt).toLocaleString() : 'N/A'}
+                                            {visitor.visitedAt || visitor.lastAccessedDate ? `${formatDate(getValidDate(visitor.visitedAt || visitor.lastAccessedDate))} ${(() => {
+                                                const d = getValidDate(visitor.visitedAt || visitor.lastAccessedDate);
+                                                return d ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+                                            })()}` : 'N/A'}
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-xs font-mono text-gray-500">

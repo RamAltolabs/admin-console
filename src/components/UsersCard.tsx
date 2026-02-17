@@ -391,36 +391,36 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                     <button
                                         onClick={() => handleViewUser(user)}
                                         disabled={isProcessing}
-                                        className="tile-btn-view h-8 w-8 flex items-center justify-center"
+                                        className="tile-btn-view h-7 w-7 flex items-center justify-center"
                                         title="View User Details"
                                     >
-                                        <FiEye size={14} />
+                                        <FiEye size={12} />
                                     </button>
                                     <button
                                         onClick={() => handleResetPassword(user.userName)}
                                         disabled={isProcessing}
-                                        className="tile-btn-view h-8 w-8 !p-0 flex items-center justify-center"
+                                        className="tile-btn-view h-7 w-7 !p-0 flex items-center justify-center"
                                         title="Reset Password"
                                     >
-                                        <FiRotateCcw size={14} />
+                                        <FiRotateCcw size={12} />
                                     </button>
                                     <button
                                         onClick={() => handleToggleStatus(user)}
                                         disabled={isProcessing}
-                                        className={`h-8 w-8 flex items-center justify-center rounded-lg transition-all border shadow-sm ${isActive
+                                        className={`h-7 w-7 flex items-center justify-center rounded-lg transition-all border shadow-sm ${isActive
                                             ? 'bg-amber-50 text-amber-600 border-amber-100 hover:bg-amber-600 hover:text-white hover:border-amber-600'
                                             : 'bg-green-50 text-green-600 border-green-100 hover:bg-green-600 hover:text-white hover:border-green-600'}`}
                                         title={isActive ? "Deactivate User" : "Activate User"}
                                     >
-                                        <FiPower size={12} />
+                                        <FiPower size={10} />
                                     </button>
                                     <button
                                         onClick={() => handleDeleteUser(user.userName)}
                                         disabled={isProcessing}
-                                        className="tile-btn-delete h-8 w-8 flex items-center justify-center"
+                                        className="tile-btn-delete h-7 w-7 flex items-center justify-center"
                                         title="Delete User"
                                     >
-                                        <FiTrash2 size={12} />
+                                        <FiTrash2 size={11} />
                                     </button>
                                 </div>
                             </div>

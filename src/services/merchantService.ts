@@ -1038,20 +1038,34 @@ class MerchantApiService {
     const cacheKey = `visitors:${cluster || 'all'}:${merchantId}:${page}:${size}`;
     return this.requestWithCache(cacheKey, async () => {
       try {
-        console.log(`[getRawVisitors] Request: /curo/visitor/getVisitorsByMerchantId/${merchantId} cluster=${cluster}`);
+        console.log(`[getRawVisitors] Updating to use new chimes/rawVisitorsList for merchantId=${merchantId} cluster=${cluster}`);
         const baseURL = this.getClusterBaseURL(cluster);
-        const url = `${baseURL}curo/visitor/getVisitorsByMerchantId/${merchantId}`;
+        const url = `${baseURL}chimes/rawVisitorsList`;
 
-        const response = await this.api.get<any>(url, {
-          params: { page, size }
-        });
+        const params: any = {
+          merchantID: merchantId,
+          pageIndex: page,
+          pageCount: size,
+          access_token: this.getAccessToken()
+        };
 
+        const response = await this.api.get<any>(url, { params });
         console.log(`[getRawVisitors] API response:`, response.data);
 
-        const rawData = response.data;
-        let content: RawVisitor[] = [];
+        let rawData = response.data;
+        if (typeof rawData === 'string') {
+          try {
+            rawData = JSON.parse(rawData);
+          } catch (e) {
+            console.warn('[getRawVisitors] Response is a string but not valid JSON');
+          }
+        }
 
-        if (Array.isArray(rawData)) {
+        // Extract content - the new API typically returns { rawVisitors: [...] }
+        let content: RawVisitor[] = [];
+        if (rawData && rawData.rawVisitors && Array.isArray(rawData.rawVisitors)) {
+          content = rawData.rawVisitors;
+        } else if (Array.isArray(rawData)) {
           content = rawData;
         } else if (rawData && rawData.content && Array.isArray(rawData.content)) {
           content = rawData.content;
@@ -1063,8 +1077,8 @@ class MerchantApiService {
           content: content,
           pageNumber: page,
           pageSize: size,
-          totalElements: content.length,
-          totalPages: 1,
+          totalElements: rawData?.total || rawData?.totalElements || content.length,
+          totalPages: rawData?.totalPages || 1,
           last: true,
           first: true,
         };
@@ -1150,12 +1164,22 @@ class MerchantApiService {
       const baseURL = this.getClusterBaseURL(cluster);
       const url = `${baseURL}chimes/rawVisitorsList`;
 
+      const formatDate = (date: Date) => {
+        const yyyy = date.getFullYear();
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        const hh = String(date.getHours()).padStart(2, '0');
+        const min = String(date.getMinutes()).padStart(2, '0');
+        const ss = String(date.getSeconds()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}`;
+      };
+
       const params: any = {
         merchantID: merchantId,
         pageIndex,
         pageCount,
-        startDate: startDate ? new Date(startDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-') : undefined,
-        endDate: endDate ? new Date(endDate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }).replace(/\//g, '-') : undefined,
+        startDate: startDate ? formatDate(new Date(startDate)) : undefined,
+        endDate: endDate ? formatDate(new Date(endDate)) : undefined,
         access_token: this.getAccessToken()
       };
 
