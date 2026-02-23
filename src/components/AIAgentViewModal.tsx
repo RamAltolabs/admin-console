@@ -219,7 +219,7 @@ const AIAgentViewModal: React.FC<AIAgentViewModalProps> = ({ isOpen, onClose, ag
                 <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-8 py-2.5 bg-blue-900 text-sm font-bold text-white rounded-xl hover:bg-blue-800 transition-all shadow-md active:scale-95 border border-blue-900"
+                        className="px-8 py-2.5 bg-blue-900 text-sm font-bold text-white rounded-xl hover:bg-blue-900 transition-all shadow-md active:scale-95 border border-blue-900"
                     >
                         Done
                     </button>

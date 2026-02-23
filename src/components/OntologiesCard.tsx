@@ -226,7 +226,7 @@ const OntologiesCard: React.FC<OntologiesCardProps> = ({ merchantId, cluster }) 
                     </div>
                     <button
                         onClick={handleCreateNew}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                     >
                         <FiPlus size={16} />
                         Create Ontology
@@ -234,7 +234,7 @@ const OntologiesCard: React.FC<OntologiesCardProps> = ({ merchantId, cluster }) 
 
                     <div className="relative">
                         <button
-                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                             title="Columns"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -267,7 +267,7 @@ const OntologiesCard: React.FC<OntologiesCardProps> = ({ merchantId, cluster }) 
 
                     <div className="relative">
                         <button
-                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                             title="Filters"
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -499,7 +499,7 @@ const OntologiesCard: React.FC<OntologiesCardProps> = ({ merchantId, cluster }) 
                                     <button
                                         type="submit"
                                         disabled={formLoading}
-                                        className="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 font-medium flex items-center gap-2 disabled:opacity-50"
+                                        className="px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-900 font-medium flex items-center gap-2 disabled:opacity-50"
                                     >
                                         {formLoading && <FiRefreshCw className="animate-spin" />}
                                         {editMode ? 'Update' : 'Create'}

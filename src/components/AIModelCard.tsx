@@ -37,14 +37,10 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
     // Modal state
     const [isKBModalOpen, setIsKBModalOpen] = useState(false);
     const [isModelModalOpen, setIsModelModalOpen] = useState(false);
+    const [editingModel, setEditingModel] = useState<any>(null);
     const [isDocModalOpen, setIsDocModalOpen] = useState(false);
     const [isEditKBModalOpen, setIsEditKBModalOpen] = useState(false);
     const [editingKB, setEditingKB] = useState<any>(null);
-
-    const tabs = [
-        'Model Management', 'Private Model', 'ML Models',
-        'Knowledge Base', 'Documents'
-    ];
 
     const LLM_PROVIDERS = [
         'OPENAI', 'GOOGLEAI', 'LLAMA3', 'AZUREAI', 'BEDROCK', 'CLAUDEAI',
@@ -100,29 +96,16 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                     setTotalElements(response.length);
                 }
             } else if (viewState === 'kbs' && selectedModel) {
-                // Try specialized endpoint first, fallback to filtering all KBs
+                // Fetch KBs by model only
                 let kbListRes: any[] = [];
                 try {
                     const modelId = selectedModel.modelId || selectedModel.id;
-                    const response = await merchantService.getKnowledgeBasesByModel(modelId, cluster);
+                    const response = await merchantService.getKnowledgeBasesByModel(merchantId, modelId, cluster, 0, 1000);
                     kbListRes = Array.isArray(response) ? response : (response.content || response.data || []);
                 } catch (e) {
-                    console.warn('Specialized KB endpoint failed, falling back to full list filtering');
+                    console.warn('KB by model endpoint failed');
                 }
-
-                if (kbListRes.length === 0) {
-                    const fullKBs = await merchantService.getKnowledgeBases(merchantId, 0, 1000, cluster);
-                    const allKBs = fullKBs.content || [];
-                    setKbList(allKBs);
-                    const modelIdValue = String(selectedModel.modelId || selectedModel.id);
-                    kbListRes = allKBs.filter((kb: any) =>
-                        String(kb.modelId) === modelIdValue ||
-                        String(kb.id) === modelIdValue ||
-                        kb.modelName === selectedModel.modelName
-                    );
-                } else {
-                    setKbList(kbListRes);
-                }
+                setKbList(kbListRes);
 
                 setData(kbListRes);
                 setTotalElements(kbListRes.length);
@@ -132,7 +115,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                 let docList: any[] = [];
                 try {
                     const kbId = selectedKB.knowledgeBaseId || selectedKB.id;
-                    const response = await merchantService.getDocumentsByKB(kbId, cluster);
+                    const response = await merchantService.getDocumentsByKB(merchantId, kbId, cluster, 0, 1000);
                     docList = Array.isArray(response) ? response : (response.content || response.data || []);
                 } catch (e) {
                     console.warn('Specialized Docs endpoint failed, falling back to full list filtering');
@@ -198,6 +181,9 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
     };
 
     const handleTrainModel = async (model: any) => {
+        if (activeTab === 'Model Management') {
+            return;
+        }
         try {
             await merchantService.trainAIModel(merchantId, model.modelId, cluster);
             alert('Training started successfully!');
@@ -211,7 +197,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
         if (!window.confirm(`Are you sure you want to delete ${model.modelName || 'this model'}?`)) return;
         try {
             await merchantService.deleteAIModel(model.modelId, merchantId, cluster);
-            alert('Model deleted.');
+            alert('Model has been deleted successfully.');
             fetchData();
         } catch (error) {
             alert('Failed to delete model.');
@@ -219,6 +205,12 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
     };
 
     const handleCreateModel = () => {
+        setEditingModel(null);
+        setIsModelModalOpen(true);
+    };
+
+    const handleEditModel = (model: any) => {
+        setEditingModel(model);
         setIsModelModalOpen(true);
     };
 
@@ -280,7 +272,9 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
             return (
                 <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                        Documents <FiInfo className="ml-2 text-gray-400 cursor-help" size={14} title="Manage knowledge base documents" />
+                        <FiFileText className="mr-2 text-blue-600" size={16} />
+                        Documents
+                        <FiInfo className="ml-2 text-gray-400 cursor-help" size={14} title="Manage knowledge base documents" />
                     </h3>
                 </div>
             );
@@ -289,14 +283,21 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
             return (
                 <div className="flex items-center gap-2">
                     <h3 className="text-lg font-bold text-gray-800 flex items-center">
-                        Knowledge Bases <FiInfo className="ml-2 text-gray-400 cursor-help" size={14} title="Manage model knowledge bases" />
+                        <FiBook className="mr-2 text-blue-600" size={16} />
+                        Knowledge Bases
+                        <FiInfo className="ml-2 text-gray-400 cursor-help" size={14} title="Manage model knowledge bases" />
                     </h3>
                 </div>
             );
         }
         return (
             <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-gray-800">{activeTab === 'Model Management' ? 'Public Models' : activeTab === 'Private Model' ? 'GenAI Models' : 'ML Models'}</h2>
+                <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                    {activeTab === 'Model Management' && <FiCpu className="text-blue-600" size={16} />}
+                    {activeTab === 'Private Model' && <FiGlobe className="text-blue-600" size={16} />}
+                    {activeTab === 'ML Models' && <FiDb className="text-blue-600" size={16} />}
+                    {activeTab === 'Model Management' ? 'Public Models' : activeTab === 'Private Model' ? 'GenAI Models' : 'ML Models'}
+                </h2>
                 <FiInfo className="text-gray-400 cursor-help" size={14} />
             </div>
         );
@@ -316,20 +317,25 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                 </div>
 
                 <div className="flex items-center gap-2 bg-white p-1 rounded-xl shadow-sm border border-gray-100">
-                    {['Model Management', 'ML Models', 'Private Model'].map((tab) => (
+                    {[
+                        { id: 'Model Management', label: 'Generative AI', icon: FiCpu },
+                        { id: 'ML Models', label: 'ML Models', icon: FiDb },
+                        { id: 'Private Model', label: 'Private Model', icon: FiGlobe }
+                    ].map((tab) => (
                         <button
-                            key={tab}
+                            key={tab.id}
                             onClick={() => {
-                                setActiveTab(tab);
+                                setActiveTab(tab.id);
                                 setViewState('models');
                                 setPageIndex(0);
                             }}
-                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab
+                            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === tab.id
                                 ? 'bg-[#1a365d] text-white shadow-md'
                                 : 'text-gray-500 hover:text-[#1a365d] hover:bg-gray-50'
                                 }`}
                         >
-                            {tab === 'Model Management' ? 'Generative AI' : tab}
+                            <tab.icon size={14} />
+                            {tab.label}
                         </button>
                     ))}
                 </div>
@@ -403,8 +409,12 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                     <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider">Action</th>
                                     <th className="w-64 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Model Name</th>
                                     <th className="w-28 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">KB</th>
-                                    <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Training Status</th>
-                                    <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">Training</th>
+                                    {activeTab !== 'Model Management' && (
+                                        <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Training Status</th>
+                                    )}
+                                    {activeTab !== 'Model Management' && (
+                                        <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">Training</th>
+                                    )}
                                     <th className="w-36 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">AI Platform</th>
                                     <th className="w-36 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Created By</th>
                                     <th className="w-56 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Created Date</th>
@@ -425,7 +435,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                 <tr>
                                     <th className="w-24 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider">Action</th>
                                     <th className="w-64 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Document</th>
-                                    <th className="w-80 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 italic">URI</th>
+                                    <th className="w-80 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">URI</th>
                                     <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Document Type</th>
                                     <th className="w-32 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100 text-center">File Type</th>
                                     <th className="w-40 px-4 py-3 text-[10px] font-bold text-gray-500 titlecase tracking-wider border-l border-gray-100">Knowledge Base</th>
@@ -448,17 +458,15 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                         {viewState !== 'kbs' && (
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-3">
-                                                    {viewState === 'models' && (
-                                                        <button
-                                                            onClick={(e) => { e.stopPropagation(); handleModelClick(item); }}
-                                                            className="text-gray-400 hover:text-blue-600 transition-colors"
-                                                            title="View Knowledge Bases"
-                                                        >
-                                                            <FiDatabase size={14} />
-                                                        </button>
-                                                    )}
                                                     <>
-                                                        <button className="text-gray-400 hover:text-indigo-600 transition-colors">
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                if (viewState === 'models') handleEditModel(item);
+                                                            }}
+                                                            className="text-gray-400 hover:text-indigo-600 transition-colors"
+                                                            title="Edit Model"
+                                                        >
                                                             <FiEdit2 size={14} />
                                                         </button>
                                                         <button
@@ -498,20 +506,20 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                         <FiDb size={16} />
                                                     </button>
                                                 </td>
-                                                <td className="px-4 py-4 text-xs font-bold border-l border-gray-50 px-6">
-                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA'
-                                                        ? 'bg-gray-100 text-gray-500'
-                                                        : 'bg-green-100 text-green-700'
-                                                        }`}>
-                                                        <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA' ? 'bg-gray-400' : 'bg-green-500'
-                                                            }`} />
-                                                        {item.aiTrainingStatus || 'Ready'}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-4 text-center border-l border-gray-50 px-6">
-                                                    {item.modelType === 'PUBLIC_LLM' ? (
-                                                        <span className="text-[10px] text-gray-400 font-medium italic">Standard Model</span>
-                                                    ) : (
+                                                {activeTab !== 'Model Management' && (
+                                                    <td className="px-4 py-4 text-xs font-bold border-l border-gray-50 px-6">
+                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA'
+                                                            ? 'bg-gray-100 text-gray-500'
+                                                            : 'bg-green-100 text-green-700'
+                                                            }`}>
+                                                            <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA' ? 'bg-gray-400' : 'bg-green-500'
+                                                                }`} />
+                                                            {item.aiTrainingStatus || 'Ready'}
+                                                        </span>
+                                                    </td>
+                                                )}
+                                                {activeTab !== 'Model Management' && (
+                                                    <td className="px-4 py-4 text-center border-l border-gray-50 px-6">
                                                         <button
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
@@ -521,8 +529,8 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                         >
                                                             {item.actionLabel || item.buttonText || item.action || 'Train'}
                                                         </button>
-                                                    )}
-                                                </td>
+                                                    </td>
+                                                )}
                                                 <td className="px-4 py-4 text-xs text-gray-700 border-l border-gray-50 font-semibold">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-5 h-5 rounded bg-gray-100 flex items-center justify-center">
@@ -569,7 +577,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                         className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors group"
                                                         title={`View ${item.documentCount || 0} documents`}
                                                     >
-                                                        <FiFolder size={18} className="group-hover:scale-110 transition-transform" />
+                                                        <FiFileText size={18} className="group-hover:scale-110 transition-transform" />
                                                     </button>
                                                 </td>
                                                 <td className="px-4 py-4 text-xs text-gray-600 border-l border-gray-50">
@@ -579,7 +587,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                     {item.model || 'NOC_Public_LLM'}
                                                 </td>
                                                 <td className="px-4 py-4 text-xs text-gray-600 border-l border-gray-50">
-                                                    {item.createdBy || 'meiyaps noc'}
+                                                    {item.createdBy || 'N/A'}
                                                 </td>
                                                 <td className="px-4 py-4 text-[11px] text-gray-500 border-l border-gray-50 tabular-nums font-medium">
                                                     {item.createdDate ? new Date(item.createdDate).toLocaleString('en-US', {
@@ -625,7 +633,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                 <td className="px-6 py-4 text-sm font-bold text-blue-600 hover:underline cursor-pointer border-l border-gray-50 truncate" title={item.documentName || item.name}>
                                                     {item.documentName || item.name || 'Document'}
                                                 </td>
-                                                <td className="px-4 py-4 text-xs italic text-blue-500 border-l border-gray-50 truncate font-medium">
+                                                <td className="px-4 py-4 text-xs text-blue-500 border-l border-gray-50 truncate font-medium">
                                                     {item.documentParams?.docLocation || item.uri ? (
                                                         <a
                                                             href={item.documentParams?.docLocation || item.uri}
@@ -661,7 +669,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                             <div className="p-4 bg-gray-50 rounded-full">
                                                 <FiServer size={32} className="text-gray-300" />
                                             </div>
-                                            <p className="text-sm text-gray-400 italic font-medium">No results discovered in this view.</p>
+                                            <p className="text-sm text-gray-400 font-medium">No results discovered in this view.</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -752,10 +760,14 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
             {/* Create Model Modal */}
             <CreateModelModal
                 isOpen={isModelModalOpen}
-                onClose={() => setIsModelModalOpen(false)}
+                onClose={() => {
+                    setIsModelModalOpen(false);
+                    setEditingModel(null);
+                }}
                 merchantId={merchantId}
                 cluster={cluster}
-                modelType={activeTab === 'Private Model' ? 'PRIVATE_LLM' : 'PUBLIC_LLM'}
+                modelType={(editingModel?.modelType as ('PUBLIC_LLM' | 'PRIVATE_LLM' | 'NLP')) || (activeTab === 'Private Model' ? 'PRIVATE_LLM' : activeTab === 'ML Models' ? 'NLP' : 'PUBLIC_LLM')}
+                editModel={editingModel}
                 onSuccess={fetchData}
             />
             {/* Edit KB Modal */}

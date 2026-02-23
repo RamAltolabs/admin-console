@@ -268,7 +268,7 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                             </div>
                             <div className="relative">
                                 <button
-                                    className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                                    className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                                     onClick={() => setShowFilters(!showFilters)}
                                 >
                                     <FiFilter size={16} />
@@ -309,7 +309,7 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                             <button
                                 onClick={fetchCampaigns}
                                 disabled={loading}
-                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                                 title="Refresh Data"
                             >
                                 <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -404,7 +404,7 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                                             <td className="px-6 py-4 text-sm text-gray-500">
                                                 {camp.createdDate}
                                             </td>
-                                            <td className="px-6 py-4 text-sm text-gray-500 italic max-w-xs truncate">
+                                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                                                 {camp.description || '—'}
                                             </td>
                                             <td className="px-6 py-4">

@@ -141,7 +141,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                     {/* Filter Button Style */}
                     <div className="relative">
                         <button
-                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <FiFilter size={14} />
@@ -174,7 +174,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                     <button
                         onClick={fetchData}
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
                         <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />
@@ -285,7 +285,7 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
                                     <FiFilter size={32} className="text-gray-300" />
                                 </div>
-                                <p className="text-sm text-gray-500 font-medium italic">
+                                <p className="text-sm text-gray-500 font-medium">
                                     {aiAgents.length > 0 ? "No agents match your current filters." : "No AI agents discovered for this merchant."}
                                 </p>
                                 {aiAgents.length > 0 && (

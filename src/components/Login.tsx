@@ -8,6 +8,7 @@ const Login: React.FC = () => {
     const [password, setPassword] = useState('');
     const [localError, setLocalError] = useState<string | null>(null);
     const { login, loginWithGoogle, isLoading, error: authError } = useAuth();
+    const portalBaseUrl = (process.env.REACT_APP_PORTAL_BASE_URL || '').replace(/\/+$/, '');
 
     // Custom Google Login Hook
     const googleLogin = useGoogleLogin({
@@ -77,11 +78,19 @@ const Login: React.FC = () => {
     };
 
     const handleSignUpRedirect = () => {
-        window.location.href = 'https://it-inferno.neocloud.ai/login';
+        if (!portalBaseUrl) {
+            setLocalError('Missing REACT_APP_PORTAL_BASE_URL configuration.');
+            return;
+        }
+        window.location.href = `${portalBaseUrl}/login`;
     };
 
     const handleForgotPasswordRedirect = () => {
-        window.location.href = 'https://it-inferno.neocloud.ai/forgotpassword';
+        if (!portalBaseUrl) {
+            setLocalError('Missing REACT_APP_PORTAL_BASE_URL configuration.');
+            return;
+        }
+        window.location.href = `${portalBaseUrl}/forgotpassword`;
     };
 
     return (
@@ -340,7 +349,7 @@ const Login: React.FC = () => {
                                     <div className="space-y-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <h4 className="text-3xl font-black italic tracking-tighter uppercase">{product.name}</h4>
+                                                <h4 className="text-3xl font-black tracking-tighter uppercase">{product.name}</h4>
                                                 <span className="text-[10px] font-black tracking-widest uppercase py-1 px-3 bg-white/5 rounded-full border border-white/10 group-hover:bg-[#0052cc] group-hover:border-transparent transition-all duration-500">v2.4.0</span>
                                             </div>
                                             <p className="text-xs font-black text-[#0052cc] uppercase tracking-[0.3em]">{product.subtitle}</p>

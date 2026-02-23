@@ -161,7 +161,7 @@ const VisitHistoryCard: React.FC<VisitHistoryCardProps> = ({ merchantId, cluster
                             // fetchVisitHistory is triggered by dependencies, but we can call a manual refresh if we want.
                             // However, since it's in useEffect, updating a refresh state is cleaner.
                         }}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
                         <FiRefreshCw size={14} className={loading ? 'animate-spin' : ''} />

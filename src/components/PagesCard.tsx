@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FiPlus, FiEdit2, FiTrash2, FiLayout, FiRefreshCw, FiExternalLink, FiSearch, FiUser, FiCalendar, FiClock, FiCheckCircle, FiInfo, FiX } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 import PageEditorModal from './PageEditorModal';
+import { useAuth } from '../context/AuthContext';
 
 interface PagesCardProps {
     merchantId: string;
@@ -21,6 +22,7 @@ interface Page {
 }
 
 const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
+    const { user } = useAuth();
     const [pages, setPages] = useState<Page[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -116,7 +118,11 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
 
                 // Add required fields for creation
                 pageData.createdDate = new Date().toISOString();
-                pageData.createdBy = pageData.createdBy || 'Admin Console';
+                pageData.createdBy = pageData.createdBy || user?.username || user?.email;
+                if (!pageData.createdBy) {
+                    showNotification('Unable to identify current user. Please log in again.', 'error');
+                    return;
+                }
                 pageData.pageTemplateId = pageData.pageTemplateId || null;
                 pageData.status = 'Active';
 
@@ -251,7 +257,7 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
                             </span>
                             <button
                                 onClick={fetchPages}
-                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                                 title="Refresh"
                             >
                                 <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -259,7 +265,7 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
                             </button>
                             <button
                                 onClick={handleCreateNewPage}
-                                className="flex items-center gap-2 px-5 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors shadow-sm"
+                                className="flex items-center gap-2 px-5 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors shadow-sm"
                             >
                                 <FiPlus size={18} />
                                 <span className="titlecase">New Page</span>

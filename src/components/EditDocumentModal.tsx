@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiFileText, FiRefreshCw } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
+import { useAuth } from '../context/AuthContext';
 
 interface EditDocumentModalProps {
     isOpen: boolean;
@@ -19,6 +20,7 @@ const EditDocumentModal: React.FC<EditDocumentModalProps> = ({
     cluster,
     onUpdate
 }) => {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<any>({
         documentName: '',
@@ -51,6 +53,12 @@ const EditDocumentModal: React.FC<EditDocumentModalProps> = ({
             return;
         }
 
+        const documentCreatedBy = user?.username || user?.email;
+        if (!documentCreatedBy) {
+            alert('Unable to identify current user. Please log in again.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -69,7 +77,7 @@ const EditDocumentModal: React.FC<EditDocumentModalProps> = ({
                     startDate: document.scheduler?.startDate || "",
                     scheduleFrequency: formData.scheduleFrequency
                 },
-                documentCreatedBy: document.documentCreatedBy || "meiyaps noc"
+                documentCreatedBy
             };
 
             await merchantService.updateDocument(
@@ -245,7 +253,7 @@ const EditDocumentModal: React.FC<EditDocumentModalProps> = ({
                         type="submit"
                         disabled={loading}
                         onClick={handleSubmit}
-                        className="px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 font-medium flex items-center gap-2 disabled:opacity-50 text-sm shadow-sm transition-all"
+                        className="px-6 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-900 font-medium flex items-center gap-2 disabled:opacity-50 text-sm shadow-sm transition-all"
                     >
                         {loading && <FiRefreshCw className="animate-spin" />}
                         Submit
@@ -264,3 +272,4 @@ const EditDocumentModal: React.FC<EditDocumentModalProps> = ({
 };
 
 export default EditDocumentModal;
+

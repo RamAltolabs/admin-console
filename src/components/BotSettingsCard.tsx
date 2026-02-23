@@ -246,7 +246,7 @@ const BotSettingsCard: React.FC<BotSettingsCardProps> = ({ merchantId, cluster }
                         <button
                             onClick={handleSave}
                             disabled={saving}
-                            className="flex items-center gap-2 px-6 py-2 bg-blue-900 text-white rounded-full text-xs font-bold hover:bg-blue-800 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                            className="flex items-center gap-2 px-6 py-2 bg-blue-900 text-white rounded-full text-xs font-bold hover:bg-blue-900 transition-all shadow-md hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {saving ? <div className="animate-spin rounded-full h-3 w-3 border-2 border-white border-t-transparent" /> : <FiSave size={14} />}
                             Save
@@ -262,7 +262,7 @@ const BotSettingsCard: React.FC<BotSettingsCardProps> = ({ merchantId, cluster }
                 ) : (
                     <button
                         onClick={() => setIsEditing(true)}
-                        className="flex items-center gap-2 px-6 py-2 bg-blue-900 text-white rounded-full text-xs font-bold hover:bg-blue-800 transition-all shadow-md hover:shadow-lg"
+                        className="flex items-center gap-2 px-6 py-2 bg-blue-900 text-white rounded-full text-xs font-bold hover:bg-blue-900 transition-all shadow-md hover:shadow-lg"
                     >
                         <FiEdit2 size={14} />
                         Edit Settings

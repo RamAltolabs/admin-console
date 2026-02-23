@@ -152,7 +152,7 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                     {/* Status Filter */}
                     <div className="relative">
                         <button
-                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <FiFilter size={16} />
@@ -211,7 +211,7 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                     <button
                         onClick={fetchOrders}
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
                         <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -427,7 +427,7 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                                         </div>
                                     ))}
                                     {(!selectedOrder.details?.orderItems && !selectedOrder.orderItems) && (
-                                        <p className="text-xs text-gray-400 italic">No items details available.</p>
+                                        <p className="text-xs text-gray-400">No items details available.</p>
                                     )}
                                 </div>
                             </div>

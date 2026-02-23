@@ -156,7 +156,7 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                     <div className="relative">
                         <button
                             onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-800 transition-colors shadow-sm min-w-[120px] justify-center"
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg text-xs font-semibold hover:bg-blue-900 transition-colors shadow-sm min-w-[120px] justify-center"
                         >
                             <FiFilter size={14} />
                             {statusFilter === 'all' ? 'All Status' : statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
@@ -213,7 +213,7 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                     <button
                         onClick={fetchPayments}
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
                         <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />
@@ -359,7 +359,7 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-[10px] font-black text-gray-400 titlecase">Reference</span>
-                                        <span className="text-xs font-bold text-gray-700 font-mono italic">{selectedPayment.transactionId || 'N/A'}</span>
+                                        <span className="text-xs font-bold text-gray-700 font-mono">{selectedPayment.transactionId || 'N/A'}</span>
                                     </div>
                                     {selectedPayment.gatewayDesc && (
                                         <div className="flex justify-between items-center">
@@ -374,7 +374,7 @@ const PaymentDetailsCard: React.FC<PaymentDetailsCardProps> = ({ merchantId, clu
                         <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-end">
                             <button
                                 onClick={() => setSelectedPayment(null)}
-                                className="px-6 py-2 bg-blue-900 text-white rounded-xl text-xs font-bold hover:bg-blue-800 transition-all shadow-md"
+                                className="px-6 py-2 bg-blue-900 text-white rounded-xl text-xs font-bold hover:bg-blue-900 transition-all shadow-md"
                             >
                                 Done
                             </button>

@@ -62,12 +62,24 @@ const CATEGORY_METADATA: { [key: string]: { name: string, imagePath: string, des
     }
 };
 
-const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return '';
-    const baseURL = 'https://it-inferno.neocloud.ai/';
-    // Handle leading slash if present in imagePath
-    const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath;
-    return `${baseURL}${cleanPath}`;
+const getClusterImageBaseURL = (clusterId?: string): string => {
+    const id = String(clusterId || 'it-app').toLowerCase();
+    const itImageBase = process.env.REACT_APP_IT_APP_IMAGE_BASE_URL || process.env.IT_IMAGE_BASE_URL;
+    const app6aImageBase = process.env.REACT_APP_APP6A_IMAGE_BASE_URL || process.env.APP6A_IMAGE_BASE_URL;
+    const app6eImageBase = process.env.REACT_APP_APP6E_IMAGE_BASE_URL || process.env.APP6E_IMAGE_BASE_URL;
+    const app30aImageBase = process.env.REACT_APP_APP30A_IMAGE_BASE_URL || process.env.APP30A_IMAGE_BASE_URL;
+    const app30bImageBase = process.env.REACT_APP_APP30B_IMAGE_BASE_URL || process.env.APP30B_IMAGE_BASE_URL;
+
+    const map: Record<string, string | undefined> = {
+        app6: app6aImageBase,
+        app6a: app6aImageBase,
+        app6e: app6eImageBase,
+        app30a: app30aImageBase,
+        app30b: app30bImageBase,
+        'it-app': itImageBase,
+    };
+
+    return (map[id] || itImageBase || process.env.REACT_APP_PORTAL_BASE_URL || '').replace(/\/+$/, '');
 };
 
 export function getAiAgentImg(name: string) {
@@ -113,6 +125,13 @@ const AIPlatformsCard: React.FC<AIPlatformsCardProps> = ({ merchantId, cluster }
     const [notification, setNotification] = useState<{ type: 'success' | 'error', message: string } | null>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+
+    const getImageUrl = (imagePath: string) => {
+        if (!imagePath) return '';
+        const baseURL = getClusterImageBaseURL(cluster);
+        const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+        return baseURL ? `${baseURL}${cleanPath}` : cleanPath;
+    };
 
     const fetchConfig = async () => {
         setLoading(true);
@@ -462,7 +481,7 @@ const AIPlatformsCard: React.FC<AIPlatformsCardProps> = ({ merchantId, cluster }
                 <div className="px-6 py-4 border-b border-gray-50 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gray-50/20">
                     <div className="space-y-1.5">
                         <div className="flex items-center gap-3">
-                            <h2 className="text-2xl font-black text-blue-900 tracking-tighter titlecase italic">
+                            <h2 className="text-2xl font-black text-blue-900 tracking-tighter titlecase">
                                 {view === 'configure' || view === 'details' ? (formData.type || CATEGORY_METADATA[selectedCategory!]?.name) : view === 'add' ? 'Select Platform' : 'AI Platforms'}
                             </h2>
                             <span className="px-2.5 py-0.5 bg-blue-100 text-blue-900 text-[10px] font-black rounded-full titlecase tracking-tighter shadow-sm border border-blue-200/50">
@@ -567,7 +586,7 @@ const AIPlatformsCard: React.FC<AIPlatformsCardProps> = ({ merchantId, cluster }
 
                                             <div className="relative z-10 w-full">
                                                 <div className="flex items-center justify-between mb-2">
-                                                    <h4 className="text-sm font-black text-gray-900 titlecase tracking-tighter italic">
+                                                    <h4 className="text-sm font-black text-gray-900 titlecase tracking-tighter">
                                                         {meta.name}
                                                     </h4>
                                                     <span className="w-6 h-6 rounded-full bg-blue-900 text-white text-[10px] font-black flex items-center justify-center shadow-md">
@@ -597,7 +616,7 @@ const AIPlatformsCard: React.FC<AIPlatformsCardProps> = ({ merchantId, cluster }
                                         </div>
                                         <div className="overflow-hidden">
                                             <h4 className="text-xs font-black text-gray-900 titlecase tracking-tighter truncate">{meta.name}</h4>
-                                            <p className="text-[9px] text-gray-400 font-medium truncate italic tracking-tighter mt-0.5">Initialize Configuration</p>
+                                            <p className="text-[9px] text-gray-400 font-medium truncate tracking-tighter mt-0.5">Initialize Configuration</p>
                                         </div>
                                     </div>
                                 );

@@ -210,7 +210,7 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ merchantId, cluster }) =>
                     </h4>
                     <div className="space-y-1">
                         <MetricRow
-                            label="Total Users"
+                            label="Total Agents"
                             value={stats.totalUsers}
                             icon={FiUsers}
                             color="text-blue-600"
@@ -218,7 +218,7 @@ const AnalyticsCard: React.FC<AnalyticsCardProps> = ({ merchantId, cluster }) =>
                         />
                         <div className="h-px bg-gray-50 my-1 mx-2"></div>
                         <MetricRow
-                            label="Active Users"
+                            label="Active Agents"
                             value={stats.activeUsers}
                             icon={FiUserCheck}
                             color="text-emerald-600"

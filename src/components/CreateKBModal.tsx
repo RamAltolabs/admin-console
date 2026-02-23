@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiInfo, FiDatabase, FiCheckCircle } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
+import { useAuth } from '../context/AuthContext';
 
 interface CreateKBModalProps {
     isOpen: boolean;
@@ -15,6 +16,7 @@ interface CreateKBModalProps {
 const CreateKBModal: React.FC<CreateKBModalProps> = ({
     isOpen, onClose, merchantId, cluster, models, onSuccess, preSelectedModelId
 }) => {
+    const { user } = useAuth();
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -64,6 +66,12 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
             return;
         }
 
+        const createdBy = user?.username || user?.email;
+        if (!createdBy) {
+            alert('Unable to identify current user. Please log in again.');
+            return;
+        }
+
         setSubmitting(true);
         try {
             const payload = {
@@ -72,7 +80,7 @@ const CreateKBModal: React.FC<CreateKBModalProps> = ({
                 knowledgeBaseDesc: description,
                 status: 'Active',
                 modelId: selectedModelId,
-                createdBy: "meiyaps noc", // Example from user
+                createdBy,
                 artifactId: selectedArtifactId,
                 vectorStorageType: vectorStorageType === 'Azure' ? 'AZURE_AI_SEARCH' : 'WEAVIATE_DB'
             };

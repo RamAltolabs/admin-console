@@ -4,13 +4,13 @@ import { FiArrowLeft, FiUser, FiMail, FiPhone, FiHash, FiActivity, FiMapPin, FiG
 import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantAttributesPayload } from '../types/merchant';
 import merchantService from '../services/merchantService';
 import MerchantFormModal from './MerchantFormModal';
-import DepartmentsCard from './DepartmentsCard';
 import AgentiAICard from './AgentiAICard';
 import PagesCard from './PagesCard';
 import UsersCard from './UsersCard';
 import ContactsCard from './ContactsCard';
 import AnalyticsCard from './AnalyticsCard';
 import MerchantAnalytics from './MerchantAnalytics';
+import MerchantLevelDashboard from './MerchantLevelDashboard';
 import PromptLab from './PromptLab';
 import KnowledgeBasesCard from './KnowledgeBasesCard';
 import BotSettingsCard from './BotSettingsCard';
@@ -50,6 +50,7 @@ const MerchantDetails: React.FC = () => {
     const [activeTab, setActiveTab] = useState<string>(queryParams.get('tab') || 'analytics');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isUpdating, setIsUpdating] = useState(false);
+    const [selectedKnowledgeBaseId, setSelectedKnowledgeBaseId] = useState<string | undefined>(undefined);
 
     // Sync tab from URL
     useEffect(() => {
@@ -70,7 +71,7 @@ const MerchantDetails: React.FC = () => {
     }, [location.search]);
 
     // Top-Level Tab State
-    const [mainTab, setMainTab] = useState<'details' | 'overview' | 'analytics' | 'general' | 'ai-suite' | 'model-studio' | 'knowledge-base' | 'communication' | 'system'>('details');
+    const [mainTab, setMainTab] = useState<'details' | 'dashboard' | 'overview' | 'analytics' | 'general' | 'ai-suite' | 'model-studio' | 'knowledge-base' | 'communication' | 'system'>('details');
 
     // Visitor Sub-Tab State
     const [visitorSubTab, setVisitorSubTab] = useState<'recent' | 'online' | 'history'>('online');
@@ -88,7 +89,6 @@ const MerchantDetails: React.FC = () => {
             title: 'General',
             items: [
                 { id: 'users', label: 'Users', icon: FiUserCheck },
-                { id: 'departments', label: 'Departments', icon: FiUsers },
                 { id: 'contacts', label: 'Customers', icon: FiUser },
                 { id: 'bot-settings', label: 'Bot Settings', icon: FiMessageSquare },
             ]
@@ -306,6 +306,16 @@ const MerchantDetails: React.FC = () => {
                             Info
                         </button>
                         <button
+                            onClick={() => setMainTab('dashboard')}
+                            className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === 'dashboard'
+                                ? 'bg-blue-900 text-white shadow-md'
+                                : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
+                                }`}
+                        >
+                            <FiBarChart2 className="mr-2" size={14} />
+                            Dashboard
+                        </button>
+                        <button
                             onClick={() => setMainTab('overview')}
                             className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === 'overview'
                                 ? 'bg-blue-900 text-white shadow-md'
@@ -327,33 +337,36 @@ const MerchantDetails: React.FC = () => {
                         </button>
 
                         {/* Dynamic Management Tabs */}
-                        {managementSections.map((section) => (
-                            <button
-                                key={section.id}
-                                onClick={() => {
-                                    setMainTab(section.id as any);
-                                    // Reset to first item of the section
-                                    if (section.items.length > 0) {
-                                        setActiveTab(section.items[0].id);
-                                    }
-                                }}
-                                className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === section.id
-                                    ? 'bg-blue-900 text-white shadow-md'
-                                    : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
-                                    }`}
-                            >
-                                {section.id !== 'general' && section.id !== 'system' && (
-                                    <div className="mr-2">
-                                        {section.id === 'ai-suite' && <FiZap size={14} />}
-                                        {section.id === 'model-studio' && <FiCpu size={14} />}
-                                        {section.id === 'communication' && <FiMessageSquare size={14} />}
-                                    </div>
-                                )}
-                                {section.id === 'general' && <FiGrid className="mr-2" size={14} />}
-                                {section.id === 'system' && <FiSettings className="mr-2" size={14} />}
-                                {section.title}
-                            </button>
-                        ))}
+                        {managementSections
+                            .filter((section) => section.id !== 'knowledge-base')
+                            .map((section) => (
+                                <button
+                                    key={section.id}
+                                    onClick={() => {
+                                        setMainTab(section.id as any);
+                                        // Reset to first item of the section
+                                        if (section.items.length > 0) {
+                                            setActiveTab(section.items[0].id);
+                                        }
+                                    }}
+                                    className={`flex items-center px-4 py-2 rounded-lg text-xs font-bold tracking-wider transition-all ${mainTab === section.id
+                                        ? 'bg-blue-900 text-white shadow-md'
+                                        : 'text-gray-500 hover:text-blue-900 hover:bg-gray-200/50'
+                                        }`}
+                                >
+                                    {section.id !== 'general' && section.id !== 'system' && (
+                                        <div className="mr-2">
+                                            {section.id === 'ai-suite' && <FiZap size={14} />}
+                                            {section.id === 'model-studio' && <FiCpu size={14} />}
+                                            {section.id === 'communication' && <FiMessageSquare size={14} />}
+                                        </div>
+                                    )}
+                                    {section.id === 'general' && <FiGrid className="mr-2" size={14} />}
+                                    {section.id === 'system' && <FiSettings className="mr-2" size={14} />}
+                                    {section.title}
+                                </button>
+                            ))}
+
                     </div>
                 </div>
 
@@ -426,6 +439,12 @@ const MerchantDetails: React.FC = () => {
                         </div>
                     )}
 
+                    {mainTab === 'dashboard' && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                            <MerchantLevelDashboard merchantId={merchant.id} merchantName={merchant.name} cluster={merchant.cluster} />
+                        </div>
+                    )}
+
                     {mainTab === 'overview' && (
                         <div className="flex gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
                             {/* Visitor Sidebar */}
@@ -491,7 +510,12 @@ const MerchantDetails: React.FC = () => {
                                         {section.items.map((item) => (
                                             <button
                                                 key={item.id}
-                                                onClick={() => setActiveTab(item.id)}
+                                                onClick={() => {
+                                                    if (item.id === 'documents' || item.id === 'kb-documents') {
+                                                        setSelectedKnowledgeBaseId(undefined);
+                                                    }
+                                                    setActiveTab(item.id);
+                                                }}
                                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-left ${activeTab === item.id || (mainTab === section.id && activeTab === item.id)
                                                     ? 'bg-blue-900 text-white font-bold shadow-md'
                                                     : 'text-gray-500 hover:bg-gray-100 hover:text-blue-900 font-medium'
@@ -508,7 +532,6 @@ const MerchantDetails: React.FC = () => {
                                 <div className="flex-1 min-w-0">
                                     <div className="animate-in fade-in slide-in-from-right-2 duration-200">
                                         {(activeTab === 'users' || (mainTab === 'general' && activeTab === 'users')) && <UsersCard merchantId={merchant.id} cluster={merchant.cluster} />}
-                                        {activeTab === 'departments' && <DepartmentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'contacts' && <ContactsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'bot-settings' && <BotSettingsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'agenti-ai' && <AgentiAICard merchantId={merchant.id} cluster={merchant.cluster} />}
@@ -537,10 +560,9 @@ const MerchantDetails: React.FC = () => {
                                             <KnowledgeBasesCard
                                                 merchantId={merchant.id}
                                                 cluster={merchant.cluster}
-                                                onDocumentsClick={(kb) => setActiveTab('documents')}
                                             />
                                         )}
-                                        {activeTab === 'documents' && <DocumentsCard key="model-studio-documents" merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'documents' && <DocumentsCard key={`model-studio-documents-${selectedKnowledgeBaseId || 'all'}`} merchantId={merchant.id} cluster={merchant.cluster} knowledgeBaseId={selectedKnowledgeBaseId} />}
                                         {activeTab === 'ontologies' && <OntologiesCard merchantId={merchant.id} cluster={merchant.cluster} />}
 
                                         {/* Knowledge Base Menu (Separate) - Same functionality */}
@@ -549,10 +571,9 @@ const MerchantDetails: React.FC = () => {
                                                 key="kb-menu-knowledge"
                                                 merchantId={merchant.id}
                                                 cluster={merchant.cluster}
-                                                onDocumentsClick={(kb) => setActiveTab('kb-documents')}
                                             />
                                         )}
-                                        {activeTab === 'kb-documents' && <DocumentsCard key="kb-menu-documents" merchantId={merchant.id} cluster={merchant.cluster} />}
+                                        {activeTab === 'kb-documents' && <DocumentsCard key={`kb-menu-documents-${selectedKnowledgeBaseId || 'all'}`} merchantId={merchant.id} cluster={merchant.cluster} knowledgeBaseId={selectedKnowledgeBaseId} />}
                                         {activeTab === 'kb-ontologies' && <OntologiesCard key="kb-menu-ontologies" merchantId={merchant.id} cluster={merchant.cluster} />}
                                     </div>
                                 </div>

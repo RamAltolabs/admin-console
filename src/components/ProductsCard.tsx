@@ -95,7 +95,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                     </div>
                     <div className="relative">
                         <button
-                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                            className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                             onClick={() => setShowFilters(!showFilters)}
                         >
                             <FiFilter size={16} />
@@ -134,7 +134,7 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                     <button
                         onClick={fetchProducts}
                         disabled={loading}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm min-w-[120px] justify-center"
                         title="Refresh"
                     >
                         <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} />

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiHome, FiPieChart, FiShoppingBag, FiSettings, FiDatabase, FiGlobe, FiServer, FiCpu, FiTerminal, FiChevronRight, FiUsers, FiLayers, FiFileText, FiBarChart2, FiActivity, FiUserCheck, FiUser, FiZap, FiPackage, FiLock, FiBook, FiFolder, FiRadio, FiShoppingCart, FiTag, FiCreditCard, FiSend, FiLayout, FiMonitor, FiRotateCcw, FiChevronDown } from 'react-icons/fi';
+import { FiSearch, FiHome, FiPieChart, FiShoppingBag, FiSettings, FiDatabase, FiGlobe, FiServer, FiCpu, FiTerminal, FiChevronRight, FiUsers, FiLayers, FiFileText, FiBarChart2, FiActivity, FiUserCheck, FiUser, FiZap, FiPackage, FiLock, FiBook, FiFolder, FiRadio, FiShoppingCart, FiTag, FiCreditCard, FiSend, FiLayout, FiMonitor, FiRotateCcw, FiChevronDown, FiBell } from 'react-icons/fi';
 import { useMerchantContext } from '../context/MerchantContext';
 
 interface SearchResult {
@@ -150,9 +150,11 @@ const GlobalSearch: React.FC = () => {
 
         // 5. SETTINGS SUB MENUS
         const settingsTabs = [
-            { id: 's-site', label: 'Settings > Site Identity', path: '/settings', icon: <FiGlobe />, description: 'Configure branding and site titles' },
-            { id: 's-visuals', label: 'Settings > Visual Interface', path: '/settings', icon: <FiMonitor />, description: 'Change themes and appearance' },
-            { id: 's-profile', label: 'Settings > My Profile', path: '/settings', icon: <FiUser />, description: 'Manage your personal account' },
+            { id: 's-site', label: 'Settings > Site Identity', path: '/settings?tab=identity', icon: <FiGlobe />, description: 'Configure branding and site titles' },
+            { id: 's-visuals', label: 'Settings > Visual Interface', path: '/settings?tab=visuals', icon: <FiMonitor />, description: 'Change themes and appearance' },
+            { id: 's-profile', label: 'Settings > My Profile', path: '/settings?tab=profile', icon: <FiUser />, description: 'Manage your personal account' },
+            { id: 's-notifications', label: 'Settings > Notifications', path: '/settings?tab=notifications', icon: <FiBell />, description: 'Configure alert channels and delivery modes' },
+            { id: 's-security', label: 'Settings > Security', path: '/settings?tab=security', icon: <FiLock />, description: 'Control session timeout and security actions' },
         ];
         allPossible.push(...settingsTabs.map(t => ({ ...t, category: 'Sub Menus', icon: React.cloneElement(t.icon as React.ReactElement, { size: 14 }) })));
 

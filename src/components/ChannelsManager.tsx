@@ -69,7 +69,7 @@ const STYLES = `
   }
 `;
 
-const IMAGE_BASE_URL = 'https://it-inferno.neocloud.ai';
+const WEBHOOK_BASE_URL = (process.env.REACT_APP_WEBHOOK_BASE_URL || '').replace(/\/+$/, '');
 
 const ICON_MAP: any = {
     'facebook': FaFacebookMessenger, 'fb': FaFacebookMessenger, 'facebook comments': FaFacebook,
@@ -81,7 +81,27 @@ const ICON_MAP: any = {
 };
 
 // --- HELPERS ---
-const getChannelImageUrl = (item: any, name: string) => {
+const getClusterImageBaseURL = (cluster?: string): string => {
+    const clusterId = String(cluster || 'it-app').toLowerCase();
+    const itImageBase = process.env.REACT_APP_IT_APP_IMAGE_BASE_URL || process.env.IT_IMAGE_BASE_URL;
+    const app6aImageBase = process.env.REACT_APP_APP6A_IMAGE_BASE_URL || process.env.APP6A_IMAGE_BASE_URL;
+    const app6eImageBase = process.env.REACT_APP_APP6E_IMAGE_BASE_URL || process.env.APP6E_IMAGE_BASE_URL;
+    const app30aImageBase = process.env.REACT_APP_APP30A_IMAGE_BASE_URL || process.env.APP30A_IMAGE_BASE_URL;
+    const app30bImageBase = process.env.REACT_APP_APP30B_IMAGE_BASE_URL || process.env.APP30B_IMAGE_BASE_URL;
+    const envByCluster: Record<string, string | undefined> = {
+        app6: app6aImageBase,
+        app6a: app6aImageBase,
+        app6e: app6eImageBase,
+        app30a: app30aImageBase,
+        app30b: app30bImageBase,
+        'it-app': itImageBase,
+    };
+
+    const baseURL = envByCluster[clusterId] || itImageBase || process.env.REACT_APP_PORTAL_BASE_URL;
+    return (baseURL || '').replace(/\/+$/, '');
+};
+
+const getChannelImageUrl = (item: any, name: string, imageBaseURL: string) => {
     const searchName = name.toLowerCase().trim();
     let path = '';
 
@@ -92,8 +112,8 @@ const getChannelImageUrl = (item: any, name: string) => {
         'web': 'web.svg',
         'campaign': 'email.png',
         'email': 'email.png',
-        'whatsapp': 'https://app30a.neocloud.ai/img/channel/whatsapp.svg',
-        'whatsapp business': 'https://app30a.neocloud.ai/img/channel/whatsapp.svg',
+        'whatsapp': 'whatsapp.svg',
+        'whatsapp business': 'whatsapp.svg',
         'sms': 'sms.png',
         'twitter': 'twitter.svg',
         'instagram': 'instagram.png',
@@ -141,7 +161,8 @@ const getChannelImageUrl = (item: any, name: string) => {
         }
     }
 
-    return `${IMAGE_BASE_URL}${path}`;
+    if (!imageBaseURL) return path;
+    return `${imageBaseURL}${path}`;
 };
 
 const ChannelLogo = ({ src, alt, icon: Icon, className = "h-12 w-12" }: any) => {
@@ -241,13 +262,51 @@ const ChannelConfigForm: React.FC<any> = ({ config, tab, viewMode, onSave, onCan
     const isTeams = String(tab?.channelId) === '69';
     const isFacebook = String(tab?.channelName).toLowerCase().includes('facebook');
 
-    const [formState, setFormState] = useState(() => {
-        const s = { ...(config || {}) };
-        if (isWhatsApp && !s.phoneNumber) s.phoneNumber = s.phone_number || s.mobileNumber || s.mobile_number || s.phone || '';
-        if (isVoice && !s.phoneNumber) s.phoneNumber = s.phone_number || s.mobileNumber || s.mobile_number || s.phone || '';
+    const getProviderForForm = (provider: any) => {
+        const raw = String(provider || '').trim();
+        if (!raw) return '';
+        if (raw === 'Z3Vwc2h1cGlv' || raw.toLowerCase() === 'gupshup.io') return 'Z3Vwc2h1cGlv';
+        if (raw.toLowerCase() === 'gupshup') return 'gupshup';
+        if (raw.toLowerCase() === 'twilio') return 'twilio';
+        if (raw.toLowerCase() === 'inaipi') return 'Inaipi';
+        if (raw.toLowerCase() === 'z3vwc2h1cglv') return 'Z3Vwc2h1cGlv';
+        const decoded = decodeProvider(raw).toLowerCase();
+        if (decoded.includes('gupshup.io')) return 'Z3Vwc2h1cGlv';
+        if (decoded.includes('gupshup')) return 'gupshup';
+        if (decoded.includes('twilio')) return 'twilio';
+        if (decoded.includes('inaipi')) return 'Inaipi';
+        return raw;
+    };
+
+    const buildFormState = (incoming: any) => {
+        const s = { ...(incoming || {}) };
+        if (!s.phoneNumber) s.phoneNumber = s.phone_number || s.mobileNumber || s.mobile_number || s.phone || s.mobile || s.destination || s.waNumber || s.wa_number || s.channelMerchantId || s.merchantId || '';
+        if (!s.provider) s.provider = s.providerName || s.channelProvider || s.serviceProvider || s.vendor || s.gatewayProvider || '';
+        if (!s.accountSID) s.accountSID = s.accountSid || '';
+        if (!s.accountToken) s.accountToken = s.authToken || '';
+        if (!s.authToken) s.authToken = s.accountToken || '';
+        if (!s.apppassword) s.apppassword = s.appPassword || '';
+        if (!s.appname) s.appname = s.appName || '';
+        if (!s.apiKey) s.apiKey = s.apikey || '';
+        if (!s.hsmAccount) s.hsmAccount = s.hsmaccount || '';
+        if (!s.hsmPassword) s.hsmPassword = s.hsmpassword || '';
+        if (!s.joinString) s.joinString = s.joinstring || '';
+        if (!s.channelMerchantId) s.channelMerchantId = s.merchantId || s.channel_merchant_id || '';
+        if (!s.webhook_ID) s.webhook_ID = s.webhookId || s.webhookID || '';
+        if (!s.webhook_URL) s.webhook_URL = s.webhookUrl || s.requestUrl || '';
+        if (!s.pageAccessToken) s.pageAccessToken = s.pageToken || '';
+
+        if ((isWhatsApp || isVoice) && !s.phoneNumber) s.phoneNumber = '';
+        s.provider = getProviderForForm(s.provider);
         return s;
-    });
+    };
+
+    const [formState, setFormState] = useState(() => buildFormState(config));
     const [advanceOpen, setAdvanceOpen] = useState(false);
+
+    useEffect(() => {
+        setFormState(buildFormState(config));
+    }, [config, tab?.channelId, tab?.channelName, viewMode]);
 
     const handleChange = (field: string, val: string) => setFormState((p: any) => ({ ...p, [field]: val }));
 
@@ -264,7 +323,7 @@ const ChannelConfigForm: React.FC<any> = ({ config, tab, viewMode, onSave, onCan
                         </div>
                     </div>
                     <div className="flex gap-3">
-                        <button onClick={() => onSave(formState)} className="bg-blue-900 text-white px-6 py-2 rounded font-bold shadow-md hover:bg-blue-800 transition-all flex items-center gap-2 text-sm"><FaCheck /> {loading ? 'Saving...' : 'Submit'}</button>
+                        <button onClick={() => onSave(formState)} className="bg-blue-900 text-white px-6 py-2 rounded font-bold shadow-md hover:bg-blue-900 transition-all flex items-center gap-2 text-sm"><FaCheck /> {loading ? 'Saving...' : 'Submit'}</button>
                         <button onClick={onCancel} className="bg-red-500 text-white px-6 py-2 rounded font-bold shadow-md hover:bg-red-400 transition-all flex items-center gap-2 text-sm"><FaTimes /> Cancel</button>
                     </div>
                 </div>
@@ -403,17 +462,17 @@ const ChannelConfigForm: React.FC<any> = ({ config, tab, viewMode, onSave, onCan
 };
 
 // --- MANAGE VIEW ---
-const ManageChannelsView = ({ channels, activeIds, onToggle }: any) => (
+const ManageChannelsView = ({ channels, activeIds, onToggle, imageBaseURL }: any) => (
     <div className="container channel-list animate-in fade-in zoom-in-95 duration-500">
         <h3 className="text-xl font-black text-gray-900 mb-6 tracking-tighter">Connect Platforms</h3>
 
         <div className="bg-white border border-blue-100 rounded-xl p-4 mb-6 flex items-center gap-4 shadow-sm relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-full translate-x-12 -translate-y-12 group-hover:scale-110 transition-transform duration-700"></div>
             <div className="w-14 h-14 shrink-0 bg-blue-900 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/20 transform -rotate-3 group-hover:rotate-0 transition-transform">
-                <img src={`${IMAGE_BASE_URL}/img/channel/image.png`} alt="Info" className="w-8 h-8 object-contain brightness-0 invert" onError={e => e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/471/471664.png"} />
+                <img src={imageBaseURL ? `${imageBaseURL}/img/channel/image.png` : ''} alt="Info" className="w-8 h-8 object-contain brightness-0 invert" onError={e => e.currentTarget.src = "https://cdn-icons-png.flaticon.com/512/471/471664.png"} />
             </div>
             <div className="relative z-10 max-w-3xl">
-                <p className="text-[11px] font-medium text-gray-600 leading-relaxed italic pr-4">
+                <p className="text-[11px] font-medium text-gray-600 leading-relaxed pr-4">
                     "Connect your engagements to multiple platforms instantly. Enable the channels below and proceed to their respective tabs for detailed configuration."
                 </p>
                 <div className="mt-2 flex gap-1.5">
@@ -433,7 +492,7 @@ const ManageChannelsView = ({ channels, activeIds, onToggle }: any) => (
                     <div key={i} className="box group">
                         <div className="img-box overflow-hidden">
                             <ChannelLogo
-                                src={getChannelImageUrl(item, name)}
+                                src={getChannelImageUrl(item, name, imageBaseURL)}
                                 alt={name}
                                 icon={ICON_MAP[name.toLowerCase()] || ICON_MAP[Object.keys(ICON_MAP).find(k => name.toLowerCase().includes(k)) || '']}
                                 className="w-full h-full"
@@ -462,6 +521,7 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'list' | 'add' | 'edit'>('list');
     const [current, setCurrent] = useState<any>(null);
+    const imageBaseURL = getClusterImageBaseURL(cluster);
 
     const fetchData = async () => {
         setLoading(true);
@@ -490,7 +550,7 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                 if (String(c.channelId) === '9' && (name === 'WhatsApp' || name === 'WhatsApp Business')) name = "WhatsApp Business";
                 let Icon = BsChatDots;
                 for (const key in ICON_MAP) if (name.toLowerCase().includes(key)) Icon = ICON_MAP[key];
-                tabs.push({ channelId: c.channelId, channelName: name, icon: Icon, imageSrc: getChannelImageUrl(item, name), configList: configs.filter(x => String(x.channelId) === String(c.channelId)) });
+                tabs.push({ channelId: c.channelId, channelName: name, icon: Icon, imageSrc: getChannelImageUrl(item, name, imageBaseURL), configList: configs.filter(x => String(x.channelId) === String(c.channelId)) });
             }
         });
         setTabList(tabs);
@@ -538,7 +598,7 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
 
             <div className="p-4 flex-1">
                 {activeTab === 'channel'
-                    ? <div className="max-w-[1400px] mx-auto w-full"><ManageChannelsView channels={availableChannels} activeIds={tabList.map(t => String(t.channelId))} onToggle={async (id: any, item: any, checked: boolean) => {
+                    ? <div className="max-w-[1400px] mx-auto w-full"><ManageChannelsView channels={availableChannels} activeIds={tabList.map(t => String(t.channelId))} imageBaseURL={imageBaseURL} onToggle={async (id: any, item: any, checked: boolean) => {
                         let cfgs = [...channelConfig];
                         if (checked) cfgs.push({ channelId: id, name: item.channelName, status: 'Active', createdDate: new Date().toISOString() });
                         else { if (!window.confirm("Are you sure you want to disable this channel? Existing configurations will be hidden.")) return; cfgs = cfgs.filter(c => String(c.channelId) !== String(id)); }
@@ -624,13 +684,13 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                                                             </>
                                                         )}
 
-                                                        <div className="text-[13px]"><span className="font-semibold">Created By:</span> {cfg.createdBy || 'meiyaps noc'}</div>
+                                                        <div className="text-[13px]"><span className="font-semibold">Created By:</span> {cfg.createdBy || 'N/A'}</div>
                                                         <div className="text-[13px]"><span className="font-semibold">Created Date:</span> {cfg.createdDate ? new Date(cfg.createdDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true }) : 'Aug 29, 2025 7:28 PM'}</div>
 
                                                         {(isWhatsApp || isEmail || isTeams || isFacebook) && (
                                                             <>
-                                                                <div className="text-[13px]"><span className="font-semibold">Webhook ID:</span> {cfg.webhook_ID || '3065236979996886'}</div>
-                                                                <div className="text-[13px] break-all"><span className="font-semibold">Webhook URL:</span> <span className="text-blue-500 underline cursor-pointer">{cfg.webhook_URL || `https://api.neocloud.ai/cbk/v3/${isFacebook ? 'facebook' : isWhatsApp ? 'whatsapp' : 'email'}/${cfg.id}`}</span></div>
+                                                                <div className="text-[13px]"><span className="font-semibold">Webhook ID:</span> {cfg.webhook_ID || 'N/A'}</div>
+                                                                <div className="text-[13px] break-all"><span className="font-semibold">Webhook URL:</span> <span className="text-blue-500 underline cursor-pointer">{cfg.webhook_URL || (WEBHOOK_BASE_URL ? `${WEBHOOK_BASE_URL}/cbk/v3/${isFacebook ? 'facebook' : isWhatsApp ? 'whatsapp' : 'email'}/${cfg.id}` : 'N/A')}</span></div>
                                                             </>
                                                         )}
                                                     </div>

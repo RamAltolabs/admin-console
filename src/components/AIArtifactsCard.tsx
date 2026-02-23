@@ -27,6 +27,26 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const getClusterImageBaseURL = (clusterId?: string): string => {
+        const id = String(clusterId || 'it-app').toLowerCase();
+        const itImageBase = process.env.REACT_APP_IT_APP_IMAGE_BASE_URL || process.env.IT_IMAGE_BASE_URL;
+        const app6aImageBase = process.env.REACT_APP_APP6A_IMAGE_BASE_URL || process.env.APP6A_IMAGE_BASE_URL;
+        const app6eImageBase = process.env.REACT_APP_APP6E_IMAGE_BASE_URL || process.env.APP6E_IMAGE_BASE_URL;
+        const app30aImageBase = process.env.REACT_APP_APP30A_IMAGE_BASE_URL || process.env.APP30A_IMAGE_BASE_URL;
+        const app30bImageBase = process.env.REACT_APP_APP30B_IMAGE_BASE_URL || process.env.APP30B_IMAGE_BASE_URL;
+
+        const map: Record<string, string | undefined> = {
+            app6: app6aImageBase,
+            app6a: app6aImageBase,
+            app6e: app6eImageBase,
+            app30a: app30aImageBase,
+            app30b: app30bImageBase,
+            'it-app': itImageBase,
+        };
+
+        return (map[id] || itImageBase || process.env.REACT_APP_PORTAL_BASE_URL || '').replace(/\/+$/, '');
+    };
+
     const fetchData = async () => {
         setLoading(true);
         setError(null);
@@ -56,8 +76,9 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
     const getImageUrl = (imagePath: string | undefined | null) => {
         if (!imagePath) return '';
         if (imagePath.startsWith('http')) return imagePath;
-        const baseURL = 'https://it-inferno.neocloud.ai/';
-        return `${baseURL}${imagePath}`;
+        const baseURL = getClusterImageBaseURL(cluster);
+        const cleanPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
+        return baseURL ? `${baseURL}${cleanPath}` : cleanPath;
     };
 
     useEffect(() => {
@@ -134,7 +155,7 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                 <div className="max-w-3xl">
                                     <div className="flex flex-col mb-2">
                                         <p className="text-[9px] font-black text-blue-200 uppercase tracking-[0.25em] opacity-80 mb-0.5">Asset Repository & Marketplace</p>
-                                        <h1 className="text-2xl font-black tracking-tighter titlecase italic leading-none">AI Artifactory</h1>
+                                        <h1 className="text-2xl font-black tracking-tighter titlecase leading-none">AI Artifactory</h1>
                                     </div>
                                     <p className="text-blue-100/90 text-[11.5px] leading-tight font-medium max-w-2xl">
                                         Accelerate transformation with our <span className="text-white font-bold underline decoration-blue-400/40 underline-offset-4">Curated Repository</span> of ML Models, Bots, and Integrations for Enterprise AI.
@@ -316,7 +337,7 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                     <FiArrowLeft size={18} />
                                 </button>
                                 <div>
-                                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter italic">
+                                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
                                         {activeCategory === 'bots' ? 'Agents Collection' :
                                             activeCategory === 'models' ? 'Models Repository' :
                                                 categories.find(c => c.id === activeCategory)?.label || 'Asset Library'}

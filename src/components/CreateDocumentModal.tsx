@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiCheckCircle, FiInfo, FiPlus, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
+import { useAuth } from '../context/AuthContext';
 
 interface CreateDocumentModalProps {
     isOpen: boolean;
@@ -21,6 +22,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
     onSuccess,
     preSelectedKBId
 }) => {
+    const { user } = useAuth();
     const [submitting, setSubmitting] = useState(false);
     const [isDocumentExpanded, setIsDocumentExpanded] = useState(true);
 
@@ -55,6 +57,12 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
             return;
         }
 
+        const documentCreatedBy = user?.username || user?.email;
+        if (!documentCreatedBy) {
+            alert('Unable to identify current user. Please log in again.');
+            return;
+        }
+
         setSubmitting(true);
         try {
             const payload = {
@@ -77,7 +85,7 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
                     startDate: new Date().toISOString(),
                     scheduleFrequency: formData.scheduleFrequency
                 },
-                documentCreatedBy: "meiyaps noc"
+                documentCreatedBy
             };
 
             await merchantService.addDocument(payload, cluster);
@@ -467,3 +475,4 @@ const CreateDocumentModal: React.FC<CreateDocumentModalProps> = ({
 };
 
 export default CreateDocumentModal;
+

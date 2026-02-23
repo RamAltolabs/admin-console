@@ -73,7 +73,7 @@ const BotExecutionLogs: React.FC<BotExecutionLogsProps> = ({ merchantId, cluster
                 ) : logs.length === 0 ? (
                     <div className="text-center py-12">
                         <FiActivity className="mx-auto text-gray-300 mb-2" size={32} />
-                        <p className="text-gray-500 text-sm italic">No {logType} execution logs found.</p>
+                        <p className="text-gray-500 text-sm">No {logType} execution logs found.</p>
                     </div>
                 ) : (
                     <table className="w-full text-left text-sm">

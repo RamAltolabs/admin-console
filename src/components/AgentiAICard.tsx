@@ -293,7 +293,7 @@ const AgentiAICard: React.FC<AgentiAICardProps> = ({ merchantId, cluster }) => {
                             >
                                 <tab.icon size={18} />
                                 {tab.label}
-                                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? 'bg-blue-800 text-white' : 'bg-gray-200 text-gray-600'
+                                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${activeTab === tab.id ? 'bg-blue-900 text-white' : 'bg-gray-200 text-gray-600'
                                     }`}>
                                     {tab.count}
                                 </span>

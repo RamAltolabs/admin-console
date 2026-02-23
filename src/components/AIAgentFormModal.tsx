@@ -359,7 +359,7 @@ const AIAgentFormModal: React.FC<AIAgentFormModalProps> = ({ isOpen, onClose, on
                     <button
                         onClick={handleSubmit}
                         disabled={saving}
-                        className="px-10 py-2.5 bg-blue-900 text-sm font-black text-white rounded-xl hover:bg-blue-800 transition-all shadow-lg active:scale-95 flex items-center gap-2 disabled:bg-blue-900/40 disabled:cursor-not-allowed border border-blue-900"
+                        className="px-10 py-2.5 bg-blue-900 text-sm font-black text-white rounded-xl hover:bg-blue-900 transition-all shadow-lg active:scale-95 flex items-center gap-2 disabled:bg-blue-900/40 disabled:cursor-not-allowed border border-blue-900"
                     >
                         {saving ? (
                             <>

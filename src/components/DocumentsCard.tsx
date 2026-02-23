@@ -6,9 +6,10 @@ import EditDocumentModal from './EditDocumentModal';
 interface DocumentsCardProps {
     merchantId: string;
     cluster?: string;
+    knowledgeBaseId?: string;
 }
 
-const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) => {
+const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster, knowledgeBaseId }) => {
     const [documents, setDocuments] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -33,6 +34,23 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
     const fetchDocuments = async (signal?: AbortSignal) => {
         setLoading(true);
         try {
+            if (knowledgeBaseId) {
+                const response = await merchantService.getDocumentsByKB(merchantId, knowledgeBaseId, cluster, page, pageSize);
+                if (signal?.aborted) return;
+
+                const docs = Array.isArray(response)
+                    ? response
+                    : (response?.documents || response?.content || response?.data || response?.knowledgeBaseDocuments || []);
+
+                setDocuments(Array.isArray(docs) ? docs : []);
+                setTotalElements(Array.isArray(docs) ? docs.length : 0);
+                const resolvedTotal = response?.totalElements || (Array.isArray(docs) ? docs.length : 0);
+                const resolvedPages = response?.totalPages || Math.max(1, Math.ceil(resolvedTotal / Math.max(1, pageSize)));
+                setTotalElements(resolvedTotal);
+                setTotalPages(resolvedPages);
+                return;
+            }
+
             const response = await merchantService.getDocuments(merchantId, page, pageSize, cluster);
             // Check if the request was aborted
             if (signal?.aborted) return;
@@ -65,7 +83,11 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
         return () => {
             abortController.abort();
         };
-    }, [merchantId, cluster, page, pageSize]);
+    }, [merchantId, cluster, page, pageSize, knowledgeBaseId]);
+
+    useEffect(() => {
+        setPage(0);
+    }, [knowledgeBaseId]);
 
     const filteredDocuments = documents.filter(doc => {
         let matches = true;
@@ -135,7 +157,7 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                     <div className="flex items-center gap-2 ml-1 relative">
                         <div className="relative">
                             <button
-                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                                 title="Columns"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -169,7 +191,7 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
 
                         <div className="relative">
                             <button
-                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                                className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                                 title="Filters"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -306,7 +328,10 @@ const DocumentsCard: React.FC<DocumentsCardProps> = ({ merchantId, cluster }) =>
                         </table>
                     )}
                     <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex items-center justify-between text-xs text-gray-500">
-                        <span>{filteredDocuments.length} of {totalElements} documents</span>
+                        <span>
+                            {filteredDocuments.length} of {totalElements} documents
+                            {knowledgeBaseId ? ` (KB: ${knowledgeBaseId})` : ''}
+                        </span>
                         <div className="flex gap-1">
                             <button
                                 className="px-2 py-1 rounded hover:bg-gray-200 disabled:opacity-50"

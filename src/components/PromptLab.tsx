@@ -221,7 +221,21 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
 
     const handleCopyCurl = () => {
         if (!selectedPrompt) return;
-        const baseURL = cluster?.toLowerCase() === 'app6e' ? 'https://api6e.neocloud.ai/' : 'https://api6a.neocloud.ai/';
+        const clusterId = cluster?.toLowerCase();
+        const baseURLMap: Record<string, string | undefined> = {
+            app6: process.env.REACT_APP_APP6A_BASE_URL,
+            app6a: process.env.REACT_APP_APP6A_BASE_URL,
+            app6e: process.env.REACT_APP_APP6E_BASE_URL,
+            app30a: process.env.REACT_APP_APP30A_BASE_URL,
+            app30b: process.env.REACT_APP_APP30B_BASE_URL,
+            'it-app': process.env.REACT_APP_IT_APP_BASE_URL,
+        };
+        const configuredBaseURL = baseURLMap[clusterId || 'it-app'] || process.env.REACT_APP_IT_APP_BASE_URL;
+        if (!configuredBaseURL) {
+            setMessage({ type: 'error', text: 'Missing cluster base URL configuration in env.' });
+            return;
+        }
+        const baseURL = configuredBaseURL.endsWith('/') ? configuredBaseURL : `${configuredBaseURL}/`;
         const curl = `curl --location '${baseURL}model-service/api/v1/promptlab/executePrompt' \\
     --header 'Content-Type: application/json' \\
     --data '{
@@ -386,7 +400,7 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
                                                 <div className="text-[12px] font-bold truncate">{p.title || 'Untitled'}</div>
                                                 <div className="flex items-center gap-2 mt-0.5">
                                                     <span className="text-[9px] font-black text-gray-300">#{p.id}</span>
-                                                    <span className="text-[9px] text-gray-400 truncate opacity-70 italic">{p.promptText?.substring(0, 25)}...</span>
+                                                    <span className="text-[9px] text-gray-400 truncate opacity-70">{p.promptText?.substring(0, 25)}...</span>
                                                 </div>
                                             </button>
                                         ))}

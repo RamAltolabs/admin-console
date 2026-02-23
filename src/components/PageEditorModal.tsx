@@ -215,7 +215,7 @@ const PageEditorModal: React.FC<PageEditorModalProps> = ({ isOpen, onClose, onSa
                 return (
                     <button
                         className={`px-6 py-2 rounded-lg font-semibold mb-2 ${element.style === 'primary'
-                            ? 'bg-blue-900 text-white hover:bg-blue-800'
+                            ? 'bg-blue-900 text-white hover:bg-blue-900'
                             : element.style === 'secondary'
                                 ? 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                                 : 'border-2 border-blue-900 text-blue-900 hover:bg-blue-50'
@@ -457,7 +457,7 @@ const PageEditorModal: React.FC<PageEditorModalProps> = ({ isOpen, onClose, onSa
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="px-6 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50"
+                                className="px-6 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-all flex items-center gap-2 shadow-sm disabled:opacity-50"
                             >
                                 <FiSave size={16} />
                                 {saving ? 'Saving...' : 'Save Page'}

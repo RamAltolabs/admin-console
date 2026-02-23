@@ -44,7 +44,7 @@ const RecentVisitorsCard: React.FC<RecentVisitorsCardProps> = ({ merchantId, clu
                     </div>
                     <button
                         onClick={fetchRecent}
-                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
+                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
                     >
                         <FiRefreshCw size={14} className={loading ? "animate-spin" : ""} />
                         {loading ? 'Refreshing...' : 'Refresh'}

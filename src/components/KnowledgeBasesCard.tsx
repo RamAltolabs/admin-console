@@ -109,7 +109,7 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
         setLoading(true);
         try {
             const response = await merchantService.getDocuments(merchantId, 0, 1000, cluster);
-            const allDocs = response.content || [];
+            const allDocs = response.documents || response.content || response.data || [];
 
             const kbDocs = allDocs.filter((doc: any) => {
                 // Ensure lenient matching
@@ -127,10 +127,15 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
     };
 
     const handleDocumentsClickInternal = (kb: KnowledgeBase) => {
-        if (!kb.id) return;
+        const resolvedKbId = String((kb as any).id || (kb as any).knowledgeBaseId || '');
+        if (!resolvedKbId) return;
+        if (onDocumentsClick) {
+            onDocumentsClick(kb);
+            return;
+        }
         setSelectedKB(kb);
         setViewState('docs');
-        fetchDocuments(kb.id);
+        fetchDocuments(resolvedKbId);
     };
 
     const handleBackToKBs = () => {
@@ -206,7 +211,7 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
                                     </tr>
                                 ) : filteredKBs.length === 0 ? (
                                     <tr>
-                                        <td colSpan={10} className="px-4 py-12 text-center text-gray-500 italic">
+                                        <td colSpan={10} className="px-4 py-12 text-center text-gray-500">
                                             No knowledge bases found.
                                         </td>
                                     </tr>
@@ -259,7 +264,7 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
                                             </td>
                                             <td className="px-4 py-3">
                                                 <span className="text-sm text-gray-700">
-                                                    {kb.createdBy || 'meiyaps noc'}
+                                                    {kb.createdBy || 'N/A'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3">
@@ -334,7 +339,7 @@ const KnowledgeBasesCard: React.FC<KnowledgeBasesCardProps> = ({ merchantId, clu
                         <tbody className="bg-white divide-y divide-gray-100">
                             {docs.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500 italic">
+                                    <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                                         No documents found for this knowledge base.
                                     </td>
                                 </tr>

@@ -240,14 +240,14 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     <div>
                         <h3 className="font-semibold text-gray-900">User Management</h3>
                         <p className="text-sm text-gray-500">
-                            {effectiveTotalElements > 0 ? `${effectiveTotalElements} total users` : 'Manage access, passwords, and status'}
+                            {effectiveTotalElements > 0 ? `${effectiveTotalElements} total agents` : 'Manage access, passwords, and status'}
                         </p>
                     </div>
                 </div>
                 <div className="flex gap-2">
                     <button
                         onClick={() => fetchUsers(page)}
-                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
+                        className="bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 px-3 py-1.5 shadow-sm"
                         title="Refresh"
                     >
                         <FiRotateCcw size={14} className={loading ? 'animate-spin' : ''} />
@@ -255,7 +255,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     </button>
                     <button
                         onClick={() => setShowInviteModal(true)}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm"
                     >
                         <FiUserPlus size={16} />
                         Invite User
@@ -278,7 +278,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
 
                 <div className="relative">
                     <button
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2"
                         onClick={() => setShowFilters(!showFilters)}
                     >
                         <FiFilter size={16} />

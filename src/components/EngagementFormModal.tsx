@@ -176,7 +176,7 @@ const EngagementFormModal: React.FC<EngagementFormModalProps> = ({
                                         )}
                                     </div>
                                 </div>
-                                <p className="mt-2 text-[10px] text-gray-400 font-medium italic">
+                                <p className="mt-2 text-[10px] text-gray-400 font-medium">
                                     This agent will handle interactions for this engagement channel.
                                 </p>
                             </div>

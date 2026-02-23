@@ -470,7 +470,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                                             {ctx}
                                         </span>
                                     )) || (
-                                            <span className="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-[10px] font-bold italic">No Discovery Insights</span>
+                                            <span className="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-[10px] font-bold">No Discovery Insights</span>
                                         )}
                                 </div>
                             </div>
@@ -521,7 +521,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                                         } `}>
                                         <p className="text-[13px] leading-relaxed font-medium">{msg.text || msg.message}</p>
                                     </div>
-                                    <span className={`text - [10px] text - gray - 400 mt - 1 italic ${isUser ? 'text-left' : 'text-right'} `}>
+                                    <span className={`text-[10px] text-gray-400 mt-1 ${isUser ? 'text-left' : 'text-right'} `}>
                                         {formatChatDate(msg.timestamp || msg.createdDate)}
                                     </span>
                                 </div>

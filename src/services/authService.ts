@@ -2,6 +2,7 @@ import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 
 const AUTH_API_URL = `${process.env.REACT_APP_IT_APP_BASE_URL}ecloudbl/auth/token`;
+const PORTAL_BASE_URL = (process.env.REACT_APP_PORTAL_BASE_URL || '').replace(/\/+$/, '');
 
 export interface LoginResponse {
     token: {
@@ -28,18 +29,22 @@ export interface LoginResponse {
 class AuthService {
     async login(userName: string, password: string): Promise<LoginResponse> {
         try {
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                'sec-ch-ua-platform': '"Windows"',
+                'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
+                'sec-ch-ua-mobile': '?0',
+            };
+            if (PORTAL_BASE_URL) {
+                headers.Referer = `${PORTAL_BASE_URL}/`;
+            }
+
             const response = await axios.post<LoginResponse>(AUTH_API_URL, {
                 authType: 'PG',
                 userName: userName,
                 password: password,
             }, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'sec-ch-ua-platform': '"Windows"',
-                    'Referer': 'https://it-inferno.neocloud.ai/',
-                    'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
-                    'sec-ch-ua-mobile': '?0',
-                },
+                headers,
             });
 
             if (response.data && response.data.token?.access_token) {

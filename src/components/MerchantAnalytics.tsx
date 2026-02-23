@@ -494,7 +494,7 @@ const MerchantAnalytics: React.FC<MerchantAnalyticsProps> = ({ merchantId, clust
                                         <Tooltip
                                             cursor={{ fill: 'transparent' }}
                                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}
-                                            formatter={(value: any, name: string, props: any) => {
+                                            formatter={(value: any, name: string | undefined, props: any) => {
                                                 const total = stats.totalVisitors || 1;
                                                 const percentage = Math.round((value / total) * 100);
                                                 return [`${value} visitors (${percentage}%)`, 'Count'];

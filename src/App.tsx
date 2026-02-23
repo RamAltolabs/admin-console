@@ -59,6 +59,44 @@ const App: React.FC = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [notifications, setNotifications] = useState<Omit<NotificationProps, 'onClose'>[]>([]);
+  const modelStudioMerchantId = merchants[0]?.id;
+  const modelStudioCluster = selectedCluster || merchants[0]?.cluster;
+  const modelStudioFallback = (
+    <ComingSoonCard
+      title="No Merchant Selected"
+      description="Select a merchant from the Merchants page to use Model Studio features."
+      icon={<FiInfo size={48} />}
+    />
+  );
+
+  useEffect(() => {
+    const applyThemeFromSettings = () => {
+      try {
+        const raw = localStorage.getItem('admin_console_settings');
+        const parsed = raw ? JSON.parse(raw) : null;
+        const theme = parsed?.theme || 'System';
+        const root = window.document.documentElement;
+        if (theme === 'Dark') {
+          root.classList.add('dark');
+        } else if (theme === 'Light') {
+          root.classList.remove('dark');
+        } else {
+          const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          root.classList.toggle('dark', isDark);
+        }
+      } catch {
+        window.document.documentElement.classList.remove('dark');
+      }
+    };
+
+    applyThemeFromSettings();
+    window.addEventListener('storage', applyThemeFromSettings);
+    window.addEventListener('app-settings-updated', applyThemeFromSettings);
+    return () => {
+      window.removeEventListener('storage', applyThemeFromSettings);
+      window.removeEventListener('app-settings-updated', applyThemeFromSettings);
+    };
+  }, []);
 
   // Notification helper functions
   const addNotification = (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => {
@@ -196,7 +234,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
         <div className="w-12 h-12 border-4 border-genx-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-600 font-medium italic">Loading session...</p>
+        <p className="text-gray-600 font-medium">Loading session...</p>
       </div>
     );
   }
@@ -207,7 +245,7 @@ const App: React.FC = () => {
 
   return (
     <BrowserRouter>
-      <div className="flex flex-col h-screen bg-gray-100">
+      <div className="flex flex-col h-screen transition-colors duration-300" style={{ backgroundColor: 'var(--neutral-bg)', color: 'var(--neutral-text-main)' }}>
         {/* Notifications */}
         <NotificationContainer notifications={notifications} onClose={removeNotification} />
 
@@ -263,18 +301,18 @@ const App: React.FC = () => {
               <Route path="/settings" element={<Settings />} />
 
               {/* Model Studio Routes */}
-              <Route path="/model-studio/models" element={<AIModelCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} initialTab="Model Management" />} />
-              <Route path="/model-studio/ml-models" element={<AIModelCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} initialTab="ML Models" />} />
-              <Route path="/model-studio/playground" element={<AIPlatformsCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/models" element={modelStudioMerchantId ? <AIModelCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} initialTab="Model Management" /> : modelStudioFallback} />
+              <Route path="/model-studio/ml-models" element={modelStudioMerchantId ? <AIModelCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} initialTab="ML Models" /> : modelStudioFallback} />
+              <Route path="/model-studio/playground" element={modelStudioMerchantId ? <AIPlatformsCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} /> : modelStudioFallback} />
 
-              <Route path="/model-studio/knowledge-base" element={<KnowledgeBasesCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
-              <Route path="/model-studio/documents" element={<DocumentsCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/knowledge-base" element={modelStudioMerchantId ? <KnowledgeBasesCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} /> : modelStudioFallback} />
+              <Route path="/model-studio/documents" element={modelStudioMerchantId ? <DocumentsCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} /> : modelStudioFallback} />
               <Route path="/model-studio/datasets" element={<ComingSoonCard title="Datasets" description="Manage large scale training data for your custom models." icon={<FiGrid size={48} />} />} />
               <Route path="/model-studio/knowledge-graph" element={<ComingSoonCard title="Knowledge Graph" description="Visualize and manage structured knowledge relationships." icon={<FiShare2 size={48} />} />} />
 
-              <Route path="/model-studio/prompt-lab" element={<PromptLab merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/prompt-lab" element={modelStudioMerchantId ? <PromptLab merchantId={modelStudioMerchantId} cluster={modelStudioCluster} /> : modelStudioFallback} />
               <Route path="/model-studio/prompt-stats" element={<ComingSoonCard title="Prompt Stats" description="Analyze prompt performance and token usage metrics." icon={<FiBarChart2 size={48} />} />} />
-              <Route path="/model-studio/ontology" element={<OntologiesCard merchantId={merchants[0]?.id || '123'} cluster={selectedCluster || merchants[0]?.cluster} />} />
+              <Route path="/model-studio/ontology" element={modelStudioMerchantId ? <OntologiesCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} /> : modelStudioFallback} />
               <Route path="/model-studio/notebook" element={<ComingSoonCard title="Notebook" description="Interactive environment for model testing and data exploration." icon={<FiBook size={48} />} />} />
 
               <Route path="/model-studio/intents" element={<ComingSoonCard title="Intents" description="Define and manage natural language intent classification patterns." icon={<FiZap size={48} />} />} />

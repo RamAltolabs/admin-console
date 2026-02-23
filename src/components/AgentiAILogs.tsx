@@ -84,7 +84,7 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
     };
 
     const renderPayloadPreview = (payload: any, type: 'workflow' | 'agent') => {
-        if (!payload) return <span className="text-gray-400 italic font-normal">Empty</span>;
+        if (!payload) return <span className="text-gray-400 font-normal">Empty</span>;
 
         let displayStr = '';
         try {
@@ -292,7 +292,7 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                                             </td>
                                             {logType === 'agent' && (
                                                 <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={message}>
-                                                    {message || <span className="text-gray-300 italic">No message</span>}
+                                                    {message || <span className="text-gray-300">No message</span>}
                                                 </td>
                                             )}
                                             <td className="px-6 py-4 font-mono text-xs text-gray-500 max-w-xs truncate">
@@ -343,7 +343,7 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                                                                             </button>
                                                                         </div>
                                                                         <pre className="p-3 text-gray-300 text-xs font-mono overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent whitespace-pre-wrap break-all">
-                                                                            {requestPayload ? formatJSON(requestPayload) : <span className="text-gray-500 italic">No specific request payload found</span>}
+                                                                            {requestPayload ? formatJSON(requestPayload) : <span className="text-gray-500">No specific request payload found</span>}
                                                                         </pre>
                                                                     </div>
                                                                 </div>
@@ -365,7 +365,7 @@ const AgentiAILogs: React.FC<AgentiAILogsProps> = ({ merchantId, cluster }) => {
                                                                             </button>
                                                                         </div>
                                                                         <pre className="p-3 text-gray-300 text-xs font-mono overflow-auto max-h-[300px] scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent whitespace-pre-wrap break-all">
-                                                                            {responsePayload ? formatJSON(responsePayload) : <span className="text-gray-500 italic">No specific response payload found</span>}
+                                                                            {responsePayload ? formatJSON(responsePayload) : <span className="text-gray-500">No specific response payload found</span>}
                                                                         </pre>
                                                                     </div>
                                                                 </div>

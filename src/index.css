@@ -32,6 +32,27 @@
     --shadow-md: 0 4px 8px -2px rgba(9, 30, 66, 0.15);
     --shadow-lg: 0 12px 24px -6px rgba(9, 30, 66, 0.2);
   }
+
+  html.dark {
+    --primary-main: #4c9aff;
+    --primary-dark: #2684ff;
+    --primary-light: #0f2744;
+
+    --neutral-bg: #0f172a;
+    --neutral-card: #111827;
+    --neutral-border: #334155;
+    --neutral-text-main: #e5e7eb;
+    --neutral-text-secondary: #cbd5e1;
+    --neutral-text-muted: #94a3b8;
+
+    --status-success: #22c55e;
+    --status-error: #f87171;
+    --status-warning: #fbbf24;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+    --shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+  }
 }
 
 html,
@@ -44,6 +65,87 @@ body {
   -webkit-font-smoothing: antialiased;
   font-size: 14px;
   /* Standard enterprise base size */
+}
+
+/* Global dark bridge for legacy Tailwind utility usage across the app */
+html.dark body,
+html.dark #root {
+  background-color: var(--neutral-bg) !important;
+  color: var(--neutral-text-main) !important;
+}
+
+html.dark .bg-white {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #0f172a !important;
+}
+
+html.dark .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+
+html.dark .bg-gray-200 {
+  background-color: #273449 !important;
+}
+
+html.dark [class*="bg-white/"] {
+  background-color: rgba(17, 24, 39, 0.92) !important;
+}
+
+html.dark [class*="bg-gray-50/"] {
+  background-color: rgba(15, 23, 42, 0.92) !important;
+}
+
+html.dark [class*="bg-gray-100/"] {
+  background-color: rgba(31, 41, 55, 0.92) !important;
+}
+
+html.dark [class*="bg-gray-200/"] {
+  background-color: rgba(39, 52, 73, 0.92) !important;
+}
+
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-gray-300 {
+  border-color: #334155 !important;
+}
+
+html.dark [class*="border-gray-100/"],
+html.dark [class*="border-gray-200/"],
+html.dark [class*="border-gray-300/"] {
+  border-color: #334155 !important;
+}
+
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #cbd5e1 !important;
+}
+
+html.dark .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+html.dark .hover\:bg-gray-50:hover {
+  background-color: #1e293b !important;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #273449 !important;
+}
+
+html.dark .bg-neutral-bg,
+html.dark .bg-neutral-bg\/20,
+html.dark .bg-neutral-bg\/30,
+html.dark .bg-neutral-bg\/50 {
+  background-color: #0f172a !important;
 }
 
 .app-container {

@@ -6,12 +6,14 @@ import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantA
 
 class MerchantApiService {
   private api: AxiosInstance;
-  private baseURL: string = process.env.REACT_APP_IT_APP_BASE_URL || 'https://apin.neocloud.ai/';
+  private baseURL: string;
   private cache = new Map<string, { data: any; timestamp: number }>();
   private ongoingRequests = new Map<string, Promise<any>>();
   private readonly DEFAULT_TTL = 30000; // 30 seconds
 
   constructor() {
+    this.baseURL = this.requireEnvUrl('REACT_APP_IT_APP_BASE_URL');
+
     this.api = axios.create({
       baseURL: this.baseURL,
       headers: {
@@ -39,6 +41,18 @@ class MerchantApiService {
         return Promise.reject(error);
       }
     );
+  }
+
+  private normalizeBaseURL(url: string): string {
+    return url.endsWith('/') ? url : `${url}/`;
+  }
+
+  private requireEnvUrl(envKey: string): string {
+    const value = process.env[envKey];
+    if (!value) {
+      throw new Error(`Missing required environment variable: ${envKey}`);
+    }
+    return this.normalizeBaseURL(value);
   }
 
   /**
@@ -302,16 +316,16 @@ class MerchantApiService {
     switch (clusterId?.toLowerCase()) {
       case 'app6':
       case 'app6a':
-        return process.env.REACT_APP_APP6A_BASE_URL || 'https://api6a.neocloud.ai/';
+        return this.requireEnvUrl('REACT_APP_APP6A_BASE_URL');
       case 'app6e':
-        return process.env.REACT_APP_APP6E_BASE_URL || 'https://api6e.neocloud.ai/';
+        return this.requireEnvUrl('REACT_APP_APP6E_BASE_URL');
       case 'app30a':
-        return process.env.REACT_APP_APP30A_BASE_URL || 'https://api30a.neocloud.ai/';
+        return this.requireEnvUrl('REACT_APP_APP30A_BASE_URL');
       case 'app30b':
-        return process.env.REACT_APP_APP30B_BASE_URL || 'https://api30b.neocloud.ai/';
+        return this.requireEnvUrl('REACT_APP_APP30B_BASE_URL');
       case 'it-app':
       default:
-        return process.env.REACT_APP_IT_APP_BASE_URL || 'https://apin.neocloud.ai/';
+        return this.requireEnvUrl('REACT_APP_IT_APP_BASE_URL');
     }
   }
 
@@ -329,26 +343,21 @@ class MerchantApiService {
 
   // Cluster operations
   async getClusters(): Promise<Cluster[]> {
-    try {
-      const envConfig = process.env.REACT_APP_CLUSTERS_CONFIG;
-      if (envConfig) {
-        // Remove potential single quotes if they were included in the env value 
-        // (some shells/loaders might keep them)
-        const sanitizedConfig = envConfig.trim().replace(/^'|'$/g, '');
-        return JSON.parse(sanitizedConfig);
-      }
-    } catch (err) {
-      console.error('Failed to parse REACT_APP_CLUSTERS_CONFIG from env:', err);
+    const envConfig = process.env.REACT_APP_CLUSTERS_CONFIG;
+    if (!envConfig) {
+      console.error('Missing required environment variable: REACT_APP_CLUSTERS_CONFIG');
+      return [];
     }
 
-    // Fallback to hardcoded clusters if env is missing or invalid
-    return [
-      { id: 'it-app', name: 'IT-APP', region: 'US-Central', status: 'active', gcpProject: 'GCP Project Name: Nebula' },
-      { id: 'app6a', name: 'APP6A', region: 'US-Central', status: 'active', gcpProject: 'GCP Project Name: Pluto' },
-      { id: 'app6e', name: 'APP6E', region: 'Asia-South', status: 'active', gcpProject: 'GCP Project Name: Pluto' },
-      { id: 'app30a', name: 'APP30A', region: 'US-Central', status: 'active', gcpProject: 'GCP Project Name: Earth' },
-      { id: 'app30b', name: 'APP30B', region: 'US-Central', status: 'active', gcpProject: 'GCP Project Name: Earth' },
-    ];
+    try {
+      // Remove potential single quotes if they were included in the env value
+      // (some shells/loaders might keep them)
+      const sanitizedConfig = envConfig.trim().replace(/^'|'$/g, '');
+      return JSON.parse(sanitizedConfig);
+    } catch (err) {
+      console.error('Failed to parse REACT_APP_CLUSTERS_CONFIG from env:', err);
+      return [];
+    }
   }
 
   // Merchant operations - Using regular merchants endpoint
@@ -877,6 +886,24 @@ class MerchantApiService {
       return response.data;
     } catch (error) {
       console.error('Failed to fetch web visitors:', error);
+      return [];
+    }
+  }
+
+  async getOnlineAgents(merchantId: string, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}webchnl/userAgent?merchantId=${merchantId}`;
+
+      const response = await this.api.get(url, {
+        headers: {
+          'accept': '*/*',
+          'accept-language': 'en-US,en;q=0.9',
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch online agents for merchant ${merchantId}:`, error);
       return [];
     }
   }
@@ -1497,12 +1524,14 @@ class MerchantApiService {
         }
 
         // Generate Preview URL
-        // https://it-inferno.neocloud.ai/webchat.html?id=<<Engagement iD>>&mid=<<Merchant ID>>&name=<<Engagement Name>>
         const engagementIdParam = item.engagementId || item.id;
         const merchantIdParam = item.merchantId || merchantId;
         const nameParam = encodeURIComponent(item.name || item.engagementName || 'Untitled');
-
-        const url = `https://it-inferno.neocloud.ai/webchat.html?id=${engagementIdParam}&mid=${merchantIdParam}&name=${nameParam}`;
+        const portalBaseUrl = process.env.REACT_APP_PORTAL_BASE_URL;
+        const normalizedPortalBase = portalBaseUrl ? portalBaseUrl.replace(/\/+$/, '') : '';
+        const url = normalizedPortalBase
+          ? `${normalizedPortalBase}/webchat.html?id=${engagementIdParam}&mid=${merchantIdParam}&name=${nameParam}`
+          : '';
 
         return {
           id: item.id,
@@ -1681,10 +1710,28 @@ class MerchantApiService {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
       const url = `${baseURL}model-service/model/create?access_token=${this.getAccessToken()}`;
+      console.log(`[createAIModel] POST ${url}`, payload);
       const response = await this.api.post(url, payload);
+      console.log('[createAIModel] API response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Failed to create AI model:', error);
+      console.error('[createAIModel] API error payload:', (error as any)?.response?.data);
+      throw error;
+    }
+  }
+
+  async updateAIModel(merchantId: string, modelId: string | number, payload: any, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}model-service/model/update/${merchantId}/${modelId}?access_token=${this.getAccessToken()}`;
+      console.log(`[updateAIModel] PUT ${url}`, payload);
+      const response = await this.api.put(url, payload);
+      console.log('[updateAIModel] API response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update AI model:', error);
+      console.error('[updateAIModel] API error payload:', (error as any)?.response?.data);
       throw error;
     }
   }
@@ -1713,23 +1760,69 @@ class MerchantApiService {
     }
   }
 
-  async getKnowledgeBasesByModel(modelId: string, cluster?: string): Promise<any> {
+  async getKnowledgeBasesByModel(
+    merchantId: string,
+    modelId: string,
+    cluster?: string,
+    pageIndex: number = 0,
+    pageCount: number = 50
+  ): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}knowledge-bases/by-model/${modelId}?access_token=${this.getAccessToken()}`;
-      const response = await this.api.get(url);
-      return response.data;
+      const url = `${baseURL}model-service/knowledgeBase/getKnowledgeBaseDetails`;
+      const payload = {
+        merchantId: String(merchantId),
+        pageIndex,
+        pageCount,
+        modelId: String(modelId)
+      };
+      const response = await this.api.post(url, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      const rawData = response.data;
+      const responseData =
+        (rawData && typeof rawData === 'object' && 'data' in rawData && (rawData as any).data)
+          ? (rawData as any).data
+          : rawData;
+
+      if (Array.isArray(responseData)) return responseData;
+      if (responseData && typeof responseData === 'object') {
+        if (Array.isArray((responseData as any).knowledgeBases)) return (responseData as any).knowledgeBases;
+        if (Array.isArray((responseData as any).knowledgeBase)) return (responseData as any).knowledgeBase;
+        if (Array.isArray((responseData as any).content)) return (responseData as any).content;
+        if (Array.isArray((responseData as any).data)) return (responseData as any).data;
+      }
+      return [];
     } catch (error) {
       console.error('Failed to fetch KBs by model:', error);
       return [];
     }
   }
 
-  async getDocumentsByKB(kbId: string, cluster?: string): Promise<any> {
+  async getDocumentsByKB(
+    merchantId: string,
+    kbId: string,
+    cluster?: string,
+    pageIndex: number = 0,
+    pageCount: number = 50
+  ): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}documents/by-kb/${kbId}?access_token=${this.getAccessToken()}`;
-      const response = await this.api.get(url);
+      const url = `${baseURL}model-service/knowledgeBaseDocument/getDocuments`;
+      const payload = {
+        merchantId: String(merchantId),
+        pageIndex,
+        pageCount,
+        dataSource: 'Document',
+        knowledgeBaseId: String(kbId)
+      };
+      const response = await this.api.post(url, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       return response.data;
     } catch (error) {
       console.error('Failed to fetch documents by KB:', error);
@@ -2068,7 +2161,7 @@ class MerchantApiService {
 
   async updatePrompt(merchantId: string, promptId: string | number, payload: any, cluster?: string): Promise<any> {
     try {
-      const baseURL = cluster?.toLowerCase() === 'app6e' ? 'https://api6e.neocloud.ai/' : 'https://api6a.neocloud.ai/';
+      const baseURL = this.getClusterBaseURL(cluster);
       const url = `${baseURL}model-service/promptlab/modify/${merchantId}/${promptId}`;
       const response = await this.api.put(url, payload);
       return response.data;
@@ -2080,7 +2173,7 @@ class MerchantApiService {
 
   async runPrompt(merchantId: string, promptText: string, modelId?: string | number, cluster?: string): Promise<any> {
     try {
-      const baseURL = cluster?.toLowerCase() === 'app6e' ? 'https://api6e.neocloud.ai/' : 'https://api6a.neocloud.ai/';
+      const baseURL = this.getClusterBaseURL(cluster);
       const url = `${baseURL}aiservices/api/v1/genAI/generate`;
       const response = await this.api.post(url, {
         prompt: promptText,
@@ -2423,7 +2516,17 @@ class MerchantApiService {
         }
       });
 
-      return response.data;
+      const data = response.data;
+      const products = Array.isArray(data)
+        ? data
+        : data?.merchant?.products ||
+          data?.products ||
+          data?.content ||
+          data?.data ||
+          data?.items ||
+          [];
+
+      return Array.isArray(products) ? products : [];
     } catch (error) {
       console.error(`Failed to fetch products for merchant ${merchantId}:`, error);
       return [];

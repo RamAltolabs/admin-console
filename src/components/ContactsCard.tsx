@@ -175,7 +175,7 @@ const ContactsCard: React.FC<ContactsCardProps> = ({ merchantId, cluster }) => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => fetchContacts(pageIndex, true)}
-                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-800 transition-colors flex items-center gap-2 shadow-sm"
+                        className="px-4 py-2 bg-blue-900 text-white rounded-lg text-sm font-semibold hover:bg-blue-900 transition-colors flex items-center gap-2 shadow-sm"
                         title="Refresh Customers"
                     >
                         <FiRefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh

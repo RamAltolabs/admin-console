@@ -34,17 +34,17 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
     const [totalPages, setTotalPages] = useState(0);
 
     const getPreviewUrl = (engagement: any) => {
-        // Logic to determine base URL based on current hostname or cluster
-        // Mapping: app6a -> api6a-inferno, etc.
-        const hostname = window.location.hostname;
-        let apiPrefix = 'it-inferno'; // Default fallback
-
-        if (hostname.includes('app6a')) apiPrefix = 'api6a-inferno';
-        else if (hostname.includes('app6e')) apiPrefix = 'api6e-inferno';
-        else if (hostname.includes('app30a')) apiPrefix = 'api30a-inferno';
-        else if (hostname.includes('it-inferno')) apiPrefix = 'it-inferno';
-
-        return `https://${apiPrefix}.neocloud.ai/chat.html?id=${engagement.id}&&${engagement.name}&&${merchantId}`;
+        const clusterId = String(cluster || 'it-app').toLowerCase();
+        const portalBaseByCluster: Record<string, string | undefined> = {
+            app6: process.env.REACT_APP_APP6A_PORTAL_BASE_URL || process.env.APP6A_PORTAL_BASE_URL,
+            app6a: process.env.REACT_APP_APP6A_PORTAL_BASE_URL || process.env.APP6A_PORTAL_BASE_URL,
+            app6e: process.env.REACT_APP_APP6E_PORTAL_BASE_URL || process.env.APP6E_PORTAL_BASE_URL,
+            app30a: process.env.REACT_APP_APP30A_PORTAL_BASE_URL || process.env.APP30A_PORTAL_BASE_URL,
+            app30b: process.env.REACT_APP_APP30B_PORTAL_BASE_URL || process.env.APP30B_PORTAL_BASE_URL,
+            'it-app': process.env.REACT_APP_PORTAL_BASE_URL || process.env.IT_PORTAL_BASE_URL,
+        };
+        const portalBase = (portalBaseByCluster[clusterId] || process.env.REACT_APP_PORTAL_BASE_URL || process.env.IT_PORTAL_BASE_URL || window.location.origin).replace(/\/+$/, '');
+        return `${portalBase}/chat.html?id=${engagement.id}&&${engagement.name}&&${merchantId}`;
     };
 
     const fetchEngagements = async (page: number = pageIndex) => {
