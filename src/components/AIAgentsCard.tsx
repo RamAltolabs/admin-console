@@ -254,21 +254,21 @@ const AIAgentsCard: React.FC<AIAgentsCardProps> = ({ merchantId, cluster }) => {
                                                     <>
                                                         <button
                                                             onClick={() => handleViewDetails(agent)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
+                                                            className="tile-btn-view h-8 w-8 !px-0"
                                                             title="View Details"
                                                         >
                                                             <FiEye size={14} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => handleEditAgent(agent, e)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
+                                                            className="tile-btn-edit h-8 w-8"
                                                             title="Edit Agent"
                                                         >
                                                             <FiEdit2 size={14} />
                                                         </button>
                                                         <button
                                                             onClick={(e) => handleDeleteAgent(agent, e)}
-                                                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all duration-300 shadow-sm border border-gray-100"
+                                                            className="tile-btn-delete h-8 w-8"
                                                             title="Delete Agent"
                                                         >
                                                             <FiTrash2 size={14} />

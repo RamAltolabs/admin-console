@@ -1721,6 +1721,34 @@ class MerchantApiService {
     }
   }
 
+  async getBotsFromStoreByGrpNme(
+    access: string = 'Public',
+    groupName: string = 'Enterprise',
+    cluster?: string
+  ): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      let url = `${baseURL}curo/getBotsFromStoreByGrpNme?status=Active`;
+      if (access) url += `&access=${encodeURIComponent(access)}`;
+      if (groupName) url += `&groupName=${encodeURIComponent(groupName)}`;
+
+      const response = await this.api.get(url);
+      const rawData = response.data;
+
+      if (Array.isArray(rawData)) return rawData;
+      if (rawData && typeof rawData === 'object') {
+        if (Array.isArray((rawData as any).data)) return (rawData as any).data;
+        if (Array.isArray((rawData as any).content)) return (rawData as any).content;
+        if (Array.isArray((rawData as any).bots)) return (rawData as any).bots;
+        if (Array.isArray((rawData as any).merchantBot)) return (rawData as any).merchantBot;
+      }
+      return [];
+    } catch (error) {
+      console.error('Failed to fetch bots from store by group name:', error);
+      return [];
+    }
+  }
+
   async updateAIModel(merchantId: string, modelId: string | number, payload: any, cluster?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
@@ -2318,8 +2346,9 @@ class MerchantApiService {
   async updateAIArtifact(merchantId: string, artifactId: string | number, payload: any, cluster?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/api/aiArtifact/${artifactId}?access_token=${this.getAccessToken()}`;
+      const url = `${baseURL}chimes/api/aiArtifact/update/${artifactId}?access_token=${this.getAccessToken()}`;
       const response = await this.api.put(url, payload);
+      this.invalidateCache(`ai-artifacts:${cluster || 'all'}:${merchantId}`);
       return response.data;
     } catch (error) {
       console.error('Failed to update AI artifact:', error);
@@ -2327,14 +2356,173 @@ class MerchantApiService {
     }
   }
 
-  async deleteAIArtifact(artifactId: string | number, cluster?: string): Promise<any> {
+  async deleteAIArtifact(artifactId: string | number, cluster?: string, merchantId?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}chimes/api/aiArtifact/${artifactId}?access_token=${this.getAccessToken()}`;
+      const url = `${baseURL}chimes/api/aiArtifact/delete/${artifactId}?access_token=${this.getAccessToken()}`;
       const response = await this.api.delete(url);
+      if (merchantId) {
+        this.invalidateCache(`ai-artifacts:${cluster || 'all'}:${merchantId}`);
+      } else {
+        this.invalidateCache(`ai-artifacts:${cluster || 'all'}:`);
+      }
       return response.data;
     } catch (error) {
       console.error('Failed to delete AI artifact:', error);
+      throw error;
+    }
+  }
+
+  async getMerchantIntegrationList(merchantId: string, cluster?: string, forceRefresh: boolean = false): Promise<any[]> {
+    return this.getAIArtifactsList(merchantId, cluster, forceRefresh);
+  }
+
+  async getAppstoreIntegrationDetail(integrationId: string | number, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/get/${integrationId}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.get(url);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to fetch appstore integration detail:', error);
+      throw error;
+    }
+  }
+
+  async createAppstoreIntegration(data: any, cluster?: string, merchantId?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      // New artifact add flow uses clone endpoint as per backend contract.
+      const url = `${baseURL}chimes/api/aiArtifact/clone?access_token=${this.getAccessToken()}`;
+      const payload = {
+        artifactId: data?.artifactId ?? data?.id,
+        merchantId: String(data?.merchantId || merchantId || ''),
+        createdBy: String(data?.createdBy || ''),
+        host: data?.host ?? '',
+        category: data?.category ?? '',
+        authentication: {
+          type: String(data?.authentication?.type || 'api_key').toLowerCase(),
+          value: {
+            token: String(data?.authentication?.value?.token || ''),
+            pathToCertificate: String(data?.authentication?.value?.pathToCertificate || ''),
+            certPassword: String(data?.authentication?.value?.certPassword || '')
+          }
+        },
+        status: data?.status || 'Active',
+        otherAttributes: Array.isArray(data?.otherAttributes) ? data.otherAttributes : []
+      };
+      const response = await this.api.post(url, payload);
+      if (merchantId) {
+        this.invalidateCache(`ai-artifacts:${cluster || 'all'}:${merchantId}`);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create appstore integration:', error);
+      throw error;
+    }
+  }
+
+  async cloneAppstoreIntegration(data: any, cluster?: string, merchantId?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/clone?access_token=${this.getAccessToken()}`;
+      const response = await this.api.post(url, data);
+      if (merchantId) {
+        this.invalidateCache(`ai-artifacts:${cluster || 'all'}:${merchantId}`);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to clone appstore integration:', error);
+      throw error;
+    }
+  }
+
+  async updateAppstoreIntegration(id: string | number, data: any, cluster?: string, merchantId?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/update/${id}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.put(url, data);
+      if (merchantId) {
+        this.invalidateCache(`ai-artifacts:${cluster || 'all'}:${merchantId}`);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update appstore integration:', error);
+      throw error;
+    }
+  }
+
+  async deleteAppstoreIntegrationById(integrationId: string | number, cluster?: string, merchantId?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/delete/${integrationId}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.delete(url);
+      if (merchantId) {
+        this.invalidateCache(`ai-artifacts:${cluster || 'all'}:${merchantId}`);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete appstore integration:', error);
+      throw error;
+    }
+  }
+
+  async getIntegrationApisById(integrationId: string | number, cluster?: string): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/artifactAPI/getArtifactApisById/${integrationId}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.get(url);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Failed to fetch integration APIs by integration ID:', error);
+      return [];
+    }
+  }
+
+  async getArtifactsByCategory(merchantId: string, category: string, cluster?: string): Promise<any[]> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/aiArtifact/getByCategory?merchantId=${merchantId}&category=${category}`;
+      const response = await this.api.get(url);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Failed to fetch artifacts by category:', error);
+      return [];
+    }
+  }
+
+  async createNewArtifactApi(data: any, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/artifactAPI/create?access_token=${this.getAccessToken()}`;
+      const response = await this.api.post(url, data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create artifact API:', error);
+      throw error;
+    }
+  }
+
+  async updateArtifactApi(id: string | number, data: any, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/artifactAPI/update/${id}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.put(url, data);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to update artifact API:', error);
+      throw error;
+    }
+  }
+
+  async deleteArtifactApi(apiId: string | number, cluster?: string): Promise<any> {
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}chimes/api/artifactAPI/delete/${apiId}?access_token=${this.getAccessToken()}`;
+      const response = await this.api.delete(url);
+      return response.data;
+    } catch (error) {
+      console.error('Failed to delete artifact API:', error);
       throw error;
     }
   }

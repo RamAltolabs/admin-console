@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FiPlus, FiEdit2, FiTrash2, FiLayout, FiRefreshCw, FiExternalLink, FiSearch, FiUser, FiCalendar, FiClock, FiCheckCircle, FiInfo, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiLayout, FiRefreshCw, FiEye, FiSearch, FiUser, FiCalendar, FiClock, FiCheckCircle, FiInfo, FiX } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 import PageEditorModal from './PageEditorModal';
 import { useAuth } from '../context/AuthContext';
@@ -202,19 +202,6 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
         setIsPreviewOpen(true);
     };
 
-    if (loading && pages.length === 0) {
-        return (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 animate-pulse">
-                <div className="h-8 bg-gray-100 rounded w-1/4 mb-6"></div>
-                <div className="space-y-4">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="h-20 bg-gray-50 rounded-lg"></div>
-                    ))}
-                </div>
-            </div>
-        );
-    }
-
     return (
         <>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden relative">
@@ -275,7 +262,16 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
                 </div>
 
                 <div className="p-2">
-                    {filteredPages.length > 0 ? (
+                    {loading && pages.length === 0 ? (
+                        <div className="bg-white rounded-xl p-4 animate-pulse">
+                            <div className="h-8 bg-gray-100 rounded w-1/4 mb-6"></div>
+                            <div className="space-y-4">
+                                {[1, 2, 3].map(i => (
+                                    <div key={i} className="h-20 bg-gray-50 rounded-lg"></div>
+                                ))}
+                            </div>
+                        </div>
+                    ) : filteredPages.length > 0 ? (
                         <div className="grid grid-cols-1 gap-1">
                             {filteredPages.map((page, index) => {
                                 const thumbnail = getPageThumbnail(page);
@@ -328,28 +324,28 @@ const PagesCard: React.FC<PagesCardProps> = ({ merchantId, cluster }) => {
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
                                                 <button
                                                     onClick={() => handlePreviewPage(page)}
-                                                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100"
-                                                    title="Preview"
+                                                    className="tile-btn-view h-8 w-8 !px-0"
+                                                    title="View Details"
                                                 >
-                                                    <FiExternalLink size={16} />
+                                                    <FiEye size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleEditPage(page)}
-                                                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100"
+                                                    className="tile-btn-edit h-8 w-8"
                                                     title="Edit"
                                                 >
-                                                    <FiEdit2 size={16} />
+                                                    <FiEdit2 size={14} />
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeletePage(page)}
-                                                    className="w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm border border-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                                                    className="tile-btn-delete h-8 w-8 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     title="Delete"
                                                     disabled={deletingPageId === page.pageId}
                                                 >
                                                     {deletingPageId === page.pageId ? (
-                                                        <FiRefreshCw size={16} className="animate-spin text-red-600" />
+                                                        <FiRefreshCw size={14} className="animate-spin" />
                                                     ) : (
-                                                        <FiTrash2 size={16} />
+                                                        <FiTrash2 size={14} />
                                                     )}
                                                 </button>
                                             </div>

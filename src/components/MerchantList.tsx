@@ -11,8 +11,18 @@ interface MerchantListProps {
   onEdit: (merchant: Merchant) => void;
   onDelete: (merchant: Merchant) => void;
   onCreate: () => void;
-  onSearch?: (query: string) => void;
   onStatusUpdate: (merchantId: string, newStatus: 'Active' | 'Inactive') => void;
+}
+
+interface MerchantRowStats {
+  users: string;
+  lastLogin: string;
+  lastVisitor: string;
+  lastVisitorId: string;
+  lastVisitorIp: string;
+  loading: boolean;
+  loaded: boolean;
+  error?: boolean;
 }
 
 const MerchantList: React.FC<MerchantListProps> = ({
@@ -31,6 +41,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
   const [isSearchMode, setIsSearchMode] = useState(false); // Track if we're in search mode
   const [statusFilter, setStatusFilter] = useState<string>('all'); // Status filter state
   const [clusterFilter, setClusterFilter] = useState<string>('all'); // Cluster filter state
+  const [merchantStatsMap, setMerchantStatsMap] = useState<Record<string, MerchantRowStats>>({});
 
 
   // Get unique status values from merchants
@@ -104,22 +115,6 @@ const MerchantList: React.FC<MerchantListProps> = ({
 
   const searchHint = 'Search by name, email, ID, phone, address, or business type...'; // Updated hint for search functionality
 
-  // Format date: MMM DD, YYYY HH:mm
-  const formatDate = (dateString: string): string => {
-    if (!dateString) return 'N/A';
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) return 'N/A';
-
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    }).toUpperCase();
-  };
-
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
   };
@@ -131,6 +126,90 @@ const MerchantList: React.FC<MerchantListProps> = ({
   };
 
   const totalPages = isSearchMode ? 1 : Math.ceil(filteredMerchants.length / itemsPerPage);
+
+  const loadMerchantStats = async (merchant: Merchant) => {
+    if (!merchant?.id) return;
+    const existing = merchantStatsMap[merchant.id];
+    if (existing?.loading) return;
+
+    setMerchantStatsMap((prev) => ({
+      ...prev,
+      [merchant.id]: {
+        users: prev[merchant.id]?.users || '...',
+        lastLogin: prev[merchant.id]?.lastLogin || '...',
+        lastVisitor: prev[merchant.id]?.lastVisitor || '...',
+        lastVisitorId: prev[merchant.id]?.lastVisitorId || '',
+        lastVisitorIp: prev[merchant.id]?.lastVisitorIp || '',
+        loading: true,
+        loaded: prev[merchant.id]?.loaded || false,
+        error: false
+      }
+    }));
+
+    try {
+      const [users, visitorsResponse] = await Promise.all([
+        merchantService.getAllUsers(merchant.id, merchant.cluster),
+        merchantService.getRawVisitors(merchant.id, 0, 1, merchant.cluster)
+      ]);
+
+      const activeCount = users.filter(u => u.status?.toLowerCase() === 'active').length;
+      const totalCount = users.length;
+
+      let latestLogin = 'N/A';
+      if (users.length > 0) {
+        const sorted = [...users].sort((a, b) => {
+          const t1 = a.modifiedTime ? new Date(a.modifiedTime).getTime() : 0;
+          const t2 = b.modifiedTime ? new Date(b.modifiedTime).getTime() : 0;
+          return t2 - t1;
+        });
+        if (sorted[0]?.modifiedTime) {
+          latestLogin = new Date(sorted[0].modifiedTime).toLocaleDateString();
+        }
+      }
+
+      let latestVisitor = 'N/A';
+      let visitorId = '';
+      let visitorIp = '';
+      if (visitorsResponse?.content && visitorsResponse.content.length > 0) {
+        const latest = visitorsResponse.content[0];
+        const vAt = latest.visitedAt || latest.lastAccessedDate_dt || latest.createTime;
+        if (vAt) {
+          latestVisitor = new Date(vAt).toLocaleDateString();
+          visitorId = latest.visitorId || 'Anonymous';
+          visitorIp = latest.ipAddress || '';
+        }
+      }
+
+      setMerchantStatsMap((prev) => ({
+        ...prev,
+        [merchant.id]: {
+          users: `${activeCount}/${totalCount}`,
+          lastLogin: latestLogin,
+          lastVisitor: latestVisitor,
+          lastVisitorId: visitorId,
+          lastVisitorIp: visitorIp,
+          loading: false,
+          loaded: true,
+          error: false
+        }
+      }));
+    } catch (err) {
+      console.error('Failed to fetch extra stats:', err);
+      setMerchantStatsMap((prev) => ({
+        ...prev,
+        [merchant.id]: {
+          users: prev[merchant.id]?.users || 'N/A',
+          lastLogin: prev[merchant.id]?.lastLogin || 'N/A',
+          lastVisitor: prev[merchant.id]?.lastVisitor || 'N/A',
+          lastVisitorId: prev[merchant.id]?.lastVisitorId || '',
+          lastVisitorIp: prev[merchant.id]?.lastVisitorIp || '',
+          loading: false,
+          loaded: false,
+          error: true
+        }
+      }));
+    }
+  };
 
   return (
     <div className="p-3 md:p-5 lg:p-6 mx-auto space-y-4 pb-20">
@@ -300,9 +379,10 @@ const MerchantList: React.FC<MerchantListProps> = ({
                     onEdit={onEdit}
                     onDelete={onDelete}
                     onStatusUpdate={onStatusUpdate}
-                    formatDate={formatDate}
                     selectedCluster={selectedCluster}
                     viewMode={viewMode}
+                    stats={merchantStatsMap[merchant.id]}
+                    onLoadStats={loadMerchantStats}
                   />
                 ))}
               </tbody>
@@ -361,9 +441,10 @@ interface MerchantRowProps {
   onEdit: (merchant: Merchant) => void;
   onDelete: (merchant: Merchant) => void;
   onStatusUpdate: (merchantId: string, newStatus: 'Active' | 'Inactive') => void;
-  formatDate: (dateString: string) => string;
   selectedCluster: string;
   viewMode: 'overall' | 'cluster';
+  stats?: MerchantRowStats;
+  onLoadStats: (merchant: Merchant) => Promise<void>;
 }
 
 const MerchantRow: React.FC<MerchantRowProps> = ({
@@ -371,21 +452,26 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
   onEdit,
   onDelete,
   onStatusUpdate,
-  formatDate,
   selectedCluster,
   viewMode,
+  stats,
+  onLoadStats,
 }) => {
   const navigate = useNavigate();
-  const [extraStats, setExtraStats] = useState({
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+  const statusDropdownRef = React.useRef<HTMLDivElement | null>(null);
+
+  const extraStats: MerchantRowStats = stats || {
     users: '...',
     lastLogin: '...',
     lastVisitor: '...',
     lastVisitorId: '',
     lastVisitorIp: '',
-    loading: false
-  });
-
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
+    loading: false,
+    loaded: false,
+    error: false
+  };
+  const isStatsLoaded = !!stats?.loaded;
 
   const statusColors: Record<string, string> = {
     active: 'bg-green-100 text-green-700',
@@ -400,61 +486,18 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
   };
 
   React.useEffect(() => {
-    const fetchExtraStats = async () => {
-      setExtraStats(prev => ({ ...prev, loading: true }));
-      try {
-        const usersPromise = merchantService.getAllUsers(merchant.id, merchant.cluster);
-        const visitorsPromise = merchantService.getRawVisitors(merchant.id, 0, 1, merchant.cluster);
-
-        const [users, visitorsResponse] = await Promise.all([usersPromise, visitorsPromise]);
-
-        const activeCount = users.filter(u => u.status?.toLowerCase() === 'active').length;
-        const totalCount = users.length;
-
-        // Find latest user activity
-        let latestLogin = 'N/A';
-        if (users.length > 0) {
-          const sorted = [...users].sort((a, b) => {
-            const t1 = a.modifiedTime ? new Date(a.modifiedTime).getTime() : 0;
-            const t2 = b.modifiedTime ? new Date(b.modifiedTime).getTime() : 0;
-            return t2 - t1;
-          });
-          if (sorted[0].modifiedTime) {
-            latestLogin = new Date(sorted[0].modifiedTime).toLocaleDateString();
-          }
-        }
-
-        // Find latest visitor
-        let latestVisitor = 'N/A';
-        let visitorId = '';
-        let visitorIp = '';
-        if (visitorsResponse?.content && visitorsResponse.content.length > 0) {
-          const latest = visitorsResponse.content[0];
-          const vAt = latest.visitedAt || latest.lastAccessedDate_dt || latest.createTime;
-          if (vAt) {
-            latestVisitor = new Date(vAt).toLocaleDateString();
-            visitorId = latest.visitorId || 'Anonymous';
-            visitorIp = latest.ipAddress || '';
-          }
-        }
-
-        setExtraStats({
-          users: `${activeCount}/${totalCount}`,
-          lastLogin: latestLogin,
-          lastVisitor: latestVisitor,
-          lastVisitorId: visitorId,
-          lastVisitorIp: visitorIp,
-          loading: false
-        });
-      } catch (err) {
-        console.error('Failed to fetch extra stats:', err);
-        setExtraStats(prev => ({ ...prev, loading: false }));
+    const handleDocClick = (event: MouseEvent) => {
+      if (!statusDropdownRef.current) return;
+      if (!statusDropdownRef.current.contains(event.target as Node)) {
+        setIsStatusDropdownOpen(false);
       }
     };
 
-    fetchExtraStats();
-  }, [merchant.id, merchant.cluster]);
-
+    document.addEventListener('mousedown', handleDocClick);
+    return () => {
+      document.removeEventListener('mousedown', handleDocClick);
+    };
+  }, []);
 
   return (
     <>
@@ -472,13 +515,21 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
               onClick={() => {
                 const searchParams = new URLSearchParams(window.location.search);
                 const currentTab = searchParams.get('tab');
-                const detailPath = `/merchants/${merchant.id}?cluster=${selectedCluster}${currentTab ? `&tab=${currentTab}` : ''}`;
+                const effectiveCluster = merchant.cluster || selectedCluster;
+                const detailPath = `/merchants/${merchant.id}${effectiveCluster ? `?cluster=${encodeURIComponent(effectiveCluster)}` : ''}${currentTab ? `${effectiveCluster ? '&' : '?'}tab=${encodeURIComponent(currentTab)}` : ''}`;
                 navigate(detailPath);
               }}
               className="tile-btn-view"
               title="View Details"
             >
               <FiEye size={14} />
+            </button>
+            <button
+              onClick={() => onDelete(merchant)}
+              className="tile-btn-delete"
+              title="Delete"
+            >
+              <FiTrash2 size={14} />
             </button>
           </div>
         </td>
@@ -501,24 +552,45 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{merchant.email}</td>
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex flex-col">
-            <span className="text-sm font-bold text-gray-800">{extraStats.users}</span>
-            <span className="text-[10px] text-gray-400 font-bold titlecase tracking-wider">Active/Total</span>
+            {extraStats.loading ? (
+              <span className="text-xs font-semibold text-gray-500">Loading...</span>
+            ) : isStatsLoaded ? (
+              <>
+                <span className="text-sm font-bold text-gray-800">{extraStats.users}</span>
+                <span className="text-[10px] text-gray-400 font-bold titlecase tracking-wider">Active/Total</span>
+              </>
+            ) : (
+              <button
+                onClick={() => onLoadStats(merchant)}
+                className="text-[11px] font-bold text-blue-700 hover:text-blue-900 underline underline-offset-2"
+              >
+                {extraStats.error ? 'Retry stats' : 'View Stats'}
+              </button>
+            )}
           </div>
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
           <div className="flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 group/act" title={extraStats.lastLogin !== 'N/A' ? `Last Login: ${extraStats.lastLogin}` : 'No user activity recorded'}>
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_4px_rgba(96,165,250,0.5)]"></span>
-              <span className="text-[11px] font-medium text-gray-600">User: <span className="font-bold text-gray-800">{extraStats.lastLogin}</span></span>
-            </div>
-            <div className="flex items-center gap-1.5 group/act" title={extraStats.lastVisitorId ? `ID: ${extraStats.lastVisitorId}\nIP: ${extraStats.lastVisitorIp}` : 'No visitor activity recorded'}>
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.5)]"></span>
-              <span className="text-[11px] font-medium text-gray-600">Visitor: <span className="font-bold text-gray-800">{extraStats.lastVisitor}</span></span>
-            </div>
+            {extraStats.loading ? (
+              <span className="text-xs font-semibold text-gray-500">Loading activity...</span>
+            ) : isStatsLoaded ? (
+              <>
+                <div className="flex items-center gap-1.5 group/act" title={extraStats.lastLogin !== 'N/A' ? `Last Login: ${extraStats.lastLogin}` : 'No user activity recorded'}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-[0_0_4px_rgba(96,165,250,0.5)]"></span>
+                  <span className="text-[11px] font-medium text-gray-600">User: <span className="font-bold text-gray-800">{extraStats.lastLogin}</span></span>
+                </div>
+                <div className="flex items-center gap-1.5 group/act" title={extraStats.lastVisitorId ? `ID: ${extraStats.lastVisitorId}\nIP: ${extraStats.lastVisitorIp}` : 'No visitor activity recorded'}>
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shadow-[0_0_4px_rgba(251,146,60,0.5)]"></span>
+                  <span className="text-[11px] font-medium text-gray-600">Visitor: <span className="font-bold text-gray-800">{extraStats.lastVisitor}</span></span>
+                </div>
+              </>
+            ) : (
+              <span className="text-[11px] text-gray-500">View Stats to view activity</span>
+            )}
           </div>
         </td>
         <td className="px-6 py-4 whitespace-nowrap">
-          <div className="relative inline-block">
+          <div className="relative inline-block" ref={statusDropdownRef}>
             <button
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
               className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ${statusColors[(merchant.status || 'unknown').toLowerCase()] || 'bg-gray-100 text-gray-700'}`}

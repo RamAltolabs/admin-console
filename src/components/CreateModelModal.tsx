@@ -380,6 +380,7 @@ const CreateModelModal: React.FC<CreateModelModalProps> = ({
                     framework: editModel?.framework ?? null,
                     modelParams: isMlModel
                         ? {
+                            modelSubType: mlModelSubType,
                             clusters: mlHyperParams.numberOfClusters,
                             initMethod: mlHyperParams.initializationMethod,
                             maxIterations: mlHyperParams.maxIterations,

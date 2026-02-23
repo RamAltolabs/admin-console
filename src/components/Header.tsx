@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiMenu } from 'react-icons/fi';
 import GlobalSearch from './GlobalSearch';
+import HeaderNotifications from './HeaderNotifications';
 
 interface HeaderProps {
   onToggleSidebar?: () => void;
@@ -62,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({ onToggleSidebar, onLogout }) => {
 
         {/* Right Section: Empty or Reserved for future use */}
         <div className="flex items-center gap-4">
-          {/* Support for future desktop navigation or user profile can go here */}
+          <HeaderNotifications />
         </div>
       </div>
     </header>

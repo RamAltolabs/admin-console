@@ -634,12 +634,20 @@ const ChannelsManager: React.FC<any> = ({ merchantId, cluster }) => {
                                             return (
                                                 <div key={i} className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-all flex gap-6 relative group">
                                                     {/* Actions */}
-                                                    <div className="absolute top-4 right-4 flex gap-3">
-                                                        <button onClick={() => { setCurrent(cfg); setViewMode('edit'); }} className="text-gray-400 hover:text-blue-600 transition-colors">
-                                                            <FaEdit size={16} />
+                                                    <div className="absolute top-4 right-4 flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => { setCurrent(cfg); setViewMode('edit'); }}
+                                                            className="tile-btn-edit h-8 w-8"
+                                                            title="Edit"
+                                                        >
+                                                            <FaEdit size={14} />
                                                         </button>
-                                                        <button onClick={async () => { if (window.confirm("Delete this configuration?")) await saveChanges(channelConfig.filter(x => x.id !== cfg.id)); }} className="text-gray-400 hover:text-red-500 transition-colors">
-                                                            <FaTrash size={16} />
+                                                        <button
+                                                            onClick={async () => { if (window.confirm("Delete this configuration?")) await saveChanges(channelConfig.filter(x => x.id !== cfg.id)); }}
+                                                            className="tile-btn-delete h-8 w-8"
+                                                            title="Delete"
+                                                        >
+                                                            <FaTrash size={14} />
                                                         </button>
                                                     </div>
 

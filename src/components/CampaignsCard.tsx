@@ -384,7 +384,7 @@ const CampaignsCard: React.FC<CampaignsCardProps> = ({ merchantId, cluster }) =>
                                             <td className="px-6 py-4">
                                                 <button
                                                     onClick={() => handleView(camp)}
-                                                    className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100"
+                                                    className="tile-btn-view h-8 w-8 !px-0"
                                                     title="View Details"
                                                 >
                                                     <FiEye size={14} />

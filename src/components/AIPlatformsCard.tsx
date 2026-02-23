@@ -603,24 +603,32 @@ const AIPlatformsCard: React.FC<AIPlatformsCardProps> = ({ merchantId, cluster }
                             </div>
                         )
                     ) : view === 'add' ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Object.entries(CATEGORY_METADATA).map(([key, meta]) => {
-                                return (
-                                    <div
-                                        key={key}
-                                        onClick={() => handleCardClick(key)}
-                                        className="group bg-white rounded-2xl border border-gray-100 p-5 cursor-pointer hover:shadow-xl hover:border-blue-900/20 transition-all hover:scale-[1.02] flex items-center gap-4"
-                                    >
-                                        <div className="w-14 h-14 rounded-xl bg-gray-50 flex items-center justify-center border border-gray-50 shrink-0 group-hover:scale-110 transition-transform">
-                                            <img src={getImageUrl(meta.imagePath)} alt={meta.name} className="w-8 h-8 object-contain" />
+                        <div className="rounded-2xl border border-gray-200 bg-[#f8fafc] p-4 md:p-5 shadow-sm">
+                            <div className="mb-4 px-1">
+                                <p className="text-[10px] font-black text-blue-900/60 titlecase tracking-[0.16em]">AI Platforms</p>
+                                <h4 className="text-lg font-black text-blue-900 tracking-tight titlecase mt-1">Select Platform</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                {Object.entries(CATEGORY_METADATA).map(([key, meta]) => {
+                                    return (
+                                        <div
+                                            key={key}
+                                            onClick={() => handleCardClick(key)}
+                                            className="group bg-white rounded-xl border border-gray-200 p-4 cursor-pointer hover:shadow-md hover:border-blue-300 transition-all flex items-start gap-4 min-h-[170px]"
+                                        >
+                                            <div className="w-[120px] h-[120px] rounded-lg bg-[#eef2f7] flex items-center justify-center border border-gray-100 shrink-0">
+                                                <img src={getImageUrl(meta.imagePath)} alt={meta.name} className="w-20 h-20 object-contain" />
+                                            </div>
+                                            <div className="overflow-hidden pr-1">
+                                                <h4 className="text-xl font-black text-gray-900 titlecase tracking-tight leading-tight">{meta.name}</h4>
+                                                <p className="text-sm text-gray-500 font-medium mt-2 leading-snug line-clamp-4">
+                                                    {meta.description}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="overflow-hidden">
-                                            <h4 className="text-xs font-black text-gray-900 titlecase tracking-tighter truncate">{meta.name}</h4>
-                                            <p className="text-[9px] text-gray-400 font-medium truncate tracking-tighter mt-0.5">Initialize Configuration</p>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
                     ) : view === 'configure' ? (
                         renderConfigurationForm()
@@ -639,10 +647,18 @@ const AIPlatformsCard: React.FC<AIPlatformsCardProps> = ({ merchantId, cluster }
 
                                                 {/* Actions */}
                                                 <div className="absolute top-4 right-4 flex gap-2">
-                                                    <button onClick={() => handleEdit(record)} className="p-2 bg-gray-50/80 hover:bg-blue-50 text-gray-400 hover:text-blue-900 rounded-lg transition-all border border-transparent hover:border-blue-100 backdrop-blur-sm">
+                                                    <button
+                                                        onClick={() => handleEdit(record)}
+                                                        className="tile-btn-edit h-8 w-8"
+                                                        title="Edit"
+                                                    >
                                                         <FiEdit2 size={14} />
                                                     </button>
-                                                    <button onClick={() => handleDelete(record.aiId)} className="p-2 bg-gray-50/80 hover:bg-rose-50 text-gray-400 hover:text-rose-600 rounded-lg transition-all border border-transparent hover:border-rose-100 backdrop-blur-sm">
+                                                    <button
+                                                        onClick={() => handleDelete(record.aiId)}
+                                                        className="tile-btn-delete h-8 w-8"
+                                                        title="Delete"
+                                                    >
                                                         <FiTrash2 size={14} />
                                                     </button>
                                                 </div>

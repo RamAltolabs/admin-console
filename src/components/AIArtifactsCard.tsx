@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-    FiPackage, FiSearch, FiEye, FiActivity, FiCalendar,
+    FiPackage, FiSearch, FiActivity, FiCalendar,
     FiCpu, FiDatabase, FiShare2, FiArrowLeft, FiPlus,
-    FiLayers, FiShoppingBag, FiCreditCard, FiSettings, FiGrid, FiArrowRight,
+    FiLayers, FiShoppingBag, FiCreditCard, FiSettings, FiGrid, FiArrowRight, FiSliders,
     FiRefreshCw
 } from 'react-icons/fi';
 import { AIArtifact } from '../types/merchant';
 import merchantService from '../services/merchantService';
 import AIArtifactViewModal from './AIArtifactViewModal';
+import BotDetailsModal from './BotDetailsModal';
 
 interface AIArtifactsCardProps {
     merchantId: string;
@@ -25,6 +26,8 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedArtifact, setSelectedArtifact] = useState<AIArtifact | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedBot, setSelectedBot] = useState<any | null>(null);
+    const [showBotDetailsModal, setShowBotDetailsModal] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const getClusterImageBaseURL = (clusterId?: string): string => {
@@ -54,7 +57,7 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
             // Parallel fetch for all data types if needed, though primarily artifacts
             const [artifactsData, botsData, modelsData] = await Promise.all([
                 merchantService.getAIArtifactsList(merchantId, cluster),
-                merchantService.getAIAgents(merchantId, cluster).catch(() => []),
+                merchantService.getBotsFromStoreByGrpNme('Public', 'Enterprise', cluster).catch(() => []),
                 merchantService.getModelDetails(merchantId, ['OPENAI', 'GOOGLEAI'], undefined, 0, 10, cluster).catch(() => ({ models: [] }))
             ]);
 
@@ -97,6 +100,14 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
         setIsModalOpen(false);
     };
 
+    const handleViewBotDetails = (bot: any) => {
+        setSelectedBot({
+            ...bot,
+            botTemplateName: bot?.botTemplateName || bot?.title || bot?.botName || bot?.name || bot?.identifier || 'Bot'
+        });
+        setShowBotDetailsModal(true);
+    };
+
     const filterByCategory = (cat: string) => {
         return artifacts.filter(a => (a.type || '').toLowerCase() === cat.toLowerCase());
     };
@@ -119,6 +130,28 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
         { id: 'channel', label: 'Channel', icon: FiGrid, color: 'indigo' },
     ];
 
+    const getBotDisplayName = (bot: any) =>
+        bot?.title || bot?.botName || bot?.name || bot?.identifier || 'Bot';
+    const getBotDescription = (bot: any) =>
+        bot?.description || bot?.features || bot?.goal || bot?.persona || '';
+    const getBotImage = (bot: any) =>
+        bot?.botImage1 || bot?.botImage2 || bot?.image || (Array.isArray(bot?.agentImage) ? bot.agentImage[0] : '');
+    const getBotCategory = (bot: any) =>
+        bot?.category || bot?.groupName || 'Enterprise';
+    const getBotCreatedBy = (bot: any) =>
+        bot?.createdBy || bot?.owner || 'PG Admin';
+    const getBotDate = (bot: any) => {
+        const raw = bot?.createdDate || bot?.modifiedDate || '';
+        if (!raw) return '';
+        const dt = new Date(raw);
+        return Number.isNaN(dt.getTime()) ? '' : dt.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+    const DEFAULT_BOT_IMAGE_URL = 'https://live-inferno.neocloud.ai/img/chatbot-template.png';
+
     if (loading && artifacts.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-24 bg-white rounded-xl shadow-sm border border-gray-100">
@@ -132,42 +165,93 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
     return (
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col animate-in fade-in duration-500">
             {/* Scrollable Content Area */}
-            <div className="p-6 space-y-8 overflow-y-auto max-h-[90vh] bg-gray-50/10">
+            <div className="p-2 md:p-4 space-y-4 overflow-y-auto max-h-[90vh] bg-[#eef2f7]">
                 {activeCategory === 'all' ? (
-                    <>
+                    <div className="grid grid-cols-1 lg:grid-cols-[150px_1fr] gap-3 items-start">
+                        <aside className="space-y-2 self-start lg:sticky lg:top-2">
+                            <div className="bg-white rounded-lg border border-gray-200 p-3">
+                                <h3 className="text-3xl font-black text-[#08275c] mb-3 flex items-center gap-2">
+                                    <FiSliders size={16} />
+                                    Categories
+                                </h3>
+                                <div className="space-y-1.5">
+                                    {[
+                                        { id: 'models', label: 'Models' },
+                                        { id: 'bots', label: 'Bots' },
+                                        { id: 'dataSources', label: 'Data Sources' },
+                                        { id: 'payments', label: 'Payments' },
+                                        { id: 'eCommerce', label: 'eCommerce' },
+                                        { id: 'integration', label: 'Integration' },
+                                        { id: 'service', label: 'Services' },
+                                        { id: 'channel', label: 'Channel' }
+                                    ].map((cat) => (
+                                        <label key={cat.id} className="flex items-center gap-2 text-xs text-gray-700 px-1 py-1 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                className="h-3.5 w-3.5 rounded border-gray-300"
+                                                checked={activeCategory === cat.id}
+                                                onChange={() => setActiveCategory(cat.id as Category)}
+                                            />
+                                            <span>{cat.label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg border border-gray-200 p-2.5">
+                                <h3 className="text-xs font-black text-[#1a2c63] titlecase tracking-wide mb-2">Filter By</h3>
+                                <div className="space-y-1 text-xs text-gray-600">
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-filter" defaultChecked /> All</label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-filter" /> Installed</label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-filter" /> Popularity</label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-filter" /> Recommended</label>
+                                </div>
+                            </div>
+
+                            <div className="bg-white rounded-lg border border-gray-200 p-2.5">
+                                <h3 className="text-xs font-black text-[#1a2c63] titlecase tracking-wide mb-2">Filter By Price</h3>
+                                <div className="space-y-1 text-xs text-gray-600">
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-price" defaultChecked /> All</label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-price" /> Free</label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="ai-price" /> Paid</label>
+                                </div>
+                            </div>
+                        </aside>
+
+                        <div className="space-y-4">
                         {/* Hero Section - Compact Branded Core */}
-                        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-900 rounded-2xl px-6 py-5 text-white shadow-lg relative overflow-hidden group border border-white/5 mb-2">
+                        <div className="bg-gradient-to-r from-[#dbe9ff] via-[#cfddf3] to-[#b8cae8] rounded-lg px-6 py-5 text-[#0f295f] shadow-sm relative overflow-hidden border border-[#c7d6ee] mb-2">
                             {/* Integrated Refresh Action */}
                             <button
                                 onClick={fetchData}
-                                className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-xl backdrop-blur-md border border-white/10 transition-all z-20 group/ref"
+                                className="absolute top-4 right-4 p-2 bg-white/40 hover:bg-white/60 rounded-lg border border-white/60 transition-all z-20"
                                 title="Refresh Repository"
                             >
-                                <FiRefreshCw size={16} className={`${loading ? 'animate-spin text-blue-300' : 'text-blue-100'}`} />
+                                <FiRefreshCw size={16} className={`${loading ? 'animate-spin text-blue-700' : 'text-blue-700'}`} />
                             </button>
 
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-white/10 transition-all duration-700"></div>
+                            <div className="absolute top-0 right-0 w-48 h-48 bg-white/20 rounded-full -mr-16 -mt-16 blur-2xl"></div>
 
                             <div className="relative z-10 flex items-center gap-6">
-                                <div className="p-3 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl shrink-0 group-hover:scale-105 transition-transform duration-500">
-                                    <FiCpu size={26} className="text-blue-200" />
+                                <div className="p-3 bg-white/60 rounded-xl border border-white/70 shadow-sm shrink-0">
+                                    <FiCpu size={26} className="text-blue-700" />
                                 </div>
                                 <div className="max-w-3xl">
                                     <div className="flex flex-col mb-2">
-                                        <p className="text-[9px] font-black text-blue-200 uppercase tracking-[0.25em] opacity-80 mb-0.5">Asset Repository & Marketplace</p>
+                                        <p className="text-[9px] font-black text-blue-700 titlecase tracking-[0.25em] opacity-80 mb-0.5">Asset Repository & Marketplace</p>
                                         <h1 className="text-2xl font-black tracking-tighter titlecase leading-none">AI Artifactory</h1>
                                     </div>
-                                    <p className="text-blue-100/90 text-[11.5px] leading-tight font-medium max-w-2xl">
-                                        Accelerate transformation with our <span className="text-white font-bold underline decoration-blue-400/40 underline-offset-4">Curated Repository</span> of ML Models, Bots, and Integrations for Enterprise AI.
+                                    <p className="text-[#1a3d7a] text-[11.5px] leading-tight font-medium max-w-2xl">
+                                        Accelerate transformation with our <span className="text-blue-800 font-bold underline decoration-blue-500/40 underline-offset-4">Curated Repository</span> of ML Models, Bots, and Integrations for Enterprise AI.
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Hero Grid Section - Matching App Alignment */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {/* Models Hub */}
-                            <div className="bg-white p-6 rounded-2xl border border-gray-200 hover:border-blue-900/30 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between h-[200px] relative overflow-hidden">
+                            {/* Top Category Blocks */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                {/* Models Hub */}
+                                <div className="bg-white p-6 rounded-2xl border border-gray-200 hover:border-blue-900/30 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between h-[200px] relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <FiCpu size={80} />
                                 </div>
@@ -179,18 +263,18 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                         <h3 className="font-black text-gray-900 text-lg tracking-tight">Models</h3>
                                     </div>
                                     <p className="text-xs text-gray-500 font-bold leading-normal">
-                                        Master Hub for LLMs & Custom Models. Track lineage and deployment across clusters.
+                                        Centralized hub for managing and versioning ML models for production.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setActiveCategory('models')}
-                                    className="flex items-center gap-2 text-blue-900 font-black text-[10px] uppercase tracking-widest hover:gap-3 transition-all"
+                                    className="flex items-center gap-2 text-blue-900 font-black text-[10px] titlecase tracking-widest hover:gap-3 transition-all"
                                 >
-                                    Browse Models <FiArrowRight />
+                                    View Models <FiArrowRight />
                                 </button>
                             </div>
 
-                            {/* Bots Hub */}
+                            {/* Bots */}
                             <div className="bg-white p-6 rounded-2xl border border-gray-200 hover:border-purple-900/30 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between h-[200px] relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <FiActivity size={80} />
@@ -200,21 +284,21 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                         <div className="p-3 bg-purple-50 text-purple-900 rounded-xl group-hover:bg-purple-900 group-hover:text-white transition-all transform group-hover:-rotate-12">
                                             <FiActivity size={20} />
                                         </div>
-                                        <h3 className="font-black text-gray-900 text-lg tracking-tight">Agents</h3>
+                                        <h3 className="font-black text-gray-900 text-lg tracking-tight">Bots</h3>
                                     </div>
                                     <p className="text-xs text-gray-500 font-bold leading-normal">
-                                        Intelligent autonomous agents & virtual assistants for customer workflow automation.
+                                        Bots employ AI to create intelligent chatbots and virtual assistants.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setActiveCategory('bots')}
-                                    className="flex items-center gap-2 text-purple-900 font-black text-[10px] uppercase tracking-widest hover:gap-3 transition-all"
+                                    className="flex items-center gap-2 text-purple-900 font-black text-[10px] titlecase tracking-widest hover:gap-3 transition-all"
                                 >
-                                    Scale Agents <FiArrowRight />
+                                    View Bots <FiArrowRight />
                                 </button>
                             </div>
 
-                            {/* Data Sources Hub */}
+                            {/* Data Source */}
                             <div className="bg-white p-6 rounded-2xl border border-gray-200 hover:border-emerald-900/30 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between h-[200px] relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <FiDatabase size={80} />
@@ -224,21 +308,21 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                         <div className="p-3 bg-emerald-50 text-emerald-900 rounded-xl group-hover:bg-emerald-900 group-hover:text-white transition-all transform group-hover:scale-110">
                                             <FiDatabase size={20} />
                                         </div>
-                                        <h3 className="font-black text-gray-900 text-lg tracking-tight">Knowledge</h3>
+                                        <h3 className="font-black text-gray-900 text-lg tracking-tight">Data Source</h3>
                                     </div>
                                     <p className="text-xs text-gray-500 font-bold leading-normal">
-                                        Inbound data intelligence. Connect training sets for supervised learning.
+                                        Inbound integration data sources are essential for AI systems to learn and predict.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setActiveCategory('dataSources')}
-                                    className="flex items-center gap-2 text-emerald-900 font-black text-[10px] uppercase tracking-widest hover:gap-3 transition-all"
+                                    className="flex items-center gap-2 text-emerald-900 font-black text-[10px] titlecase tracking-widest hover:gap-3 transition-all"
                                 >
-                                    Explore Data <FiArrowRight />
+                                    View Data Source <FiArrowRight />
                                 </button>
                             </div>
 
-                            {/* Integration Hub */}
+                            {/* Integration */}
                             <div className="bg-white p-6 rounded-2xl border border-gray-200 hover:border-orange-900/30 shadow-sm hover:shadow-xl transition-all group flex flex-col justify-between h-[200px] relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                     <FiShare2 size={80} />
@@ -248,17 +332,17 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                         <div className="p-3 bg-orange-50 text-orange-900 rounded-xl group-hover:bg-orange-900 group-hover:text-white transition-all transform group-hover:-translate-y-1">
                                             <FiShare2 size={20} />
                                         </div>
-                                        <h3 className="font-black text-gray-900 text-lg tracking-tight">Connect</h3>
+                                        <h3 className="font-black text-gray-900 text-lg tracking-tight">Integration</h3>
                                     </div>
                                     <p className="text-xs text-gray-500 font-bold leading-normal">
-                                        Seamless technology orchestration. Unified data exchange & event-driven architecture.
+                                        Integration harmonizes technologies and enables seamless data exchange.
                                     </p>
                                 </div>
                                 <button
                                     onClick={() => setActiveCategory('integration')}
-                                    className="flex items-center gap-2 text-orange-900 font-black text-[10px] uppercase tracking-widest hover:gap-3 transition-all"
+                                    className="flex items-center gap-2 text-orange-900 font-black text-[10px] titlecase tracking-widest hover:gap-3 transition-all"
                                 >
-                                    View Logic <FiArrowRight />
+                                    View Integration <FiArrowRight />
                                 </button>
                             </div>
                         </div>
@@ -269,10 +353,10 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                             {models.length > 0 && (
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                                        <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-3 uppercase">
+                                        <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-3 titlecase">
                                             <FiCpu className="text-blue-900" /> Managed Models
                                         </h2>
-                                        <button onClick={() => setActiveCategory('models')} className="text-blue-900 font-black text-[10px] uppercase tracking-widest hover:underline">View Repository</button>
+                                        <button onClick={() => setActiveCategory('models')} className="text-blue-900 font-black text-[10px] titlecase tracking-widest hover:underline">View Repository</button>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {models.slice(0, 4).map((m, i) => (
@@ -283,18 +367,35 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                             )}
 
                             {/* Bots Section */}
-                            {bots.length > 0 && (
+                            {bots.length > 0 ? (
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between border-b border-gray-100 pb-2">
-                                        <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-3 uppercase">
-                                            <FiActivity className="text-purple-900" /> Active Agents
+                                        <h2 className="text-lg font-black text-gray-900 tracking-tight flex items-center gap-3 titlecase">
+                                            <FiActivity className="text-purple-900" /> Bots
                                         </h2>
-                                        <button onClick={() => setActiveCategory('bots')} className="text-purple-900 font-black text-[10px] uppercase tracking-widest hover:underline">View Fleet</button>
+                                        <button onClick={() => setActiveCategory('bots')} className="text-purple-900 font-black text-[10px] titlecase tracking-widest hover:underline">View Fleet</button>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {bots.slice(0, 4).map((b, i) => (
-                                            <ArtifactCard key={i} name={b.identifier || b.name} type="Chatbot" description={b.persona || b.goal} status={b.status} iconUrl={getImageUrl(b.image || (b.agentImage && b.agentImage[0]))} onClick={() => { }} />
+                                            <BotStoreCard
+                                                key={i}
+                                                name={getBotDisplayName(b)}
+                                                description={getBotDescription(b)}
+                                                status={b.status}
+                                                iconUrl={getImageUrl(getBotImage(b)) || DEFAULT_BOT_IMAGE_URL}
+                                                category={getBotCategory(b)}
+                                                createdBy={getBotCreatedBy(b)}
+                                                dateLabel={getBotDate(b)}
+                                                onViewDetails={() => handleViewBotDetails(b)}
+                                            />
                                         ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <h2 className="text-lg font-black text-gray-900 tracking-tight titlecase">Bots</h2>
+                                    <div className="h-24 rounded-lg border border-dashed border-gray-300 bg-white flex items-center justify-center text-gray-400 text-xs font-bold">
+                                        No records found
                                     </div>
                                 </div>
                             )}
@@ -310,9 +411,14 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                                 <div className={`p-1.5 bg-${cat.color}-100 text-${cat.color}-900 rounded-lg shadow-sm`}>
                                                     <cat.icon size={16} />
                                                 </div>
-                                                <h2 className="text-lg font-black text-gray-900 tracking-tight uppercase">{cat.label}</h2>
+                                                <h2 className="text-lg font-black text-gray-900 tracking-tight titlecase flex items-center gap-2">
+                                                    {cat.label}
+                                                    <span className="inline-flex items-center justify-center min-w-5 h-5 px-1 rounded-full bg-blue-500 text-white text-[10px] font-black">
+                                                        {items.length}
+                                                    </span>
+                                                </h2>
                                             </div>
-                                            <button onClick={() => setActiveCategory(cat.id as Category)} className="text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-black transition-all">All {items.length} Assets</button>
+                                            <button onClick={() => setActiveCategory(cat.id as Category)} className="text-blue-700 font-black text-[10px] titlecase tracking-widest hover:text-blue-900 transition-all">View All</button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                             {items.slice(0, 4).map((item, i) => (
@@ -323,7 +429,8 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                 );
                             })}
                         </div>
-                    </>
+                    </div>
+                    </div>
                 ) : (
                     <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                         {/* Filtered View Header Section */}
@@ -337,12 +444,12 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                                     <FiArrowLeft size={18} />
                                 </button>
                                 <div>
-                                    <h2 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
-                                        {activeCategory === 'bots' ? 'Agents Collection' :
+                                    <h2 className="text-xl font-black text-gray-900 titlecase tracking-tighter">
+                                        {activeCategory === 'bots' ? 'Bots' :
                                             activeCategory === 'models' ? 'Models Repository' :
                                                 categories.find(c => c.id === activeCategory)?.label || 'Asset Library'}
                                     </h2>
-                                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-[0.2em] mt-1 text-blue-900/40">
+                                    <p className="text-[10px] text-gray-400 font-black titlecase tracking-[0.2em] mt-1 text-blue-900/40">
                                         Artifactory Library / {activeCategory}
                                     </p>
                                 </div>
@@ -362,8 +469,24 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                         {/* Filtered Items Grid - Standard Spacing */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             {activeCategory === 'bots' ? (
-                                bots.filter(b => !searchQuery || (b.identifier || '').toLowerCase().includes(searchQuery.toLowerCase())).map((b, i) => (
-                                    <ArtifactCard key={i} name={b.identifier || b.name} type="Chatbot" description={b.persona || b.goal} status={b.status} iconUrl={getImageUrl(b.image || (b.agentImage && b.agentImage[0]))} onClick={() => { }} isLarge />
+                                bots.filter(b => {
+                                    if (!searchQuery) return true;
+                                    const q = searchQuery.toLowerCase();
+                                    return getBotDisplayName(b).toLowerCase().includes(q) ||
+                                        String(b?.botName || '').toLowerCase().includes(q) ||
+                                        String(b?.createdBy || '').toLowerCase().includes(q);
+                                }).map((b, i) => (
+                                    <BotStoreCard
+                                        key={i}
+                                        name={getBotDisplayName(b)}
+                                        description={getBotDescription(b)}
+                                        status={b.status}
+                                        iconUrl={getImageUrl(getBotImage(b)) || DEFAULT_BOT_IMAGE_URL}
+                                        category={getBotCategory(b)}
+                                        createdBy={getBotCreatedBy(b)}
+                                        dateLabel={getBotDate(b)}
+                                        onViewDetails={() => handleViewBotDetails(b)}
+                                    />
                                 ))
                             ) : activeCategory === 'models' ? (
                                 models.filter(m => !searchQuery || (m.modelName || '').toLowerCase().includes(searchQuery.toLowerCase())).map((m, i) => (
@@ -388,7 +511,7 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                         {filteredArtifacts.length === 0 && !loading && activeCategory !== 'bots' && activeCategory !== 'models' && (
                             <div className="flex flex-col items-center justify-center py-20 grayscale opacity-40">
                                 <FiLayers size={48} className="text-gray-300 mb-4" />
-                                <p className="text-sm font-black text-gray-400 uppercase tracking-widest">No assets discovered in this category</p>
+                                <p className="text-sm font-black text-gray-400 titlecase tracking-widest">No assets discovered in this category</p>
                             </div>
                         )}
                     </div>
@@ -402,6 +525,12 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
                 onUpdate={handleRefresh}
                 onDelete={handleRefresh}
             />
+            {showBotDetailsModal && (
+                <BotDetailsModal
+                    bot={selectedBot}
+                    onClose={() => setShowBotDetailsModal(false)}
+                />
+            )}
         </div>
     );
 };
@@ -436,7 +565,7 @@ const ArtifactCard: React.FC<ArtifactCardProps> = ({ name, type, description, st
                     </h4>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">{type}</span>
+                    <span className="text-[9px] font-black text-blue-400 titlecase tracking-widest">{type}</span>
                     {status && (
                         <span className={`w-1.5 h-1.5 rounded-full ${status.toLowerCase() === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></span>
                     )}
@@ -446,13 +575,62 @@ const ArtifactCard: React.FC<ArtifactCardProps> = ({ name, type, description, st
         <p className={`text-[11px] text-gray-500 overflow-hidden leading-relaxed ${isLarge ? 'line-clamp-4' : 'line-clamp-2'}`}>
             {description || 'No description available for this artifact.'}
         </p>
-        <div className="mt-auto pt-4 flex items-center justify-between">
-            <span className="text-[10px] font-bold text-gray-300 group-hover:text-blue-900/40 transition-colors uppercase tracking-widest">Details</span>
-            <div className="w-6 h-6 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-blue-900 group-hover:text-white transition-all">
-                <FiEye size={12} />
+    </div>
+);
+
+interface BotStoreCardProps {
+    name: string;
+    description?: string;
+    status?: string;
+    iconUrl?: string;
+    category?: string;
+    createdBy?: string;
+    dateLabel?: string;
+    onViewDetails: () => void;
+}
+
+const BotStoreCard: React.FC<BotStoreCardProps> = ({
+    name,
+    description,
+    status,
+    iconUrl,
+    category,
+    createdBy,
+    dateLabel,
+    onViewDetails
+}) => (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-3 flex gap-3 min-h-[148px]">
+            <img
+                src={iconUrl}
+                alt={name}
+                className="w-[92px] h-[92px] object-cover rounded bg-[#d9ecf8] border border-[#c6ddef] shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+                <h4 className="text-[13px] font-bold text-gray-900 leading-tight truncate">{name}</h4>
+                <p className="text-[11px] text-gray-600 mt-1 line-clamp-2">{description || 'No description available.'}</p>
+                {dateLabel && <p className="text-[11px] text-gray-500 mt-0.5">{dateLabel}</p>}
+                <div className="mt-2 flex items-center gap-2">
+                    <span className="px-2 py-0.5 text-[10px] bg-gray-100 rounded text-gray-800">{category || 'Enterprise'}</span>
+                    {status && (
+                        <span className={`w-2 h-2 rounded-full ${status.toLowerCase() === 'active' ? 'bg-green-500' : 'bg-gray-300'}`}></span>
+                    )}
+                </div>
+                <p className="text-[11px] text-gray-600 mt-2">
+                    Created By <span className="text-blue-600 font-bold">{createdBy || 'PG Admin'}</span>
+                </p>
             </div>
         </div>
+        <button
+            onClick={onViewDetails}
+            className="w-full px-4 py-2.5 bg-gray-50 border-t border-gray-200 text-left text-[13px] font-semibold text-gray-900 flex items-center justify-between hover:bg-gray-100"
+        >
+            <span>View Details</span>
+            <FiArrowRight size={16} />
+        </button>
     </div>
 );
 
 export default AIArtifactsCard;
+
+

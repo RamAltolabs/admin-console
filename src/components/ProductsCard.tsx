@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiShoppingCart, FiRefreshCw, FiPackage, FiSearch, FiDollarSign, FiTag, FiCheckCircle, FiXCircle, FiExternalLink, FiEye, FiX, FiFilter } from 'react-icons/fi';
+import { FiShoppingCart, FiRefreshCw, FiPackage, FiSearch, FiDollarSign, FiTag, FiCheckCircle, FiXCircle, FiExternalLink, FiEye, FiX, FiFilter, FiEdit2 } from 'react-icons/fi';
 import merchantService from '../services/merchantService';
 
 interface ProductsCardProps {
@@ -483,9 +483,10 @@ const ProductsCard: React.FC<ProductsCardProps> = ({ merchantId, cluster }) => {
                                 <>
                                     <button
                                         onClick={() => setIsEditing(true)}
-                                        className="px-4 py-2 bg-white border border-gray-200 text-blue-600 font-bold rounded-lg hover:bg-blue-50 transition-colors shadow-sm text-sm"
+                                        className="tile-btn-edit h-8 w-8"
+                                        title="Edit"
                                     >
-                                        Edit
+                                        <FiEdit2 size={14} />
                                     </button>
                                     <button
                                         onClick={() => setSelectedProduct(null)}

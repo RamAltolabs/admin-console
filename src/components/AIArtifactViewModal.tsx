@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiPackage, FiSave, FiTrash2, FiArrowLeft, FiPlus, FiEye, FiEyeOff } from 'react-icons/fi';
+import { FiX, FiPackage, FiSave, FiTrash2, FiArrowLeft, FiPlus, FiEye, FiEyeOff, FiEdit2, FiPlay } from 'react-icons/fi';
 import { AIArtifact } from '../types/merchant';
 import merchantService from '../services/merchantService';
 
@@ -12,14 +12,38 @@ interface AIArtifactViewModalProps {
 }
 
 const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isOpen, onClose, onUpdate, onDelete }) => {
+    type ApiKv = { key: string; value: string };
+    type ApiMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+    type ApiTab = 'params' | 'authorization' | 'headers' | 'environment';
+
     const [formData, setFormData] = useState<Partial<AIArtifact>>({});
     const [newAttribute, setNewAttribute] = useState({ key: '', value: '' });
     const [showToken, setShowToken] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [artifactApis, setArtifactApis] = useState<any[]>([]);
+    const [apiLoading, setApiLoading] = useState(false);
+    const [activeApiTab, setActiveApiTab] = useState<ApiTab>('params');
+    const [responseMode, setResponseMode] = useState<'pretty' | 'raw'>('pretty');
+    const [apiTestLoading, setApiTestLoading] = useState(false);
+    const [apiTestResponse, setApiTestResponse] = useState<string>('');
+    const [apiForm, setApiForm] = useState<any>({
+        id: '',
+        name: '',
+        status: 'Active',
+        description: '',
+        method: 'GET',
+        endpoint: '',
+        body: '',
+        params: [{ key: '', value: '' }] as ApiKv[],
+        authorization: [{ key: 'Authorization', value: '' }] as ApiKv[],
+        headers: [{ key: 'Content-Type', value: 'application/json' }] as ApiKv[],
+        environment: [{ key: '', value: '' }] as ApiKv[]
+    });
 
     useEffect(() => {
         if (artifact && isOpen) {
             setFormData({ ...artifact });
+            loadArtifactApis(artifact);
         }
     }, [artifact, isOpen]);
 
@@ -27,6 +51,230 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const loadArtifactApis = async (currentArtifact: AIArtifact) => {
+        if (!currentArtifact?.id) return;
+        setApiLoading(true);
+        try {
+            const apis = await merchantService.getIntegrationApisById(currentArtifact.id, currentArtifact.cluster);
+            setArtifactApis(Array.isArray(apis) ? apis : []);
+        } catch (error) {
+            console.error('Failed to fetch integration APIs:', error);
+            setArtifactApis([]);
+        } finally {
+            setApiLoading(false);
+        }
+    };
+
+    const resetApiForm = () => {
+        setApiForm({
+            id: '',
+            name: '',
+            status: 'Active',
+            description: '',
+            method: 'GET',
+            endpoint: '',
+            body: '',
+            params: [{ key: '', value: '' }],
+            authorization: [{ key: 'Authorization', value: '' }],
+            headers: [{ key: 'Content-Type', value: 'application/json' }],
+            environment: [{ key: '', value: '' }]
+        });
+        setApiTestResponse('');
+    };
+
+    const mapApiToForm = (api: any) => {
+        const mapKvArray = (val: any): ApiKv[] => {
+            if (Array.isArray(val)) {
+                return val.map((x: any) => ({ key: String(x?.key || ''), value: String(x?.value || '') }));
+            }
+            if (val && typeof val === 'object') {
+                return Object.keys(val).map(k => ({ key: k, value: String(val[k] ?? '') }));
+            }
+            return [{ key: '', value: '' }];
+        };
+
+        return {
+            id: api.id || api.apiId || '',
+            name: api.name || api.apiName || '',
+            method: api.method || 'GET',
+            endpoint: api.path || api.urlPath || api.endpoint || '',
+            status: api.status || 'Active',
+            description: api.description || '',
+            body: (() => {
+                const bodyValue = api.body ?? api.requestBody ?? api.payload ?? '';
+                if (typeof bodyValue === 'string') return bodyValue;
+                if (bodyValue && typeof bodyValue === 'object') return JSON.stringify(bodyValue, null, 2);
+                return '';
+            })(),
+            params: mapKvArray(api.params),
+            authorization: mapKvArray(api.authorization),
+            headers: mapKvArray(api.headers),
+            environment: mapKvArray(api.environment)
+        };
+    };
+
+    const handleEditApi = (api: any) => {
+        setApiForm(mapApiToForm(api));
+        setApiTestResponse('');
+        setActiveApiTab('params');
+    };
+
+    const updateApiKv = (group: ApiTab, index: number, field: 'key' | 'value', value: string) => {
+        setApiForm((prev: any) => {
+            const existing: ApiKv[] = Array.isArray(prev[group]) ? [...prev[group]] : [{ key: '', value: '' }];
+            existing[index] = { ...existing[index], [field]: value };
+            return { ...prev, [group]: existing };
+        });
+    };
+
+    const addApiKv = (group: ApiTab) => {
+        setApiForm((prev: any) => {
+            const existing: ApiKv[] = Array.isArray(prev[group]) ? [...prev[group]] : [];
+            return { ...prev, [group]: [...existing, { key: '', value: '' }] };
+        });
+    };
+
+    const compactKv = (items: ApiKv[]): ApiKv[] => {
+        return (items || []).filter(x => (x.key || '').trim() || (x.value || '').trim());
+    };
+
+    const handleSaveApi = async () => {
+        if (!artifact?.id || !apiForm.name || !apiForm.endpoint) {
+            alert('API Name and Endpoint are required');
+            return;
+        }
+
+        setApiLoading(true);
+        try {
+            const payload = {
+                artifactId: artifact.id,
+                merchantId: artifact.merchantId,
+                name: apiForm.name,
+                apiName: apiForm.name,
+                method: apiForm.method,
+                path: apiForm.endpoint,
+                endpoint: apiForm.endpoint,
+                body: apiForm.body,
+                requestBody: apiForm.body,
+                status: apiForm.status,
+                description: apiForm.description,
+                params: compactKv(apiForm.params),
+                authorization: compactKv(apiForm.authorization),
+                headers: compactKv(apiForm.headers),
+                environment: compactKv(apiForm.environment)
+            };
+
+            if (apiForm.id) {
+                await merchantService.updateArtifactApi(apiForm.id, payload, artifact.cluster);
+            } else {
+                await merchantService.createNewArtifactApi(payload, artifact.cluster);
+            }
+
+            await loadArtifactApis(artifact);
+            resetApiForm();
+        } catch (error) {
+            console.error('Failed to save integration API:', error);
+            alert('Failed to save API');
+        } finally {
+            setApiLoading(false);
+        }
+    };
+
+    const handleTestApi = async (targetForm?: any) => {
+        const formToTest = targetForm || apiForm;
+        if (!formToTest.endpoint) {
+            alert('Endpoint is required to test');
+            return;
+        }
+
+        setApiTestLoading(true);
+        setApiTestResponse('');
+        try {
+            const host = String(formData.host || '').replace(/\/+$/, '');
+            const envMap = (compactKv(apiForm.environment) as ApiKv[]).reduce((acc: Record<string, string>, x: ApiKv) => {
+                acc[x.key] = x.value;
+                return acc;
+            }, {});
+            let endpoint = String(formToTest.endpoint || '');
+
+            // Support placeholders like {{HOST}} and {{VAR}}
+            endpoint = endpoint.replace(/\{\{HOST\}\}/g, host || '');
+            endpoint = endpoint.replace(/\{\{([^}]+)\}\}/g, (_m: string, key: string) => envMap[key] ?? '');
+
+            const query = compactKv(formToTest.params).filter((x: ApiKv) => x.key);
+            const qs = new URLSearchParams();
+            query.forEach((x: ApiKv) => qs.append(x.key, x.value));
+
+            const finalUrl = `${endpoint}${qs.toString() ? `${endpoint.includes('?') ? '&' : '?'}${qs.toString()}` : ''}`;
+            const headers: Record<string, string> = {};
+            compactKv(formToTest.headers).forEach((x: ApiKv) => {
+                if (x.key) headers[x.key] = x.value;
+            });
+            compactKv(formToTest.authorization).forEach((x: ApiKv) => {
+                if (x.key) headers[x.key] = x.value;
+            });
+
+            let resolvedBody = String(formToTest.body || '').trim();
+            if (resolvedBody) {
+                resolvedBody = resolvedBody.replace(/\{\{HOST\}\}/g, host || '');
+                resolvedBody = resolvedBody.replace(/\{\{([^}]+)\}\}/g, (_m: string, key: string) => envMap[key] ?? '');
+            }
+
+            const method = String(formToTest.method || 'GET').toUpperCase();
+            const canSendBody = method !== 'GET';
+            const requestInit: RequestInit = {
+                method,
+                headers
+            };
+
+            if (canSendBody && resolvedBody) {
+                requestInit.body = resolvedBody;
+            }
+
+            const response = await fetch(finalUrl, requestInit);
+            const text = await response.text();
+            let parsed: any = text;
+            try {
+                parsed = JSON.parse(text);
+            } catch {
+                // keep text
+            }
+
+            const out = {
+                status: response.status,
+                ok: response.ok,
+                url: finalUrl,
+                method: method,
+                headers,
+                requestBody: canSendBody ? (resolvedBody || null) : null,
+                body: parsed
+            };
+            setApiTestResponse(JSON.stringify(out, null, 2));
+        } catch (error: any) {
+            setApiTestResponse(JSON.stringify({ error: true, message: error?.message || 'API test failed' }, null, 2));
+        } finally {
+            setApiTestLoading(false);
+        }
+    };
+
+    const handleDeleteApi = async (apiId: string | number) => {
+        if (!window.confirm('Are you sure you want to delete this API?')) return;
+        if (!artifact?.id) return;
+        setApiLoading(true);
+        try {
+            await merchantService.deleteArtifactApi(apiId, artifact.cluster);
+            await loadArtifactApis(artifact);
+            if (String(apiForm.id) === String(apiId)) {
+                resetApiForm();
+            }
+        } catch (error) {
+            console.error('Failed to delete integration API:', error);
+            alert('Failed to delete API');
+        } finally {
+            setApiLoading(false);
+        }
     };
 
     const handleNestedInputChange = (parent: string, field: string, value: any) => {
@@ -80,7 +328,49 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
         }
         setLoading(true);
         try {
-            await merchantService.updateAIArtifact(artifact.merchantId || '', artifact.id, formData, artifact.cluster);
+            const normalizeAccess = (value?: string) => {
+                const input = String(value || '').trim().toUpperCase();
+                if (!input) return 'PRIVATE';
+                if (input === 'PUBLIC' || input === 'PRIVATE' || input === 'RESTRICTED') return input;
+                if (input === 'PRIVATE') return 'PRIVATE';
+                if (input === 'PUBLIC') return 'PUBLIC';
+                return 'PRIVATE';
+            };
+
+            const currentToken = String(formData.authentication?.value?.token || '').trim();
+            const currentAuthType = String(formData.authentication?.type || 'api_key').trim().toLowerCase();
+
+            const payload = {
+                name: formData.name || artifact.name || '',
+                icon: formData.icon || artifact.icon || null,
+                description: formData.description || '',
+                providerDomain: formData.providerDomain ?? null,
+                tags: Array.isArray(formData.tags) ? formData.tags : [],
+                type: formData.type || artifact.type || 'integration',
+                category: formData.category ?? '',
+                documentation: formData.documentation ?? '',
+                notes: Array.isArray(formData.notes) ? formData.notes : [],
+                host: formData.host ?? '',
+                authentication: {
+                    type: currentAuthType || 'api_key',
+                    value: {
+                        token: currentToken,
+                        pathToCertificate: String(formData.authentication?.value?.pathToCertificate || ''),
+                        certPassword: String(formData.authentication?.value?.certPassword || '')
+                    }
+                },
+                status: formData.status || 'Active',
+                otherAttributes: Array.isArray(formData.otherAttributes) ? formData.otherAttributes : [],
+                access: normalizeAccess(formData.access || artifact.access),
+                merchantId: String(formData.merchantId || artifact.merchantId || ''),
+                createdBy: String(formData.createdBy || artifact.createdBy || ''),
+                createdDate: String(formData.createdDate || artifact.createdDate || ''),
+                modifiedDate: String(formData.modifiedDate || ''),
+                modifiedBy: String(formData.modifiedBy || ''),
+                ownerMerchantId: String(formData.ownerMerchantId || artifact.ownerMerchantId || '')
+            };
+
+            await merchantService.updateAIArtifact(artifact.merchantId || '', artifact.id, payload, artifact.cluster);
             if (onUpdate) onUpdate();
         } catch (error) {
             console.error('Error updating artifact:', error);
@@ -94,7 +384,7 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
         if (!window.confirm('Are you sure you want to delete this artifact?')) return;
         setLoading(true);
         try {
-            await merchantService.deleteAIArtifact(artifact.id, artifact.cluster);
+            await merchantService.deleteAIArtifact(artifact.id, artifact.cluster, artifact.merchantId || '');
             if (onDelete) onDelete();
         } catch (error) {
             console.error('Error deleting artifact:', error);
@@ -375,6 +665,225 @@ const AIArtifactViewModal: React.FC<AIArtifactViewModalProps> = ({ artifact, isO
                                         />
                                     )}
                                 </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* APIs & Documents */}
+                    <div className="mt-6 p-4 bg-white border border-gray-200 rounded-lg">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-2xl font-semibold text-[#0f295f]">APIs &amp; Documents</h4>
+                            <button
+                                onClick={resetApiForm}
+                                className="px-4 py-2 bg-[#1e3a8a] text-white rounded text-sm font-bold hover:bg-[#1d4ed8]"
+                            >
+                                + Add API
+                            </button>
+                        </div>
+
+                        <div className="space-y-2 mb-4">
+                            {apiLoading ? (
+                                <p className="text-xs text-gray-500">Loading APIs...</p>
+                            ) : artifactApis.length === 0 ? (
+                                <p className="text-xs text-gray-500">No APIs configured.</p>
+                            ) : (
+                                artifactApis.map((api, idx) => {
+                                    const apiId = api.id || api.apiId || idx;
+                                    const apiName = api.name || api.apiName || 'Unnamed API';
+                                    const apiMethod = (api.method || 'GET').toUpperCase();
+                                    const apiPath = api.path || api.urlPath || api.endpoint || '';
+                                    return (
+                                        <div key={apiId} className="p-3 border border-gray-200 rounded bg-[#f8fafc] flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="text-sm font-semibold text-[#0f295f]">{apiName}</p>
+                                                <p className="text-xs text-gray-700 mt-1">
+                                                    <span className="inline-flex px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-bold mr-2">{apiMethod}</span>
+                                                    <span className="font-medium">{apiPath}</span>
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-1">
+                                                <button onClick={() => handleTestApi(mapApiToForm(api))} className="tile-btn-view h-7 w-7" title="Test API">
+                                                    <FiPlay size={12} />
+                                                </button>
+                                                <button onClick={() => handleEditApi(api)} className="tile-btn-edit h-7 w-7" title="Edit API">
+                                                    <FiEdit2 size={12} />
+                                                </button>
+                                                <button onClick={() => handleDeleteApi(apiId)} className="tile-btn-delete h-7 w-7" title="Delete API">
+                                                    <FiTrash2 size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+
+                        <div className="space-y-3 p-3 border border-gray-200 rounded-lg bg-[#f9fbff]">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Name *</label>
+                                    <input
+                                        type="text"
+                                        value={apiForm.name}
+                                        onChange={(e) => setApiForm((prev: any) => ({ ...prev, name: e.target.value }))}
+                                        placeholder="Enter API name"
+                                        className="w-full px-3 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-blue-500"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Status</label>
+                                    <select
+                                        value={apiForm.status}
+                                        onChange={(e) => setApiForm((prev: any) => ({ ...prev, status: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-blue-500"
+                                    >
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Description</label>
+                                <textarea
+                                    value={apiForm.description}
+                                    onChange={(e) => setApiForm((prev: any) => ({ ...prev, description: e.target.value }))}
+                                    rows={2}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-blue-500 resize-none"
+                                    placeholder="Enter description"
+                                />
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-3">
+                                {(['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as ApiMethod[]).map((method) => (
+                                    <label key={method} className="inline-flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            name="api-method"
+                                            checked={apiForm.method === method}
+                                            onChange={() => setApiForm((prev: any) => ({ ...prev, method }))}
+                                        />
+                                        {method}
+                                    </label>
+                                ))}
+                            </div>
+
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={apiForm.endpoint}
+                                    onChange={(e) => setApiForm((prev: any) => ({ ...prev, endpoint: e.target.value }))}
+                                    placeholder="{{HOST}}/v2/voices?page_size=100"
+                                    className="flex-1 px-3 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-blue-500"
+                                />
+                                <button
+                                    onClick={handleTestApi}
+                                    disabled={apiTestLoading}
+                                    className="px-5 py-2 bg-blue-900 text-white rounded text-xs font-bold hover:bg-blue-800 disabled:opacity-50"
+                                >
+                                    {apiTestLoading ? 'Testing...' : 'Test'}
+                                </button>
+                            </div>
+
+                            {apiForm.method !== 'GET' && (
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Body</label>
+                                    <textarea
+                                        value={apiForm.body}
+                                        onChange={(e) => setApiForm((prev: any) => ({ ...prev, body: e.target.value }))}
+                                        rows={6}
+                                        className="w-full px-3 py-2 border border-gray-200 rounded text-xs font-mono focus:outline-none focus:border-blue-500"
+                                        placeholder='{"key":"value"}'
+                                    />
+                                </div>
+                            )}
+
+                            <div className="border border-gray-200 rounded-lg overflow-hidden">
+                                <div className="flex gap-1 border-b border-gray-200 px-2 py-1 bg-gray-50">
+                                    {(['params', 'authorization', 'headers', 'environment'] as ApiTab[]).map((tab) => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveApiTab(tab)}
+                                            className={`px-3 py-1 text-xs font-semibold rounded ${activeApiTab === tab ? 'bg-white text-blue-900 border border-gray-200' : 'text-gray-500 hover:text-gray-800'}`}
+                                        >
+                                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="p-2 space-y-2">
+                                    {(apiForm[activeApiTab] || []).map((item: ApiKv, idx: number) => (
+                                        <div key={`${activeApiTab}-${idx}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+                                            <input
+                                                type="text"
+                                                value={item.key}
+                                                onChange={(e) => updateApiKv(activeApiTab, idx, 'key', e.target.value)}
+                                                placeholder="Key"
+                                                className="px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-blue-500"
+                                            />
+                                            <input
+                                                type="text"
+                                                value={item.value}
+                                                onChange={(e) => updateApiKv(activeApiTab, idx, 'value', e.target.value)}
+                                                placeholder="Value"
+                                                className="px-2 py-2 border border-gray-200 rounded text-xs focus:outline-none focus:border-blue-500"
+                                            />
+                                            <button
+                                                onClick={() => addApiKv(activeApiTab)}
+                                                className="px-2 py-2 bg-gray-100 border border-gray-200 rounded text-xs font-bold hover:bg-gray-200"
+                                                title="Add row"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">Response</label>
+                                <div className="flex items-center gap-4 text-xs mb-1.5">
+                                    <label className="inline-flex items-center gap-1">
+                                        <input type="radio" checked={responseMode === 'pretty'} onChange={() => setResponseMode('pretty')} />
+                                        Pretty
+                                    </label>
+                                    <label className="inline-flex items-center gap-1">
+                                        <input type="radio" checked={responseMode === 'raw'} onChange={() => setResponseMode('raw')} />
+                                        Raw
+                                    </label>
+                                </div>
+                                <textarea
+                                    value={responseMode === 'pretty'
+                                        ? (() => {
+                                            try {
+                                                return apiTestResponse ? JSON.stringify(JSON.parse(apiTestResponse), null, 2) : '';
+                                            } catch {
+                                                return apiTestResponse;
+                                            }
+                                        })()
+                                        : apiTestResponse}
+                                    readOnly
+                                    rows={8}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded text-xs font-mono bg-gray-50"
+                                />
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleSaveApi}
+                                    disabled={apiLoading}
+                                    className="px-4 py-2 bg-blue-900 text-white rounded text-xs font-bold hover:bg-blue-800 disabled:opacity-50"
+                                >
+                                    {apiForm.id ? 'Update API' : 'Add API'}
+                                </button>
+                                {apiForm.id && (
+                                    <button
+                                        onClick={resetApiForm}
+                                        className="px-3 py-2 bg-white border border-gray-200 rounded text-xs font-bold text-gray-700 hover:bg-gray-50"
+                                    >
+                                        Cancel Edit
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

@@ -22,7 +22,10 @@ import PromptLab from './components/PromptLab';
 import OntologiesCard from './components/OntologiesCard';
 import AIPlatformsCard from './components/AIPlatformsCard';
 import ComingSoonCard from './components/ComingSoonCard';
+import GoogleCloudConsoleDashboard from './components/GcpConsoleDashboardView';
 import { FiGrid, FiShare2, FiBarChart2, FiBook, FiCommand, FiLayers, FiPlus, FiLink, FiInfo, FiAlertCircle, FiZap } from 'react-icons/fi';
+
+const APP_NOTIFICATION_HISTORY_KEY = 'app_notification_history';
 
 const App: React.FC = () => {
   const {
@@ -31,12 +34,10 @@ const App: React.FC = () => {
     loading,
     error,
     viewMode,
-    setViewMode,
     fetchMerchants,
     fetchClusters,
     addMerchant,
     updateMerchant,
-    removeMerchant,
     clearError,
   } = useMerchantContext();
 
@@ -102,6 +103,23 @@ const App: React.FC = () => {
   const addNotification = (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => {
     const id = `notification-${Date.now()}-${Math.random()}`;
     setNotifications(prev => [...prev, { id, type, title, message, duration: 5000 }]);
+    try {
+      const raw = localStorage.getItem(APP_NOTIFICATION_HISTORY_KEY);
+      const prev = raw ? JSON.parse(raw) : [];
+      const next = Array.isArray(prev) ? prev : [];
+      next.unshift({
+        id,
+        source: 'app',
+        type,
+        title,
+        message,
+        createdAt: new Date().toISOString()
+      });
+      localStorage.setItem(APP_NOTIFICATION_HISTORY_KEY, JSON.stringify(next.slice(0, 200)));
+      window.dispatchEvent(new Event('app-notification'));
+    } catch {
+      // no-op for history persistence failure
+    }
   };
 
   const removeNotification = (id: string) => {
@@ -191,20 +209,6 @@ const App: React.FC = () => {
     setIsFormModalOpen(true);
   };
 
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      fetchMerchants();
-      return;
-    }
-    try {
-      await merchantService.searchMerchants(query, undefined, selectedCluster);
-      // This would need state management to handle search results
-      // For now, we'll rely on the backend filtering
-    } catch (err) {
-      console.error('Search error:', err);
-    }
-  };
-
   const handleStatusUpdate = async (merchantId: string, newStatus: 'Active' | 'Inactive') => {
     try {
       const response = await merchantService.updateMerchantStatus(merchantId, newStatus);
@@ -275,7 +279,7 @@ const App: React.FC = () => {
                   onClick={clearError}
                   className="text-red-700 hover:text-red-900 font-bold"
                 >
-                  ✕
+                  x
                 </button>
               </div>
             )}
@@ -292,13 +296,13 @@ const App: React.FC = () => {
                     onEdit={handleEdit}
                     onDelete={handleDelete2}
                     onCreate={handleCreate}
-                    onSearch={handleSearch}
                     onStatusUpdate={handleStatusUpdate}
                   />
                 }
               />
               <Route path="/merchants/:id" element={<MerchantDetails />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/google-cloud-console" element={<GoogleCloudConsoleDashboard />} />
 
               {/* Model Studio Routes */}
               <Route path="/model-studio/models" element={modelStudioMerchantId ? <AIModelCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} initialTab="Model Management" /> : modelStudioFallback} />
@@ -358,3 +362,4 @@ const App: React.FC = () => {
 };
 
 export default App;
+

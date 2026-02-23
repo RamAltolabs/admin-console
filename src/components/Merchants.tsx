@@ -10,7 +10,6 @@ interface MerchantsProps {
   onEdit: (merchant: Merchant) => void;
   onDelete: (merchant: Merchant) => void;
   onCreate: () => void;
-  onSearch: (query: string) => void;
   onStatusUpdate: (merchantId: string, newStatus: 'Active' | 'Inactive') => void;
 }
 
@@ -20,7 +19,6 @@ const Merchants: React.FC<MerchantsProps> = ({
   onEdit,
   onDelete,
   onCreate,
-  onSearch,
   onStatusUpdate,
 }) => {
   const { selectedCluster, viewMode, clusters, setSelectedCluster, setViewMode } = useMerchantContext();
@@ -119,7 +117,6 @@ const Merchants: React.FC<MerchantsProps> = ({
         onEdit={onEdit}
         onDelete={onDelete}
         onCreate={onCreate}
-        onSearch={onSearch}
         onStatusUpdate={onStatusUpdate}
       />
     </div>

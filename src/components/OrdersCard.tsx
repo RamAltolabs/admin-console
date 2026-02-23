@@ -303,10 +303,10 @@ const OrdersCard: React.FC<OrdersCardProps> = ({ merchantId, cluster }) => {
                                     {/* Absolute Action Button */}
                                     <button
                                         onClick={() => setSelectedOrder(order)}
-                                        className="absolute bottom-4 right-4 w-9 h-9 flex items-center justify-center rounded-xl bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all duration-300 shadow-sm border border-gray-100 group-hover:shadow-md"
+                                        className="absolute bottom-4 right-4 tile-btn-view h-8 w-8 !px-0"
                                         title="View Details"
                                     >
-                                        <FiEye size={18} />
+                                        <FiEye size={14} />
                                     </button>
                                 </div>
                             );

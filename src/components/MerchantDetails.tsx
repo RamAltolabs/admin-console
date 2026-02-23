@@ -148,8 +148,6 @@ const MerchantDetails: React.FC = () => {
         }
     ];
 
-    const activeSection = managementSections.flatMap(s => s.items).find(i => i.id === activeTab);
-
     useEffect(() => {
         const fetchMerchantDetails = async () => {
             if (!id) return;
@@ -172,7 +170,7 @@ const MerchantDetails: React.FC = () => {
         };
 
         fetchMerchantDetails();
-    }, [id]);
+    }, [id, clusterParam]);
 
     const handleEditMerchant = async (data: any) => {
         if (!id || !merchant) return;
@@ -536,8 +534,6 @@ const MerchantDetails: React.FC = () => {
                                         {activeTab === 'bot-settings' && <BotSettingsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'agenti-ai' && <AgentiAICard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'ai-agents' && <AIAgentsCard merchantId={merchant.id} cluster={merchant.cluster} />}
-                                        {activeTab === 'prompts' && <PromptLab merchantId={merchant.id} cluster={merchant.cluster} />}
-                                        {activeTab === 'knowledge' && <KnowledgeBasesCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'artifacts' && <AIArtifactsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'ai-platforms' && <AIPlatformsCard merchantId={merchant.id} cluster={merchant.cluster} />}
                                         {activeTab === 'engagements' && <EngagementsCard merchantId={merchant.id} cluster={merchant.cluster} />}

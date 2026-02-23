@@ -350,17 +350,17 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
                                                                     <>
                                                                         <button
                                                                             onClick={() => handleEditEngagement(item)}
-                                                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-blue-900 hover:text-white transition-all shadow-sm border border-gray-100"
+                                                                            className="tile-btn-edit h-7 w-7"
                                                                             title="Edit"
                                                                         >
-                                                                            <FiEdit2 size={12} />
+                                                                            <FiEdit2 size={14} />
                                                                         </button>
                                                                         <button
                                                                             onClick={() => handleDeleteEngagement(item)}
-                                                                            className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-red-600 hover:text-white transition-all shadow-sm border border-gray-100"
+                                                                            className="tile-btn-delete h-7 w-7"
                                                                             title="Delete"
                                                                         >
-                                                                            <FiTrash2 size={12} />
+                                                                            <FiTrash2 size={14} />
                                                                         </button>
                                                                     </>
                                                                 )}
