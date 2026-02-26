@@ -21,9 +21,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
   const { clusters, selectedCluster, setSelectedCluster, viewMode, setViewMode } = useMerchantContext();
   const { logout } = useAuth();
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-  const gcpProjects = ['Earth', 'Pluto', 'Nebula'];
-  const isGcpRoute = location.pathname === '/google-cloud-console';
-  const selectedGcpProject = isGcpRoute ? (new URLSearchParams(location.search).get('project') || '') : '';
 
   const toggleMenu = (menuName: string) => {
     if (isMinimized) return; // Don't expand menus when minimized
@@ -134,83 +131,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
                 onClose={onClose}
                 isMinimized={isMinimized}
               />
-
-              <div className="space-y-1">
-                <div className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-1'} group`}>
-                  <button
-                    onClick={() => {
-                      navigate('/google-cloud-console');
-                      onClose();
-                      if (!isMinimized) {
-                        setExpandedMenu(expandedMenu === 'google-cloud' ? null : 'google-cloud');
-                      }
-                    }}
-                    title={isMinimized ? 'Google Cloud Console Dashboard' : ''}
-                    className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all flex-1 text-left font-bold text-[12px] ${isGcpRoute && !selectedGcpProject
-                      ? 'bg-blue-900 text-white shadow-md'
-                      : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
-                      }`}
-                  >
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isGcpRoute && !selectedGcpProject ? 'bg-white/10' : 'bg-gray-100'}`}>
-                      <FiActivity size={18} />
-                    </div>
-                    {!isMinimized && <span>Google Cloud Console Dashboard</span>}
-                  </button>
-                  {!isMinimized && (
-                    <button
-                      onClick={() => setExpandedMenu(expandedMenu === 'google-cloud' ? null : 'google-cloud')}
-                      className={`p-2 rounded-lg transition-all ${expandedMenu === 'google-cloud' ? 'text-blue-900 bg-blue-50' : 'text-neutral-text-secondary hover:text-blue-900 hover:bg-gray-100'
-                        }`}
-                    >
-                      {expandedMenu === 'google-cloud' ? <FiChevronDown size={12} /> : <FiChevronRight size={12} />}
-                    </button>
-                  )}
-                </div>
-
-                {expandedMenu === 'google-cloud' && !isMinimized && (
-                  <div className="ml-8 pl-4 border-l-2 border-blue-100 space-y-1 py-1 animate-in slide-in-from-left-2 duration-300">
-                    {(() => {
-                      const getGcpProjectIcon = (project: string) => {
-                        switch (project.toLowerCase()) {
-                          case 'earth':
-                            return <FiGlobe size={12} />;
-                          case 'pluto':
-                            return <FiServer size={12} />;
-                          case 'nebula':
-                            return <FiCpu size={12} />;
-                          default:
-                            return <FiActivity size={12} />;
-                        }
-                      };
-
-                      return gcpProjects.map((project) => (
-                        <button
-                          key={project}
-                          onClick={() => {
-                            navigate(`/google-cloud-console?project=${encodeURIComponent(project)}`);
-                            onClose();
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-lg text-[10px] font-bold titlecase tracking-[0.1em] transition-all flex items-center justify-between group/cluster ${selectedGcpProject === project
-                            ? 'bg-blue-900 text-white shadow-sm'
-                            : 'text-gray-500 hover:text-blue-900 hover:bg-blue-50'
-                            }`}
-                        >
-                          <div className="flex items-center gap-2.5">
-                            <div className={`transition-all duration-300 ${selectedGcpProject === project ? 'text-white' : 'text-gray-400 group-hover/cluster:text-blue-600'}`}>
-                              {getGcpProjectIcon(project)}
-                            </div>
-                            <span className="truncate">{project}</span>
-                          </div>
-                          {selectedGcpProject === project && (
-                            <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                          )}
-                        </button>
-                      ));
-                    })()}
-                  </div>
-                )}
-              </div>
-
 
             </div>
           </div>

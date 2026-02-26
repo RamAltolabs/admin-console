@@ -57,7 +57,6 @@ const GlobalSearch: React.FC = () => {
             { id: 'm-dash', label: 'Dashboard', path: '/', icon: <FiPieChart />, category: 'Main Menu', description: 'System overview and analytics' },
             { id: 'm-merc', label: 'Merchants', path: '/merchants', icon: <FiShoppingBag />, category: 'Main Menu', description: 'Manage all business accounts' },
             { id: 'm-sett', label: 'Settings', path: '/settings', icon: <FiSettings />, category: 'Main Menu', description: 'System configuration' },
-            { id: 'm-gcp', label: 'Google Cloud Console Dashboard', path: '/google-cloud-console', icon: <FiActivity />, category: 'Main Menu', description: 'Live cloud monitoring, alerts and notifications' },
         ];
         allPossible.push(...mainMenus.map(m => ({ ...m, icon: React.cloneElement(m.icon as React.ReactElement, { size: 14 }) })));
 
@@ -149,7 +148,6 @@ const GlobalSearch: React.FC = () => {
             });
         });
 
-        // 5. SETTINGS SUB MENUS
         const settingsTabs = [
             { id: 's-site', label: 'Settings > Site Identity', path: '/settings?tab=identity', icon: <FiGlobe />, description: 'Configure branding and site titles' },
             { id: 's-visuals', label: 'Settings > Visual Interface', path: '/settings?tab=visuals', icon: <FiMonitor />, description: 'Change themes and appearance' },
@@ -158,14 +156,6 @@ const GlobalSearch: React.FC = () => {
             { id: 's-security', label: 'Settings > Security', path: '/settings?tab=security', icon: <FiLock />, description: 'Control session timeout and security actions' },
         ];
         allPossible.push(...settingsTabs.map(t => ({ ...t, category: 'Sub Menus', icon: React.cloneElement(t.icon as React.ReactElement, { size: 14 }) })));
-
-        const gcpTabs = [
-            { id: 'gcp-api', label: 'Google Cloud > API Monitoring', path: '/google-cloud-console', icon: <FiServer />, description: 'Track API health, latency, and error rates' },
-            { id: 'gcp-alerts', label: 'Google Cloud > Alerts', path: '/google-cloud-console', icon: <FiAlertCircle />, description: 'View critical and active monitoring alerts' },
-            { id: 'gcp-notifications', label: 'Google Cloud > Notifications', path: '/google-cloud-console', icon: <FiBell />, description: 'Review operational notification feed' },
-            { id: 'gcp-live', label: 'Google Cloud > Live Tracking', path: '/google-cloud-console', icon: <FiTrendingUp />, description: 'Observe live events and service activity' },
-        ];
-        allPossible.push(...gcpTabs.map(t => ({ ...t, category: 'Sub Menus', icon: React.cloneElement(t.icon as React.ReactElement, { size: 14 }) })));
 
         // 6. SEARCH ENTITIES (Specific Merchants)
         merchants

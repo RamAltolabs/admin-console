@@ -1,12 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { FiAlertTriangle, FiBell, FiCheckCircle, FiInfo, FiXCircle } from 'react-icons/fi';
-import googleCloudConsoleService from '../services/googleCloudConsoleService';
 
 type FeedType = 'success' | 'error' | 'warning' | 'info' | 'critical' | 'high' | 'medium' | 'low';
 
 interface NotificationFeedItem {
   id: string;
-  source: 'app' | 'gcp-alert' | 'gcp-notification';
+  source: 'app';
   type: FeedType;
   title: string;
   message?: string;
@@ -114,34 +113,7 @@ const HeaderNotifications: React.FC = () => {
   const [open, setOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<FeedCategory>('all');
   const [appItems, setAppItems] = useState<NotificationFeedItem[]>([]);
-  const [gcpItems, setGcpItems] = useState<NotificationFeedItem[]>([]);
   const [lastSeen, setLastSeen] = useState<number>(() => Number(localStorage.getItem(LAST_SEEN_KEY) || '0'));
-
-  const refreshGcpFeed = async () => {
-    try {
-      const currentProject = new URLSearchParams(window.location.search).get('project') || undefined;
-      const payload = await googleCloudConsoleService.getDashboardData(currentProject);
-      const alerts = (payload.alerts || []).map((a) => ({
-        id: `gcp-alert-${a.id}`,
-        source: 'gcp-alert' as const,
-        type: normalizeFeedType(a.severity),
-        title: `Alert: ${a.title}`,
-        message: `${a.service} - ${a.status}`,
-        createdAt: a.createdAt
-      }));
-      const notes = (payload.notifications || []).map((n) => ({
-        id: `gcp-note-${n.id}`,
-        source: 'gcp-notification' as const,
-        type: normalizeFeedType(n.type),
-        title: 'Cloud Notification',
-        message: n.message,
-        createdAt: n.createdAt
-      }));
-      setGcpItems([...alerts, ...notes]);
-    } catch {
-      setGcpItems([]);
-    }
-  };
 
   useEffect(() => {
     const syncHistory = () => setAppItems(readAppHistory());
@@ -150,15 +122,12 @@ const HeaderNotifications: React.FC = () => {
       if (!panelRef.current.contains(e.target as Node)) setOpen(false);
     };
     syncHistory();
-    refreshGcpFeed();
-    const interval = setInterval(refreshGcpFeed, 20000);
 
     window.addEventListener('app-notification', syncHistory as EventListener);
     window.addEventListener('storage', syncHistory);
     document.addEventListener('mousedown', handleDocClick);
 
     return () => {
-      clearInterval(interval);
       window.removeEventListener('app-notification', syncHistory as EventListener);
       window.removeEventListener('storage', syncHistory);
       document.removeEventListener('mousedown', handleDocClick);
@@ -166,23 +135,19 @@ const HeaderNotifications: React.FC = () => {
   }, []);
 
   const feedItems = useMemo(() => {
-    return [...appItems, ...gcpItems].sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
-  }, [appItems, gcpItems]);
+    return [...appItems].sort((a, b) => toMillis(b.createdAt) - toMillis(a.createdAt));
+  }, [appItems]);
 
   const unreadCount = useMemo(() => {
     return feedItems.filter(i => toMillis(i.createdAt) > lastSeen).length;
   }, [feedItems, lastSeen]);
 
-  const unreadAlertCount = useMemo(() => {
-    return feedItems.filter(i => i.source === 'gcp-alert' && toMillis(i.createdAt) > lastSeen).length;
-  }, [feedItems, lastSeen]);
-
   const alertItems = useMemo(() => {
-    return feedItems.filter(item => item.source === 'gcp-alert');
-  }, [feedItems]);
+    return [];
+  }, []);
 
   const notificationItems = useMemo(() => {
-    return feedItems.filter(item => item.source !== 'gcp-alert');
+    return feedItems;
   }, [feedItems]);
 
   const notificationsByType = useMemo(() => {
@@ -197,7 +162,7 @@ const HeaderNotifications: React.FC = () => {
   const unreadCategoryCounts = useMemo(() => {
     const counts: Record<FeedCategory, number> = {
       all: unreadCount,
-      alerts: unreadAlertCount,
+      alerts: 0,
       critical: 0,
       error: 0,
       high: 0,
@@ -213,7 +178,7 @@ const HeaderNotifications: React.FC = () => {
       }
     });
     return counts;
-  }, [lastSeen, notificationItems, unreadAlertCount, unreadCount]);
+  }, [lastSeen, notificationItems, unreadCount]);
 
   const categoryCounts = useMemo(() => {
     const counts: Record<FeedCategory, number> = {
@@ -258,15 +223,14 @@ const HeaderNotifications: React.FC = () => {
   return (
     <div className="relative" ref={panelRef}>
       <div className="flex items-center gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-gray-700 whitespace-nowrap">GCP Alerts</span>
+        <span className="text-[11px] font-bold uppercase tracking-wide text-gray-700 whitespace-nowrap">Alerts</span>
 
         <button
           onClick={() => togglePanel('all')}
-          className={`relative p-2 rounded-lg border transition-colors inline-flex items-center justify-center ${
-            open && activeCategory === 'all'
+          className={`relative p-2 rounded-lg border transition-colors inline-flex items-center justify-center ${open && activeCategory === 'all'
               ? 'border-slate-300 text-slate-800 bg-slate-100'
               : 'border-gray-200 text-gray-700 bg-white hover:bg-gray-50'
-          }`}
+            }`}
           title="Notifications & Alerts"
         >
           <FiBell size={18} />

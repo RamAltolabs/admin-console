@@ -22,7 +22,6 @@ import PromptLab from './components/PromptLab';
 import OntologiesCard from './components/OntologiesCard';
 import AIPlatformsCard from './components/AIPlatformsCard';
 import ComingSoonCard from './components/ComingSoonCard';
-import GoogleCloudConsoleDashboard from './components/GcpConsoleDashboardView';
 import { FiGrid, FiShare2, FiBarChart2, FiBook, FiCommand, FiLayers, FiPlus, FiLink, FiInfo, FiAlertCircle, FiZap } from 'react-icons/fi';
 
 const APP_NOTIFICATION_HISTORY_KEY = 'app_notification_history';
@@ -302,8 +301,6 @@ const App: React.FC = () => {
               />
               <Route path="/merchants/:id" element={<MerchantDetails />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/google-cloud-console" element={<GoogleCloudConsoleDashboard />} />
-
               {/* Model Studio Routes */}
               <Route path="/model-studio/models" element={modelStudioMerchantId ? <AIModelCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} initialTab="Model Management" /> : modelStudioFallback} />
               <Route path="/model-studio/ml-models" element={modelStudioMerchantId ? <AIModelCard merchantId={modelStudioMerchantId} cluster={modelStudioCluster} initialTab="ML Models" /> : modelStudioFallback} />
