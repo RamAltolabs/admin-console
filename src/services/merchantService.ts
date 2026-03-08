@@ -1,8 +1,12 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 // Ensure axios is installed in the project
 // Run `npm install axios` if not already installed
 
 import { Merchant, CreateMerchantPayload, UpdateMerchantPayload, UpdateMerchantAttributesPayload, ApiResponse, Cluster, UpdateStatusRequest, MerchantResponse, Prompt, PageResponsePrompt, KnowledgeBase, PageResponseKnowledgeBase, RawVisitor, PageResponseRawVisitor, MerchantAttribute, PageResponseMerchantAttribute, AIArtifact, PageResponseAIArtifact, Engagement, PageResponseEngagement, MerchantUser, PageResponseMerchantUser } from '../types/merchant';
+
+interface CustomAxiosRequestConfig extends AxiosRequestConfig {
+  skipAutoLogout?: boolean;
+}
 
 class MerchantApiService {
   private api: AxiosInstance;
@@ -10,9 +14,18 @@ class MerchantApiService {
   private cache = new Map<string, { data: any; timestamp: number }>();
   private ongoingRequests = new Map<string, Promise<any>>();
   private readonly DEFAULT_TTL = 30000; // 30 seconds
+  private readonly curoPathCandidates = ['curo', 'curo-auth-service'];
+  private readonly CURO_PING_TIMEOUT = 5000;
+  private curoRootPromiseCache = new Map<string, Promise<string>>();
+  private apiFailureCache = new Map<string, number>();
+  private readonly defaultTokenPayload = {
+    authType: 'PG',
+    userName: 'gcpuser',
+    password: 'password'
+  };
 
   constructor() {
-    this.baseURL = this.requireEnvUrl('REACT_APP_IT_APP_BASE_URL');
+    this.baseURL = this.requireEnvUrl('REACT_APP_DEV_INSTANCE_BASE_URL');
 
     this.api = axios.create({
       baseURL: this.baseURL,
@@ -21,21 +34,41 @@ class MerchantApiService {
       },
     });
 
+    const cachedToken = this.getAccessToken();
+    if (cachedToken) {
+      this.api.defaults.headers.common['Authorization'] = `Bearer ${cachedToken}`;
+      axios.defaults.headers.common['Authorization'] = `Bearer ${cachedToken}`;
+    }
+
+    this.api.interceptors.request.use(config => {
+      const token = this.getAccessToken();
+      if (token && config.headers) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+      return config;
+    });
+
     // Add interceptor for error handling and session termination
     this.api.interceptors.response.use(
       response => response,
       error => {
-        // Skip auto-logout for the publish endpoint to prevent disruptive reloads during that specific flow
-        const isPublishEndpoint = error.config?.url?.includes('jelloBuilder/storyDialog/publish');
+        const config = error.config as CustomAxiosRequestConfig | undefined;
+        const isPublishEndpoint = config?.url?.includes('jelloBuilder/storyDialog/publish');
+        const skipAutoLogout = config?.skipAutoLogout;
 
-        if (error.response?.status === 401 && !isPublishEndpoint) {
-          console.warn('[Session Terminated] 401 Unauthorized detected. Logging out...');
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('user_info');
-          // Dispatch custom event if we want the UI to react without a hard reload
-          window.dispatchEvent(new CustomEvent('auth:expired'));
-          // Reload to redirect to login page
-          window.location.reload();
+        this.recordApiFailure(error);
+        if (error.response?.status === 401 && !isPublishEndpoint && !skipAutoLogout) {
+          const requestUrl = config?.url || '';
+          const isPrimaryRequest = !requestUrl.startsWith('http') || requestUrl.startsWith(this.baseURL);
+          if (isPrimaryRequest) {
+            console.warn('[Session Terminated] 401 Unauthorized detected. Logging out...');
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('user_info');
+            window.dispatchEvent(new CustomEvent('auth:expired'));
+            window.location.reload();
+          } else {
+            console.warn('[Session Warning] 401 Unauthorized from non-primary cluster; skipping auto-logout.');
+          }
         }
         console.error('API Error:', error.response?.data || error.message);
         return Promise.reject(error);
@@ -53,6 +86,73 @@ class MerchantApiService {
       throw new Error(`Missing required environment variable: ${envKey}`);
     }
     return this.normalizeBaseURL(value);
+  }
+
+  private sanitizeUrl(url: string): string {
+    if (!url) return url;
+    try {
+      const parsed = url.startsWith('http') ? new URL(url) : new URL(url, window.location.origin);
+      parsed.searchParams.delete('access_token');
+      return parsed.pathname + (parsed.search ? parsed.search : '');
+    } catch {
+      return url.replace(/access_token=[^&]+/g, 'access_token=***');
+    }
+  }
+
+  private sanitizeErrorPayload(payload: any): string | undefined {
+    if (payload === undefined || payload === null) return undefined;
+    try {
+      if (typeof payload === 'string') return payload.slice(0, 300);
+      const cloned = JSON.parse(JSON.stringify(payload));
+      if (cloned?.access_token) cloned.access_token = '***';
+      if (cloned?.token) cloned.token = '***';
+      if (cloned?.authorization) cloned.authorization = '***';
+      if (cloned?.Authorization) cloned.Authorization = '***';
+      const asString = JSON.stringify(cloned);
+      return asString.length > 300 ? `${asString.slice(0, 300)}…` : asString;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private recordApiFailure(error: any): void {
+    try {
+      const status = error?.response?.status;
+      const method = String(error?.config?.method || 'GET').toUpperCase();
+      const rawUrl = String(error?.config?.url || '');
+      const safeUrl = this.sanitizeUrl(rawUrl);
+      const errorPayload = this.sanitizeErrorPayload(error?.response?.data);
+      const key = `${method}:${safeUrl}:${status || 'network'}`;
+      const now = Date.now();
+      const last = this.apiFailureCache.get(key) || 0;
+      if (now - last < 60000) return; // throttle duplicates for 1 minute
+      this.apiFailureCache.set(key, now);
+
+      const historyKey = 'app_notification_history';
+      const raw = localStorage.getItem(historyKey);
+      const prev = raw ? JSON.parse(raw) : [];
+      const next = Array.isArray(prev) ? prev : [];
+      const type = status && status >= 500 ? 'error' : status && status >= 400 ? 'warning' : 'error';
+      next.unshift({
+        id: `api-failure-${now}-${Math.random()}`,
+        source: 'app',
+        type,
+        title: `API Failure${status ? ` (${status})` : ''}`,
+        message: `${method} ${safeUrl}${error?.response?.statusText ? ` - ${error.response.statusText}` : ''}`,
+        meta: {
+          method,
+          status: status || undefined,
+          statusText: error?.response?.statusText,
+          url: safeUrl,
+          payload: errorPayload
+        },
+        createdAt: new Date(now).toISOString()
+      });
+      localStorage.setItem(historyKey, JSON.stringify(next.slice(0, 200)));
+      window.dispatchEvent(new Event('app-notification'));
+    } catch {
+      // no-op
+    }
   }
 
   /**
@@ -314,19 +414,74 @@ class MerchantApiService {
   // Helper to determine base URL based on cluster
   private getClusterBaseURL(clusterId?: string): string {
     switch (clusterId?.toLowerCase()) {
-      case 'app6':
-      case 'app6a':
-        return this.requireEnvUrl('REACT_APP_APP6A_BASE_URL');
-      case 'app6e':
-        return this.requireEnvUrl('REACT_APP_APP6E_BASE_URL');
+      case 'dev-instance':
+        return this.requireEnvUrl('REACT_APP_DEV_INSTANCE_BASE_URL');
       case 'app30a':
         return this.requireEnvUrl('REACT_APP_APP30A_BASE_URL');
       case 'app30b':
         return this.requireEnvUrl('REACT_APP_APP30B_BASE_URL');
-      case 'it-app':
+      case 'app30d':
+        return this.requireEnvUrl('REACT_APP_APP30D_BASE_URL');
       default:
-        return this.requireEnvUrl('REACT_APP_IT_APP_BASE_URL');
+        return this.requireEnvUrl('REACT_APP_DEV_INSTANCE_BASE_URL');
     }
+  }
+
+  private getClusterCacheKey(cluster?: string): string {
+    return (cluster?.trim().toLowerCase() || 'default');
+  }
+
+  private sanitizePathSegment(segment: string): string {
+    return segment.replace(/^\/+|\/+$/g, '');
+  }
+
+  private buildCuroRootCandidate(baseURL: string, candidate: string): string {
+    const sanitizedCandidate = this.sanitizePathSegment(candidate);
+    return `${baseURL}${sanitizedCandidate}/`;
+  }
+
+  private async resolveCuroRoot(cluster?: string): Promise<string> {
+    const baseURL = this.getClusterBaseURL(cluster);
+    const cacheKey = this.getClusterCacheKey(cluster);
+
+    for (const candidate of this.curoPathCandidates) {
+      const candidateRoot = this.buildCuroRootCandidate(baseURL, candidate);
+      try {
+        await this.api.get(`${candidateRoot}ping`, {
+          timeout: this.CURO_PING_TIMEOUT,
+          skipAutoLogout: true
+        } as CustomAxiosRequestConfig);
+        console.log(`[Curo Path] Cluster=${cacheKey} resolved to ${candidateRoot}`);
+        return candidateRoot;
+      } catch (error: any) {
+        const status = error?.response?.status;
+        if (status === 401 || status === 403) {
+          console.log(`[Curo Path] Ping requires auth; using ${candidateRoot} for cluster=${cacheKey}`);
+          return candidateRoot;
+        }
+        console.warn(`[Curo Path] Ping failed for ${candidateRoot}:`, error?.message || error);
+      }
+    }
+
+    const fallbackRoot = cacheKey === 'dev-instance'
+      ? this.normalizeBaseURL(baseURL)
+      : this.buildCuroRootCandidate(baseURL, 'curo');
+    console.warn(`[Curo Path] Falling back to ${fallbackRoot} for cluster=${cacheKey}`);
+    return fallbackRoot;
+  }
+
+  private async getCuroRoot(cluster?: string): Promise<string> {
+    const cacheKey = this.getClusterCacheKey(cluster);
+    if (!this.curoRootPromiseCache.has(cacheKey)) {
+      this.curoRootPromiseCache.set(cacheKey, this.resolveCuroRoot(cluster));
+    }
+    return this.curoRootPromiseCache.get(cacheKey)!;
+  }
+
+  private async buildCuroUrl(cluster: string | undefined, relativePath: string): Promise<string> {
+    const root = await this.getCuroRoot(cluster);
+    const normalizedPath = this.sanitizePathSegment(relativePath);
+    return `${root}${normalizedPath}`;
   }
 
   // Health Check
@@ -367,12 +522,8 @@ class MerchantApiService {
       try {
         const params: any = {};
 
-        // Determine the correct base URL for this request
-        const baseURL = this.getClusterBaseURL(cluster);
-
-        // Axios treats full URLs as absolute, overriding the instance baseURL
-        // Ensure we construct the full URL correctly
-        const url = `${baseURL}curo/merchant/getMerchants`;
+        // Resolve the correct curo base path before constructing the final URL
+        const url = await this.buildCuroUrl(cluster, 'merchant/getMerchants');
 
         const response = await this.api.get<any>(url, { params });
 
@@ -429,8 +580,7 @@ class MerchantApiService {
         }
 
         // Step 2: Fallback to direct merchant ID endpoint if attributes are not found
-        const baseURL = this.getClusterBaseURL(cluster);
-        const url = `${baseURL}curo/merchant/merchantId/${id}`;
+        const url = await this.buildCuroUrl(cluster, `merchant/merchantId/${id}`);
 
         const response = await this.api.get<any>(url);
         console.log(`[getMerchantById] Fallback API response for id=${id}:`, response.data);
@@ -459,9 +609,8 @@ class MerchantApiService {
 
   async createMerchant(payload: CreateMerchantPayload, cluster?: string): Promise<Merchant> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
       // New endpoint for account creation as requested by user
-      const url = `${baseURL}curo/merchant/createAccount`;
+      const url = await this.buildCuroUrl(cluster, 'merchant/createAccount');
 
       // Map the payload to the structure expected by createAccount API
       const accountPayload = {
@@ -622,8 +771,7 @@ class MerchantApiService {
 
   async deleteMerchant(id: string, cluster?: string): Promise<boolean> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL} curo / merchant / deleteMerchant`;
+      const url = await this.buildCuroUrl(cluster, 'merchant/deleteMerchant');
       const response = await this.api.delete<ApiResponse<{ id: string }>>(url, {
         params: { merchantId: id }
       });
@@ -710,7 +858,7 @@ class MerchantApiService {
 
       let url = `${baseURL}merchants/search`;
       if (searchType === 'merchantId') {
-        url = `${baseURL}curo/merchant/merchantId/${query}`;
+        url = await this.buildCuroUrl(cluster, `merchant/merchantId/${query}`);
         // No params needed for direct ID fetch
       }
 
@@ -1393,9 +1541,8 @@ class MerchantApiService {
   // Merchant Channels by Merchant
   async getMerchantChannels(merchantId: string, page: number = 0, size: number = 20, cluster?: string): Promise<any> {
     try {
-      console.log(`[getMerchantChannels] Request: /curo/channels/getChannels merchantId=${merchantId} cluster=${cluster}`);
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/channels/getChannels`;
+      const url = await this.buildCuroUrl(cluster, 'channels/getChannels');
+      console.log(`[getMerchantChannels] Request: ${url} merchantId=${merchantId} cluster=${cluster}`);
 
       // API call to get channels. The endpoint returns a flat list of channels.
       // We pass merchantId to filter/contextualize if supported by the API.
@@ -1574,6 +1721,50 @@ class MerchantApiService {
     return localStorage.getItem('auth_token') || '';
   }
 
+  private persistAccessToken(token: string): void {
+    localStorage.setItem('auth_token', token);
+    this.api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }
+
+  public setAccessToken(token: string): void {
+    this.persistAccessToken(token);
+  }
+
+  async fetchAccessToken(
+    cluster?: string,
+    overrides: Partial<typeof this.defaultTokenPayload> = {}
+  ): Promise<string> {
+    const payload = { ...this.defaultTokenPayload, ...overrides };
+
+    try {
+      const baseURL = this.getClusterBaseURL(cluster);
+      const url = `${baseURL}ecloudbl/auth/token`;
+      const response = await this.api.post<{ access_token: string }>(url, payload, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        skipAutoLogout: true
+      } as CustomAxiosRequestConfig);
+
+      const tokenResponse = response.data as any;
+      const token =
+        tokenResponse?.access_token ||
+        tokenResponse?.token?.access_token ||
+        tokenResponse?.data?.access_token ||
+        tokenResponse?.data?.token?.access_token;
+      if (!token) {
+        throw new Error('Auth token response did not include an access_token');
+      }
+
+      this.persistAccessToken(token);
+      return token;
+    } catch (error) {
+      console.error('Failed to fetch access token:', error);
+      throw error;
+    }
+  }
+
   // Departments
   async getDepartmentByMerchant(merchantId: string, cluster?: string, forceRefresh: boolean = false): Promise<any> {
     const cacheKey = `departments:${cluster || 'all'}:${merchantId}`;
@@ -1727,8 +1918,7 @@ class MerchantApiService {
     cluster?: string
   ): Promise<any[]> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      let url = `${baseURL}curo/getBotsFromStoreByGrpNme?status=Active`;
+      let url = await this.buildCuroUrl(cluster, 'getBotsFromStoreByGrpNme?status=Active');
       if (access) url += `&access=${encodeURIComponent(access)}`;
       if (groupName) url += `&groupName=${encodeURIComponent(groupName)}`;
 
@@ -1981,8 +2171,7 @@ class MerchantApiService {
     const cacheKey = `users-paginated:${cluster || 'all'}:${merchantId}:${page}:${size}`;
     return this.requestWithCache(cacheKey, async () => {
       try {
-        const baseURL = this.getClusterBaseURL(cluster);
-        const url = `${baseURL}curo/userDetails?merchantId=${merchantId}&pageIndex=${page}&pageCount=${size}`;
+        const url = await this.buildCuroUrl(cluster, `userDetails?merchantId=${merchantId}&pageIndex=${page}&pageCount=${size}`);
         const response = await this.api.get<any>(url);
 
         const rawData = response.data;
@@ -2033,8 +2222,7 @@ class MerchantApiService {
     const cacheKey = `users:${cluster || 'all'}:${merchantId}`;
     return this.requestWithCache(cacheKey, async () => {
       try {
-        const baseURL = this.getClusterBaseURL(cluster);
-        const url = `${baseURL}curo/userDetails?merchantId=${merchantId}`;
+        const url = await this.buildCuroUrl(cluster, `userDetails?merchantId=${merchantId}`);
         const response = await this.api.get<any>(url);
 
         const rawData = response.data;
@@ -2065,8 +2253,7 @@ class MerchantApiService {
   // Cluster-wide Users
   async getClusterUsers(cluster?: string): Promise<MerchantUser[]> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/userDetails`;
+      const url = await this.buildCuroUrl(cluster, 'userDetails');
       const response = await this.api.get<any>(url);
 
       const rawData = response.data;
@@ -2100,8 +2287,7 @@ class MerchantApiService {
 
   async inviteUser(merchantId: string, email: string, role: string, authType: string, cluster?: string): Promise<any> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/merchant/user/register/${merchantId}/${email}/${role}/${authType}`;
+      const url = await this.buildCuroUrl(cluster, `merchant/user/register/${merchantId}/${email}/${role}/${authType}`);
       const response = await this.api.get(url);
       return response.data;
     } catch (error) {
@@ -2112,8 +2298,7 @@ class MerchantApiService {
 
   async updateUserAccount(user: any, cluster?: string): Promise<any> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/updateUserAccount`;
+      const url = await this.buildCuroUrl(cluster, 'updateUserAccount');
       const response = await this.api.put(url, user);
       return response.data;
     } catch (error) {
@@ -2124,8 +2309,7 @@ class MerchantApiService {
 
   async resetPassword(userName: string, cluster?: string): Promise<any> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/merchant/manageAccount/resetPassword?userName=${userName}`;
+      const url = await this.buildCuroUrl(cluster, `merchant/manageAccount/resetPassword?userName=${userName}`);
       const response = await this.api.get(url);
       return response.data;
     } catch (error) {
@@ -2136,8 +2320,7 @@ class MerchantApiService {
 
   async deleteUser(userName: string, cluster?: string): Promise<any> {
     try {
-      const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}curo/merchant/manageAccount/deleteUser?userName=${userName}`;
+      const url = await this.buildCuroUrl(cluster, `merchant/manageAccount/deleteUser?userName=${userName}`);
       // Following the pattern of resetPassword for account management tasks
       const response = await this.api.get(url);
       return response.data;
@@ -2202,7 +2385,9 @@ class MerchantApiService {
   async runPrompt(merchantId: string, promptText: string, modelId?: string | number, cluster?: string): Promise<any> {
     try {
       const baseURL = this.getClusterBaseURL(cluster);
-      const url = `${baseURL}aiservices/api/v1/genAI/generate`;
+      const isDevInstance = cluster?.toLowerCase() === 'dev-instance';
+      const path = isDevInstance ? 'jelloaiservices/api/v1/genAI/generate' : 'aiservices/api/v1/genAI/generate';
+      const url = `${baseURL}${path}`;
       const response = await this.api.post(url, {
         prompt: promptText,
         merchantId: merchantId,

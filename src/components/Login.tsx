@@ -151,7 +151,7 @@ const Login: React.FC = () => {
                             </div>
 
                             <div className="space-y-3">
-                                <label className="text-[10px] font-extrabold text-neutral-text-muted uppercase tracking-[0.2em] ml-1">Username</label>
+                                <label className="text-[10px] font-extrabold text-neutral-text-muted titlecase tracking-[0.2em] ml-1">Username</label>
                                 <div className="relative group">
                                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-neutral-text-muted/40 group-focus-within:text-[#0052cc] transition-colors duration-500">
                                         <FiUser size={18} />
@@ -169,11 +169,11 @@ const Login: React.FC = () => {
 
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center ml-1">
-                                    <label className="text-[10px] font-extrabold text-neutral-text-muted uppercase tracking-[0.2em]">Password</label>
+                                    <label className="text-[10px] font-extrabold text-neutral-text-muted titlecase tracking-[0.2em]">Password</label>
                                     <button
                                         type="button"
                                         onClick={handleForgotPasswordRedirect}
-                                        className="text-[10px] font-bold text-[#0052cc] hover:text-[#0747a6] transition-colors uppercase tracking-[0.1em] opacity-70 hover:opacity-100"
+                                        className="text-[10px] font-bold text-[#0052cc] hover:text-[#0747a6] transition-colors titlecase tracking-[0.1em] opacity-70 hover:opacity-100"
                                     >
                                         Forgot password?
                                     </button>
@@ -201,7 +201,7 @@ const Login: React.FC = () => {
                                     : 'bg-black shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] hover:shadow-[0_25px_50px_-12px_rgba(0,82,204,0.3)]'
                                     }`}
                             >
-                                <span className="relative z-10 flex items-center justify-center gap-2 tracking-[0.1em] uppercase text-sm font-bold">
+                                <span className="relative z-10 flex items-center justify-center gap-2 tracking-[0.1em] titlecase text-sm font-bold">
                                     {isLoading ? (
                                         <>
                                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
@@ -219,10 +219,10 @@ const Login: React.FC = () => {
                     {/* Legal - Refined */}
                     <div className="mt-12 w-full opacity-40 group cursor-default">
                         <div className="flex flex-col gap-2 border-t border-neutral-border/30 pt-8 items-center">
-                            <p className="text-[10px] font-extrabold text-neutral-text-muted uppercase tracking-[0.2em]">
+                            <p className="text-[10px] font-extrabold text-neutral-text-muted titlecase tracking-[0.2em]">
                                 &copy; 2017-2026 All Rights Reserved.
                             </p>
-                            <p className="text-[9px] font-bold text-neutral-text-muted/60 uppercase tracking-widest">
+                            <p className="text-[9px] font-bold text-neutral-text-muted/60 titlecase tracking-widest">
                                 altolabs.ai&reg; is a registered trademark of Altolabs AI
                             </p>
                         </div>
@@ -250,7 +250,7 @@ const Login: React.FC = () => {
                         <div className="flex flex-col gap-8">
                             <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full w-fit group cursor-default">
                                 <span className="text-[#0052cc] text-xs font-black animate-pulse">+</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white/50 group-hover:text-white transition-colors duration-500">Technology Systems</span>
+                                <span className="text-[10px] font-black titlecase tracking-widest text-white/50 group-hover:text-white transition-colors duration-500">Technology Systems</span>
                             </div>
                             <h3 className="text-6xl font-black tracking-tighter leading-none text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">
                                 Platforms &<br />Products
@@ -349,10 +349,10 @@ const Login: React.FC = () => {
                                     <div className="space-y-6">
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
-                                                <h4 className="text-3xl font-black tracking-tighter uppercase">{product.name}</h4>
-                                                <span className="text-[10px] font-black tracking-widest uppercase py-1 px-3 bg-white/5 rounded-full border border-white/10 group-hover:bg-[#0052cc] group-hover:border-transparent transition-all duration-500">v2.4.0</span>
+                                                <h4 className="text-3xl font-black tracking-tighter titlecase">{product.name}</h4>
+                                                <span className="text-[10px] font-black tracking-widest titlecase py-1 px-3 bg-white/5 rounded-full border border-white/10 group-hover:bg-[#0052cc] group-hover:border-transparent transition-all duration-500">v2.4.0</span>
                                             </div>
-                                            <p className="text-xs font-black text-[#0052cc] uppercase tracking-[0.3em]">{product.subtitle}</p>
+                                            <p className="text-xs font-black text-[#0052cc] titlecase tracking-[0.3em]">{product.subtitle}</p>
                                             <p className="text-sm text-white/50 leading-relaxed font-semibold transition-colors duration-500 group-hover:text-white/80">{product.desc}</p>
                                         </div>
 

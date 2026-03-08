@@ -144,42 +144,55 @@ const Settings: React.FC = () => {
 
     return (
         <div className="p-3 md:p-5 lg:p-6 mx-auto space-y-4 pb-12 animate-in fade-in duration-700">
-            <div className="flex justify-end gap-2 pb-2 border-b border-neutral-border/30">
-                <button
-                    onClick={handleReset}
-                    disabled={isSaving || !hasChanges}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[10px] titlecase tracking-widest border border-neutral-border/30 bg-white hover:bg-neutral-bg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                    <FiRotateCcw />
-                    Reset
-                </button>
-                <button
-                    onClick={handleSave}
-                    disabled={isSaving || !hasChanges}
-                    className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-[10px] titlecase tracking-widest transition-all ${isSaving
-                        ? 'bg-neutral-bg text-neutral-text-muted cursor-not-allowed opacity-50'
-                        : !hasChanges
-                            ? 'bg-[#f4f5f7] text-neutral-text-muted cursor-not-allowed border border-neutral-border/20'
-                            : 'bg-[#172b4d] text-white shadow-md hover:bg-black active:scale-95'
-                        }`}
-                >
-                    {isSaving ? (
-                        <>
-                            <div className="w-3 h-3 border-2 border-neutral-text-muted/30 border-t-neutral-text-muted rounded-full animate-spin"></div>
-                            Saving...
-                        </>
-                    ) : showSavedMsg ? (
-                        <>
-                            <FiCheck className="text-white" />
-                            Configuration Applied
-                        </>
-                    ) : (
-                        <>
-                            <FiSave className={!hasChanges ? 'opacity-40' : ''} />
-                            Save Changes
-                        </>
-                    )}
-                </button>
+            <div className="rounded-2xl border border-neutral-border/40 bg-white dark:bg-neutral-card shadow-sm px-5 py-4">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div>
+                        <h2 className="text-lg font-black text-neutral-text-main titlecase tracking-widest">Settings Control Center</h2>
+                        <p className="text-[11px] font-bold text-neutral-text-muted/70 mt-1">Manage preferences, security, and workspace behavior.</p>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        {hasChanges && (
+                            <span className="px-3 py-1 rounded-full text-[9px] font-black tracking-widest titlecase bg-amber-50 text-amber-700 border border-amber-100">
+                                Unsaved Changes
+                            </span>
+                        )}
+                        <button
+                            onClick={handleReset}
+                            disabled={isSaving || !hasChanges}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-[10px] titlecase tracking-widest border border-neutral-border/30 bg-white hover:bg-neutral-bg disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <FiRotateCcw />
+                            Reset
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={isSaving || !hasChanges}
+                            className={`flex items-center gap-2 px-5 py-2 rounded-lg font-bold text-[10px] titlecase tracking-widest transition-all ${isSaving
+                                ? 'bg-neutral-bg text-neutral-text-muted cursor-not-allowed opacity-50'
+                                : !hasChanges
+                                    ? 'bg-[#f4f5f7] text-neutral-text-muted cursor-not-allowed border border-neutral-border/20'
+                                    : 'bg-[#172b4d] text-white shadow-md hover:bg-black active:scale-95'
+                                }`}
+                        >
+                            {isSaving ? (
+                                <>
+                                    <div className="w-3 h-3 border-2 border-neutral-text-muted/30 border-t-neutral-text-muted rounded-full animate-spin"></div>
+                                    Saving...
+                                </>
+                            ) : showSavedMsg ? (
+                                <>
+                                    <FiCheck className="text-white" />
+                                    Configuration Applied
+                                </>
+                            ) : (
+                                <>
+                                    <FiSave className={!hasChanges ? 'opacity-40' : ''} />
+                                    Save Changes
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="bg-white dark:bg-neutral-card rounded-2xl border border-neutral-border/40 shadow-sm overflow-hidden">
@@ -192,15 +205,21 @@ const Settings: React.FC = () => {
                                 <button
                                     key={tab.id}
                                     onClick={() => setTab(tab.id as SettingsTab)}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold titlecase tracking-[0.15em] transition-all duration-300 ${activeTab === tab.id
+                                    className={`relative w-full flex items-center gap-3 px-4 py-3 rounded-xl text-[10px] font-bold titlecase tracking-[0.15em] transition-all duration-300 ${activeTab === tab.id
                                         ? 'bg-[#172b4d] text-white shadow-md'
-                                        : 'text-neutral-text-secondary hover:text-primary-main hover:bg-white/50 dark:hover:bg-white/5'
+                                        : 'text-neutral-text-secondary hover:text-primary-main hover:bg-white/60 dark:hover:bg-white/5'
                                         }`}
                                 >
-                                    <span className={`text-base transition-colors duration-300 ${activeTab === tab.id ? 'text-white' : 'text-neutral-text-muted/40'}`}>
+                                    {activeTab === tab.id && (
+                                        <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-blue-500"></span>
+                                    )}
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-sm transition-all ${activeTab === tab.id
+                                        ? 'bg-white/15 text-white'
+                                        : 'bg-gradient-to-br from-slate-100 to-white text-slate-600 group-hover:from-blue-50 group-hover:to-white group-hover:text-blue-700'
+                                        }`}>
                                         {tab.icon}
-                                    </span>
-                                    {tab.label}
+                                    </div>
+                                    <span>{tab.label}</span>
                                 </button>
                             ))}
                         </div>

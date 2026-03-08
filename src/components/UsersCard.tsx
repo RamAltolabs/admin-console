@@ -286,7 +286,7 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                     </button>
                     {showFilters && (
                         <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                            <div className="text-xs font-bold text-gray-500 uppercase mb-3">Filter Users</div>
+                            <div className="text-xs font-bold text-gray-500 titlecase mb-3">Filter Users</div>
                             <div className="space-y-3">
                                 <div>
                                     <label className="block text-xs font-medium text-gray-700 mb-1">Role</label>
@@ -636,10 +636,10 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                                     </h2>
                                     <p className="text-sm text-gray-500 font-medium">{selectedUser.userName}</p>
                                     <div className="flex gap-2 mt-2">
-                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${selectedUser.status.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold titlecase tracking-wider ${selectedUser.status.toLowerCase() === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
                                             {selectedUser.status}
                                         </span>
-                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold titlecase tracking-wider bg-blue-50 text-blue-700 border border-blue-100">
                                             {selectedUser.role}
                                         </span>
                                     </div>
@@ -649,28 +649,28 @@ const UsersCard: React.FC<UsersCardProps> = ({ merchantId, cluster }) => {
                             {/* Details Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Email Address</label>
+                                    <label className="text-[10px] font-bold text-gray-400 titlecase tracking-wider mb-1 block">Email Address</label>
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
                                         <FiMail className="text-gray-400" size={14} />
                                         {selectedUser.email}
                                     </div>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">User ID</label>
+                                    <label className="text-[10px] font-bold text-gray-400 titlecase tracking-wider mb-1 block">User ID</label>
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
                                         <FiSettings className="text-gray-400" size={14} />
                                         {selectedUser.id}
                                     </div>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Modified Time</label>
+                                    <label className="text-[10px] font-bold text-gray-400 titlecase tracking-wider mb-1 block">Modified Time</label>
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
                                         <FiClock className="text-gray-400" size={14} />
                                         {selectedUser.modifiedTime ? new Date(selectedUser.modifiedTime).toLocaleString() : 'N/A'}
                                     </div>
                                 </div>
                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 block">Merchant ID</label>
+                                    <label className="text-[10px] font-bold text-gray-400 titlecase tracking-wider mb-1 block">Merchant ID</label>
                                     <div className="flex items-center gap-2 text-sm font-medium text-gray-800">
                                         <FiLock className="text-gray-400" size={14} />
                                         {selectedUser.merchantId}

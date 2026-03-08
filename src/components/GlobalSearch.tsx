@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiSearch, FiHome, FiPieChart, FiShoppingBag, FiSettings, FiDatabase, FiGlobe, FiServer, FiCpu, FiTerminal, FiChevronRight, FiUsers, FiLayers, FiFileText, FiBarChart2, FiActivity, FiUserCheck, FiUser, FiZap, FiPackage, FiLock, FiBook, FiFolder, FiRadio, FiShoppingCart, FiTag, FiCreditCard, FiSend, FiLayout, FiMonitor, FiRotateCcw, FiChevronDown, FiBell, FiAlertCircle, FiTrendingUp } from 'react-icons/fi';
+import { FiSearch, FiHome, FiPieChart, FiShoppingBag, FiSettings, FiDatabase, FiGlobe, FiServer, FiCpu, FiTerminal, FiChevronRight, FiUsers, FiLayers, FiFileText, FiBarChart2, FiActivity, FiUserCheck, FiUser, FiZap, FiPackage, FiLock, FiBook, FiFolder, FiRadio, FiShoppingCart, FiTag, FiCreditCard, FiSend, FiLayout, FiMonitor, FiRotateCcw, FiChevronDown, FiBell, FiAlertCircle, FiTrendingUp, FiGrid } from 'react-icons/fi';
 import { useMerchantContext } from '../context/MerchantContext';
 
 interface SearchResult {
@@ -33,11 +33,10 @@ const GlobalSearch: React.FC = () => {
 
     const getClusterIcon = (id: string) => {
         switch (id.toLowerCase()) {
-            case 'it-app': return <FiServer size={14} />;
-            case 'app6a': return <FiGlobe size={14} />;
             case 'app30a': return <FiDatabase size={14} />;
             case 'app30b': return <FiCpu size={14} />;
-            case 'app6e': return <FiTerminal size={14} />;
+            case 'app30d': return <FiGrid size={14} />;
+            case 'dev-instance': return <FiGlobe size={14} />;
             default: return <FiDatabase size={14} />;
         }
     };

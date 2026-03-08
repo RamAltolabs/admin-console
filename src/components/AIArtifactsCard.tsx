@@ -31,23 +31,20 @@ const AIArtifactsCard: React.FC<AIArtifactsCardProps> = ({ merchantId, cluster }
     const [error, setError] = useState<string | null>(null);
 
     const getClusterImageBaseURL = (clusterId?: string): string => {
-        const id = String(clusterId || 'it-app').toLowerCase();
-        const itImageBase = process.env.REACT_APP_IT_APP_IMAGE_BASE_URL || process.env.IT_IMAGE_BASE_URL;
-        const app6aImageBase = process.env.REACT_APP_APP6A_IMAGE_BASE_URL || process.env.APP6A_IMAGE_BASE_URL;
-        const app6eImageBase = process.env.REACT_APP_APP6E_IMAGE_BASE_URL || process.env.APP6E_IMAGE_BASE_URL;
+        const id = String(clusterId || 'dev-instance').toLowerCase();
+        const devInstanceImageBase = process.env.REACT_APP_DEV_INSTANCE_IMAGE_BASE_URL || process.env.DEV_INSTANCE_IMAGE_BASE_URL;
         const app30aImageBase = process.env.REACT_APP_APP30A_IMAGE_BASE_URL || process.env.APP30A_IMAGE_BASE_URL;
         const app30bImageBase = process.env.REACT_APP_APP30B_IMAGE_BASE_URL || process.env.APP30B_IMAGE_BASE_URL;
+        const app30dImageBase = process.env.REACT_APP_APP30D_IMAGE_BASE_URL || process.env.APP30D_IMAGE_BASE_URL;
 
         const map: Record<string, string | undefined> = {
-            app6: app6aImageBase,
-            app6a: app6aImageBase,
-            app6e: app6eImageBase,
+            'dev-instance': devInstanceImageBase,
             app30a: app30aImageBase,
             app30b: app30bImageBase,
-            'it-app': itImageBase,
+            'app30d': app30dImageBase,
         };
 
-        return (map[id] || itImageBase || process.env.REACT_APP_PORTAL_BASE_URL || '').replace(/\/+$/, '');
+        return (map[id] || devInstanceImageBase || process.env.REACT_APP_PORTAL_BASE_URL || '').replace(/\/+$/, '');
     };
 
     const fetchData = async () => {

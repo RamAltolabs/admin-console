@@ -10,6 +10,13 @@ interface NotificationFeedItem {
   title: string;
   message?: string;
   createdAt: string;
+  meta?: {
+    method?: string;
+    status?: number;
+    statusText?: string;
+    url?: string;
+    payload?: string;
+  };
 }
 
 type FeedCategory = 'all' | 'alerts' | FeedType;
@@ -114,6 +121,7 @@ const HeaderNotifications: React.FC = () => {
   const [activeCategory, setActiveCategory] = useState<FeedCategory>('all');
   const [appItems, setAppItems] = useState<NotificationFeedItem[]>([]);
   const [lastSeen, setLastSeen] = useState<number>(() => Number(localStorage.getItem(LAST_SEEN_KEY) || '0'));
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     const syncHistory = () => setAppItems(readAppHistory());
@@ -312,6 +320,27 @@ const HeaderNotifications: React.FC = () => {
                         </div>
                         {item.message && <p className="text-[11px] text-gray-600 mt-1 break-words">{item.message}</p>}
                         <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide">{item.source}</p>
+                        <div className="mt-2">
+                          <button
+                            onClick={() => setExpandedItems(prev => ({ ...prev, [item.id]: !prev[item.id] }))}
+                            className="text-[10px] font-bold uppercase tracking-wider text-blue-700 hover:text-blue-900"
+                          >
+                            {expandedItems[item.id] ? 'Hide details' : 'View details'}
+                          </button>
+                          {expandedItems[item.id] && (
+                            <div className="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-2 py-2 text-[10px] text-gray-600 space-y-1">
+                              <div><span className="font-bold text-gray-700">Type:</span> {item.type}</div>
+                              <div><span className="font-bold text-gray-700">Time:</span> {new Date(item.createdAt).toLocaleString()}</div>
+                              <div><span className="font-bold text-gray-700">Source:</span> {item.source}</div>
+                              {item.meta?.method && <div><span className="font-bold text-gray-700">Method:</span> {item.meta.method}</div>}
+                              {item.meta?.status && <div><span className="font-bold text-gray-700">Status:</span> {item.meta.status}</div>}
+                              {item.meta?.statusText && <div><span className="font-bold text-gray-700">Status Text:</span> {item.meta.statusText}</div>}
+                              {item.meta?.url && <div><span className="font-bold text-gray-700">Endpoint:</span> {item.meta.url}</div>}
+                              {item.meta?.payload && <div><span className="font-bold text-gray-700">Response:</span> {item.meta.payload}</div>}
+                              <div><span className="font-bold text-gray-700">Message:</span> {item.message || 'No additional details.'}</div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>

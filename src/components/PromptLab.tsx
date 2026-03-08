@@ -223,14 +223,12 @@ const PromptLab: React.FC<PromptLabProps> = ({ merchantId, cluster }) => {
         if (!selectedPrompt) return;
         const clusterId = cluster?.toLowerCase();
         const baseURLMap: Record<string, string | undefined> = {
-            app6: process.env.REACT_APP_APP6A_BASE_URL,
-            app6a: process.env.REACT_APP_APP6A_BASE_URL,
-            app6e: process.env.REACT_APP_APP6E_BASE_URL,
+            'dev-instance': process.env.REACT_APP_DEV_INSTANCE_BASE_URL,
             app30a: process.env.REACT_APP_APP30A_BASE_URL,
             app30b: process.env.REACT_APP_APP30B_BASE_URL,
-            'it-app': process.env.REACT_APP_IT_APP_BASE_URL,
+            'app30d': process.env.REACT_APP_APP30D_BASE_URL,
         };
-        const configuredBaseURL = baseURLMap[clusterId || 'it-app'] || process.env.REACT_APP_IT_APP_BASE_URL;
+        const configuredBaseURL = baseURLMap[clusterId || 'dev-instance'] || process.env.REACT_APP_DEV_INSTANCE_BASE_URL;
         if (!configuredBaseURL) {
             setMessage({ type: 'error', text: 'Missing cluster base URL configuration in env.' });
             return;

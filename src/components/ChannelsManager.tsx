@@ -60,7 +60,7 @@ const STYLES = `
     font-size: 8px;
     color: #999;
     font-weight: 800;
-    text-transform: uppercase;
+    text-transform: titlecase;
     letter-spacing: 0.5px;
     margin-bottom: 20px;
   }
@@ -82,22 +82,19 @@ const ICON_MAP: any = {
 
 // --- HELPERS ---
 const getClusterImageBaseURL = (cluster?: string): string => {
-    const clusterId = String(cluster || 'it-app').toLowerCase();
-    const itImageBase = process.env.REACT_APP_IT_APP_IMAGE_BASE_URL || process.env.IT_IMAGE_BASE_URL;
-    const app6aImageBase = process.env.REACT_APP_APP6A_IMAGE_BASE_URL || process.env.APP6A_IMAGE_BASE_URL;
-    const app6eImageBase = process.env.REACT_APP_APP6E_IMAGE_BASE_URL || process.env.APP6E_IMAGE_BASE_URL;
+    const clusterId = String(cluster || 'dev-instance').toLowerCase();
+    const devInstanceImageBase = process.env.REACT_APP_DEV_INSTANCE_IMAGE_BASE_URL || process.env.DEV_INSTANCE_IMAGE_BASE_URL;
     const app30aImageBase = process.env.REACT_APP_APP30A_IMAGE_BASE_URL || process.env.APP30A_IMAGE_BASE_URL;
     const app30bImageBase = process.env.REACT_APP_APP30B_IMAGE_BASE_URL || process.env.APP30B_IMAGE_BASE_URL;
+    const app30dImageBase = process.env.REACT_APP_APP30D_IMAGE_BASE_URL || process.env.APP30D_IMAGE_BASE_URL;
     const envByCluster: Record<string, string | undefined> = {
-        app6: app6aImageBase,
-        app6a: app6aImageBase,
-        app6e: app6eImageBase,
+        'dev-instance': devInstanceImageBase,
         app30a: app30aImageBase,
         app30b: app30bImageBase,
-        'it-app': itImageBase,
+        'app30d': app30dImageBase,
     };
 
-    const baseURL = envByCluster[clusterId] || itImageBase || process.env.REACT_APP_PORTAL_BASE_URL;
+    const baseURL = envByCluster[clusterId] || devInstanceImageBase || process.env.REACT_APP_PORTAL_BASE_URL;
     return (baseURL || '').replace(/\/+$/, '');
 };
 

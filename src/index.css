@@ -67,6 +67,20 @@ body {
   /* Standard enterprise base size */
 }
 
+/* Smooth theme transitions */
+html,
+body,
+#root,
+button,
+input,
+select,
+textarea,
+table,
+th,
+td {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
 /* Global dark bridge for legacy Tailwind utility usage across the app */
 html.dark body,
 html.dark #root {
@@ -88,6 +102,26 @@ html.dark .bg-gray-100 {
 
 html.dark .bg-gray-200 {
   background-color: #273449 !important;
+}
+
+/* Dark mode bridges for common accent backgrounds */
+html.dark .bg-blue-50 {
+  background-color: #0b1f3a !important;
+}
+html.dark .bg-emerald-50 {
+  background-color: #0b2a22 !important;
+}
+html.dark .bg-amber-50 {
+  background-color: #2b1f0b !important;
+}
+html.dark .bg-cyan-50 {
+  background-color: #0b222a !important;
+}
+html.dark .bg-rose-50 {
+  background-color: #2a0b18 !important;
+}
+html.dark .bg-violet-50 {
+  background-color: #1b1230 !important;
 }
 
 html.dark [class*="bg-white/"] {
@@ -122,6 +156,32 @@ html.dark .text-gray-900,
 html.dark .text-gray-800,
 html.dark .text-gray-700 {
   color: #e5e7eb !important;
+}
+
+html.dark .text-blue-900,
+html.dark .text-blue-700,
+html.dark .text-blue-600 {
+  color: #93c5fd !important;
+}
+html.dark .text-emerald-700,
+html.dark .text-emerald-600 {
+  color: #6ee7b7 !important;
+}
+html.dark .text-amber-700,
+html.dark .text-amber-600 {
+  color: #fcd34d !important;
+}
+html.dark .text-cyan-700,
+html.dark .text-cyan-600 {
+  color: #67e8f9 !important;
+}
+html.dark .text-rose-700,
+html.dark .text-rose-600 {
+  color: #fda4af !important;
+}
+html.dark .text-violet-700,
+html.dark .text-violet-600 {
+  color: #c4b5fd !important;
 }
 
 html.dark .text-gray-600,

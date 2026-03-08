@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import authService from '../services/authService';
+import merchantService from '../services/merchantService';
 
 export interface User {
     id: number;
@@ -145,6 +146,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             setIsAuthenticated(true);
             localStorage.setItem('last_activity', Date.now().toString()); // Initialize activity on login
+            if (response.token?.access_token) {
+                merchantService.setAccessToken(response.token.access_token);
+            }
             if (response.user) {
                 setUser(response.user as User);
                 localStorage.setItem('user_info', JSON.stringify(response.user));

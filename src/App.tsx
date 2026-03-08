@@ -32,8 +32,6 @@ const App: React.FC = () => {
     selectedCluster,
     loading,
     error,
-    viewMode,
-    fetchMerchants,
     fetchClusters,
     addMerchant,
     updateMerchant,
@@ -129,13 +127,6 @@ const App: React.FC = () => {
   useEffect(() => {
     fetchClusters();
   }, []);
-
-  // Fetch merchants when cluster or view mode changes
-  useEffect(() => {
-    if (selectedCluster || viewMode === 'overall') {
-      fetchMerchants();
-    }
-  }, [selectedCluster, viewMode, fetchMerchants]);
 
   // Handle form submission
   const handleFormSubmit = async (data: CreateMerchantPayload | UpdateMerchantPayload) => {

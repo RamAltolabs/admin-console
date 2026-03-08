@@ -164,12 +164,12 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                 {loading && visitors.length === 0 ? (
                     <div className="flex-1 flex flex-col items-center justify-center">
                         <div className="w-8 h-8 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Loading History...</p>
+                        <p className="text-xs text-gray-400 font-bold titlecase tracking-widest">Loading History...</p>
                     </div>
                 ) : (
                     <div className="flex-1 overflow-x-auto">
                         <table className="w-full text-left text-sm">
-                            <thead className="bg-gray-50 text-gray-500 font-bold text-xs uppercase tracking-wider border-b border-gray-100">
+                            <thead className="bg-gray-50 text-gray-500 font-bold text-xs titlecase tracking-wider border-b border-gray-100">
                                 <tr>
                                     <th className="px-6 py-4">Visitor</th>
                                     <th className="px-6 py-4 w-16 text-center">Chat</th>
@@ -366,7 +366,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
         return (
             <div className="h-[600px] flex flex-col items-center justify-center bg-white rounded-xl shadow-sm border border-gray-100">
                 <div className="w-12 h-12 border-4 border-blue-50 border-t-blue-600 rounded-full animate-spin mb-6"></div>
-                <p className="text-gray-500 font-bold tracking-widest uppercase text-xs">Initializing Secure Chat Gateway...</p>
+                <p className="text-gray-500 font-bold tracking-widest titlecase text-xs">Initializing Secure Chat Gateway...</p>
             </div>
         );
     }
@@ -397,7 +397,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                             })()}
                             <span className={`w-3 h-3 rounded-full shadow-sm ring-2 ring-white ${selectedVisitor?.blockVisitor ? 'bg-red-500' : 'bg-green-500 animate-pulse'}`}></span>
                         </h2>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">
+                        <p className="text-xs text-gray-400 font-bold titlecase tracking-widest mt-1">
                             {selectedVisitor?.contacts?.phone?.cell || 'No Phone Registered'}
                         </p>
                         <div className="flex gap-4 mt-6">
@@ -419,7 +419,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                         <button
                             key={tab}
                             onClick={() => setActiveDetailTab(tab.toLowerCase())}
-                            className={`flex - 1 py - 4 text - [10px] font - black uppercase tracking - widest transition - all border - b - 2 ${activeDetailTab === tab.toLowerCase()
+                            className={`flex - 1 py - 4 text - [10px] font - black titlecase tracking - widest transition - all border - b - 2 ${activeDetailTab === tab.toLowerCase()
                                 ? 'border-blue-600 text-blue-600'
                                 : 'border-transparent text-gray-400 hover:text-gray-600'
                                 } `}
@@ -433,29 +433,29 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                     {activeDetailTab === 'summary' && (
                         <>
                             <div className="space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Live Insights</h4>
+                                <h4 className="text-[10px] font-black text-gray-400 titlecase tracking-[0.2em]">Live Insights</h4>
                                 <div className="space-y-3">
                                     <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 group hover:border-blue-200 transition-all cursor-default">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-2"><FiClock className="group-hover:text-blue-500" /> Active Since</span>
+                                            <span className="text-[10px] titlecase font-bold text-gray-400 flex items-center gap-2"><FiClock className="group-hover:text-blue-500" /> Active Since</span>
                                             <span className="text-xs font-black text-gray-700">{selectedVisitor?.lastAccessedDate || 'Just Now'}</span>
                                         </div>
                                     </div>
                                     <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 group hover:border-blue-200 transition-all cursor-default">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-2"><FiRefreshCw className="group-hover:text-blue-500" /> Conversions</span>
+                                            <span className="text-[10px] titlecase font-bold text-gray-400 flex items-center gap-2"><FiRefreshCw className="group-hover:text-blue-500" /> Conversions</span>
                                             <span className="text-xs font-black text-gray-700">{selectedVisitor?.totalConversations || 1} Sessions</span>
                                         </div>
                                     </div>
                                     <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 group hover:border-blue-200 transition-all cursor-default">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-2"><FiMessageSquare className="group-hover:text-blue-500" /> Interactivity</span>
+                                            <span className="text-[10px] titlecase font-bold text-gray-400 flex items-center gap-2"><FiMessageSquare className="group-hover:text-blue-500" /> Interactivity</span>
                                             <span className="text-xs font-black text-gray-700">{selectedVisitor?.totalMessages || 0} Total Msgs</span>
                                         </div>
                                     </div>
                                     <div className="bg-gray-50/80 p-3 rounded-xl border border-gray-100 group hover:border-blue-200 transition-all cursor-default">
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[10px] uppercase font-bold text-gray-400 flex items-center gap-2"><FiGlobe className="group-hover:text-blue-500" /> Origin</span>
+                                            <span className="text-[10px] titlecase font-bold text-gray-400 flex items-center gap-2"><FiGlobe className="group-hover:text-blue-500" /> Origin</span>
                                             <span className="text-xs font-black text-gray-700">{currentEngagement?.channel || 'Website'}</span>
                                         </div>
                                     </div>
@@ -463,10 +463,10 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                             </div>
 
                             <div className="space-y-4">
-                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Contextual Tags</h4>
+                                <h4 className="text-[10px] font-black text-gray-400 titlecase tracking-[0.2em]">Contextual Tags</h4>
                                 <div className="flex flex-wrap gap-2">
                                     {currentEngagement?.allConversations?.[0]?.context?.map((ctx: string, i: number) => (
-                                        <span key={i} className="px-3 py-1.5 bg-blue-900 text-white rounded-lg text-[10px] font-black uppercase tracking-tighter shadow-sm">
+                                        <span key={i} className="px-3 py-1.5 bg-blue-900 text-white rounded-lg text-[10px] font-black titlecase tracking-tighter shadow-sm">
                                             {ctx}
                                         </span>
                                     )) || (
@@ -487,12 +487,12 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                             <FiMessageSquare size={24} className="text-white fill-current opacity-80" />
                         </div>
                         <div>
-                            <h3 className="font-black text-lg leading-tight tracking-tight uppercase">
+                            <h3 className="font-black text-lg leading-tight tracking-tight titlecase">
                                 {selectedVisitor?.contacts?.firstName ? `${selectedVisitor.contacts.firstName} Console` : 'Visitor Dashboard'}
                             </h3>
                             <div className="flex items-center gap-2 mt-0.5">
                                 <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-                                <p className="text-[9px] text-blue-100 uppercase font-black tracking-[0.1em]">{currentEngagement?.engagementName || 'Real-time Gateway'}</p>
+                                <p className="text-[9px] text-blue-100 titlecase font-black tracking-[0.1em]">{currentEngagement?.engagementName || 'Real-time Gateway'}</p>
                             </div>
                         </div>
                     </div>
@@ -532,7 +532,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                             <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-inner">
                                 <FiMessageSquare size={48} className="opacity-10" />
                             </div>
-                            <p className="text-xs font-black uppercase tracking-[0.3em] text-gray-400">Synchronizing History...</p>
+                            <p className="text-xs font-black titlecase tracking-[0.3em] text-gray-400">Synchronizing History...</p>
                         </div>
                     )}
                     <div ref={chatEndRef} />
@@ -563,8 +563,8 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
             <div className="w-80 flex flex-col bg-white shadow-2xl z-30">
                 <div className="p-5 border-b border-gray-100 bg-cyan-700 text-white flex items-center justify-between">
                     <div>
-                        <h3 className="font-black uppercase tracking-[0.2em] text-xs">Live Visitors</h3>
-                        <p className="text-[10px] text-cyan-200 font-bold uppercase mt-0.5">{visitors.length} Active Connections</p>
+                        <h3 className="font-black titlecase tracking-[0.2em] text-xs">Live Visitors</h3>
+                        <p className="text-[10px] text-cyan-200 font-bold titlecase mt-0.5">{visitors.length} Active Connections</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <button
@@ -658,7 +658,7 @@ const WebVisitorsCard: React.FC<WebVisitorsCardProps> = ({ merchantId, cluster, 
                             <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-200 shadow-inner">
                                 <FiSearch size={32} />
                             </div>
-                            <p className="text-xs font-black uppercase text-gray-400 tracking-widest">No Matches</p>
+                            <p className="text-xs font-black titlecase text-gray-400 tracking-widest">No Matches</p>
                         </div>
                     )}
                 </div>

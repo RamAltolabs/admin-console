@@ -493,7 +493,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                     <div className="flex items-center gap-2">
                                                         {item.modelName || item.identifier || 'Unnamed Model'}
                                                         {item.modelType === 'PRIVATE_LLM' && (
-                                                            <span className="bg-blue-900 text-white text-[8px] px-1 rounded uppercase tracking-tighter">Private</span>
+                                                            <span className="bg-blue-900 text-white text-[8px] px-1 rounded titlecase tracking-tighter">Private</span>
                                                         )}
                                                     </div>
                                                 </td>
@@ -508,7 +508,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                 </td>
                                                 {activeTab !== 'Model Management' && (
                                                     <td className="px-4 py-4 text-xs font-bold border-l border-gray-50 px-6">
-                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA'
+                                                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] titlecase tracking-wider ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA'
                                                             ? 'bg-gray-100 text-gray-500'
                                                             : 'bg-green-100 text-green-700'
                                                             }`}>
@@ -610,7 +610,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                     }) : 'N/A'}
                                                 </td>
                                                 <td className="px-4 py-4 border-l border-gray-50">
-                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider font-semibold ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA' || item.aiTrainingStatus === 'Not Trained'
+                                                    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] titlecase tracking-wider font-semibold ${!item.aiTrainingStatus || item.aiTrainingStatus === 'NA' || item.aiTrainingStatus === 'Not Trained'
                                                         ? 'bg-gray-100 text-gray-500'
                                                         : item.aiTrainingStatus === 'Trained' || item.aiTrainingStatus === 'Ready'
                                                             ? 'bg-green-100 text-green-700'
@@ -649,7 +649,7 @@ const AIModelCard: React.FC<AIModelCardProps> = ({ merchantId, cluster, initialT
                                                 <td className="px-4 py-4 text-xs font-bold text-gray-700 border-l border-gray-50">
                                                     {item.documentType || 'Document'}
                                                 </td>
-                                                <td className="px-4 py-4 text-xs font-black text-gray-900 border-l border-gray-50 text-center uppercase tracking-tighter">
+                                                <td className="px-4 py-4 text-xs font-black text-gray-900 border-l border-gray-50 text-center titlecase tracking-tighter">
                                                     {item.documentParams?.docType || item.fileType || 'PDF'}
                                                 </td>
                                                 <td className="px-4 py-4 text-xs font-bold text-gray-500 border-l border-gray-50">

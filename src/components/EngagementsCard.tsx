@@ -34,16 +34,14 @@ const EngagementsCard: React.FC<EngagementsCardProps> = ({ merchantId, cluster }
     const [totalPages, setTotalPages] = useState(0);
 
     const getPreviewUrl = (engagement: any) => {
-        const clusterId = String(cluster || 'it-app').toLowerCase();
+        const clusterId = String(cluster || 'dev-instance').toLowerCase();
         const portalBaseByCluster: Record<string, string | undefined> = {
-            app6: process.env.REACT_APP_APP6A_PORTAL_BASE_URL || process.env.APP6A_PORTAL_BASE_URL,
-            app6a: process.env.REACT_APP_APP6A_PORTAL_BASE_URL || process.env.APP6A_PORTAL_BASE_URL,
-            app6e: process.env.REACT_APP_APP6E_PORTAL_BASE_URL || process.env.APP6E_PORTAL_BASE_URL,
+            'dev-instance': process.env.REACT_APP_DEV_INSTANCE_PORTAL_BASE_URL || process.env.DEV_INSTANCE_PORTAL_BASE_URL,
             app30a: process.env.REACT_APP_APP30A_PORTAL_BASE_URL || process.env.APP30A_PORTAL_BASE_URL,
             app30b: process.env.REACT_APP_APP30B_PORTAL_BASE_URL || process.env.APP30B_PORTAL_BASE_URL,
-            'it-app': process.env.REACT_APP_PORTAL_BASE_URL || process.env.IT_PORTAL_BASE_URL,
+            'app30d': process.env.REACT_APP_APP30D_PORTAL_BASE_URL || process.env.APP30D_PORTAL_BASE_URL,
         };
-        const portalBase = (portalBaseByCluster[clusterId] || process.env.REACT_APP_PORTAL_BASE_URL || process.env.IT_PORTAL_BASE_URL || window.location.origin).replace(/\/+$/, '');
+        const portalBase = (portalBaseByCluster[clusterId] || process.env.REACT_APP_DEV_INSTANCE_PORTAL_BASE_URL || process.env.DEV_INSTANCE_PORTAL_BASE_URL || window.location.origin).replace(/\/+$/, '');
         return `${portalBase}/chat.html?id=${engagement.id}&&${engagement.name}&&${merchantId}`;
     };
 

@@ -27,7 +27,7 @@ const Dashboard: React.FC = () => {
   // Set initial global tab when clusters are loaded
   React.useEffect(() => {
     if (viewMode === 'overall' && clusters.length > 0 && !activeGlobalTab) {
-      const defaultClusterId = process.env.REACT_APP_DEFAULT_CLUSTER_ID || 'it-app';
+      const defaultClusterId = process.env.REACT_APP_DEFAULT_CLUSTER_ID || 'dev-instance';
       const defaultCluster = clusters.find(c => c.id === defaultClusterId);
       setActiveGlobalTab(defaultCluster ? defaultCluster.id : clusters[0].id);
     }
@@ -104,45 +104,51 @@ const Dashboard: React.FC = () => {
       let combinedVisitors: any[] = [];
 
       try {
-        const results = await Promise.all(
-          targetClusters.map(async (clusterId) => {
-            try {
-              const [users, visitorsResponse, engagementsResponse] = await Promise.all([
-                merchantService.getClusterUsers(clusterId),
-                merchantService.getClusterVisitors(0, 50, clusterId),
-                merchantService.getEngagementList('All', clusterId)
-              ]);
+        const results: Array<{ clusterId: string; users: any[]; totalVisitors: number; totalEngagements: number; visitors: any[] }> = [];
+        for (const clusterId of targetClusters) {
+          try {
+            await merchantService.fetchAccessToken(clusterId);
+          } catch (tokenError) {
+            console.warn(`Skipping cluster ${clusterId} due to token error`, tokenError);
+            continue;
+          }
 
-              // Robustly extract engagement count
-              let engagementCount = 0;
-              const rawEng = engagementsResponse;
-              if (Array.isArray(rawEng)) {
-                engagementCount = rawEng.length;
-              } else if (rawEng?.data && Array.isArray(rawEng.data)) {
-                engagementCount = rawEng.data.length;
-              } else if (rawEng?.content && Array.isArray(rawEng.content)) {
-                engagementCount = rawEng.content.length;
-              } else if (rawEng?.totalElements !== undefined) {
-                engagementCount = Number(rawEng.totalElements);
-              } else if (rawEng?.total !== undefined) {
-                engagementCount = Number(rawEng.total);
-              }
+          try {
+            const [users, visitorsResponse, engagementsResponse] = await Promise.all([
+              merchantService.getClusterUsers(clusterId),
+              merchantService.getClusterVisitors(0, 50, clusterId),
+              merchantService.getEngagementList('All', clusterId)
+            ]);
 
-              console.log(`[Dashboard] Cluster ${clusterId}: Users=${users?.length}, Engagements=${engagementCount}, Visitors=${visitorsResponse?.totalElements}`);
-
-              return {
-                clusterId,
-                users: users || [],
-                totalVisitors: visitorsResponse?.totalElements || 0,
-                totalEngagements: engagementCount,
-                visitors: visitorsResponse?.content || []
-              };
-            } catch (err) {
-              console.error(`Failed to fetch data for cluster ${clusterId}:`, err);
-              return { clusterId, users: [], totalVisitors: 0, totalEngagements: 0, visitors: [] };
+            // Robustly extract engagement count
+            let engagementCount = 0;
+            const rawEng = engagementsResponse;
+            if (Array.isArray(rawEng)) {
+              engagementCount = rawEng.length;
+            } else if (rawEng?.data && Array.isArray(rawEng.data)) {
+              engagementCount = rawEng.data.length;
+            } else if (rawEng?.content && Array.isArray(rawEng.content)) {
+              engagementCount = rawEng.content.length;
+            } else if (rawEng?.totalElements !== undefined) {
+              engagementCount = Number(rawEng.totalElements);
+            } else if (rawEng?.total !== undefined) {
+              engagementCount = Number(rawEng.total);
             }
-          })
-        );
+
+            console.log(`[Dashboard] Cluster ${clusterId}: Users=${users?.length}, Engagements=${engagementCount}, Visitors=${visitorsResponse?.totalElements}`);
+
+            results.push({
+              clusterId,
+              users: users || [],
+              totalVisitors: visitorsResponse?.totalElements || 0,
+              totalEngagements: engagementCount,
+              visitors: visitorsResponse?.content || []
+            });
+          } catch (err) {
+            console.error(`Failed to fetch data for cluster ${clusterId}:`, err);
+            results.push({ clusterId, users: [], totalVisitors: 0, totalEngagements: 0, visitors: [] });
+          }
+        }
 
         results.forEach(res => {
           totalAcc += res.users.length;
@@ -270,12 +276,15 @@ const Dashboard: React.FC = () => {
   // Show message if no cluster is selected AND in cluster mode
   if (!selectedCluster && viewMode === 'cluster') {
     return (
-      <div className="flex items-center justify-center h-full max-h-full overflow-hidden py-4">
-        <div className="text-center bg-white rounded-xl border border-neutral-border p-6 md:p-8 max-w-2xl shadow-sm">
-          <FiUsers className="mx-auto text-primary-main/20 mb-3" size={48} />
-          <h2 className="text-lg font-bold text-neutral-text-main mb-1">Cluster Selection Required</h2>
-          <p className="text-[13px] text-neutral-text-secondary leading-tight mb-4">
-            Select a target cluster to initialize Dashboard.
+      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] p-4">
+        <div className="text-center bg-white rounded-2xl border border-neutral-border p-6 md:p-8 max-w-3xl shadow-sm">
+          <FiUsers className="mx-auto text-primary-main/20 mb-4" size={42} />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-[10px] font-black tracking-widest uppercase mb-3">
+            Dashboard
+          </div>
+          <h2 className="text-xl font-bold text-neutral-text-main mb-1.5">Cluster Selection Required</h2>
+          <p className="text-sm text-neutral-text-secondary leading-tight mb-6">
+            Dashboard requires a cluster selection to load analytics and activity.
           </p>
 
           {/* Cluster Selection Grid */}
@@ -287,37 +296,37 @@ const Dashboard: React.FC = () => {
                   setSelectedCluster('');
                   setViewMode('overall');
                 }}
-                className="group relative p-4 bg-white border border-neutral-border rounded-xl transition-all duration-300 hover:shadow-lg hover:border-primary-main/30 overflow-hidden"
+                className="group relative p-3.5 bg-gradient-to-br from-blue-50/70 to-white border border-blue-100 rounded-xl transition-all duration-300 hover:shadow-lg hover:border-blue-200 overflow-hidden"
               >
-                <div className="absolute top-0 right-0 w-20 h-20 bg-primary-main/5 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
+                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
                 <div className="flex flex-col items-center text-center relative z-10">
-                  <div className="w-12 h-12 bg-primary-main/10 rounded-xl flex items-center justify-center text-primary-main mb-3 group-hover:scale-110 transition-transform duration-300">
-                    <FiLayers size={24} />
+                  <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-700 mb-2.5 group-hover:scale-110 transition-transform duration-300">
+                    <FiLayers size={20} />
                   </div>
-                  <span className="text-[13px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors">Global Overview</span>
-                  <span className="text-[9px] text-neutral-text-muted mt-0.5 titlecase tracking-widest font-bold">All 5 Nodes</span>
+                  <span className="text-[12px] font-bold text-neutral-text-main group-hover:text-blue-700 transition-colors">Global View</span>
+                  <span className="text-[9px] text-neutral-text-muted mt-0.5 titlecase tracking-widest font-bold opacity-60">
+                    All {clusters.length} Nodes
+                  </span>
                 </div>
               </button>
 
               {clusters.map((cluster) => {
                 const getClusterIcon = (id: string) => {
                   switch (id.toLowerCase()) {
-                    case 'it-app': return <FiServer size={24} />;
-                    case 'app6a':
-                    case 'app6e':
+                    case 'dev-instance':
                     case 'app30a':
-                    case 'app30b': return <FiGlobe size={24} />;
+                    case 'app30b':
+                    case 'app30d': return <FiGlobe size={24} />;
                     default: return <FiActivity size={24} />;
                   }
                 };
 
                 const getClusterColorClass = (id: string) => {
                   switch (id.toLowerCase()) {
-                    case 'it-app': return 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100';
-                    case 'app6a': return 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100';
                     case 'app30a': return 'bg-amber-50 text-amber-600 group-hover:bg-amber-100';
                     case 'app30b': return 'bg-cyan-50 text-cyan-600 group-hover:bg-cyan-100';
-                    case 'app6e': return 'bg-violet-50 text-violet-600 group-hover:bg-violet-100';
+                    case 'app30d': return 'bg-rose-50 text-rose-600 group-hover:bg-rose-100';
+                    case 'dev-instance': return 'bg-violet-50 text-violet-600 group-hover:bg-violet-100';
                     default: return 'bg-blue-50 text-blue-600 group-hover:bg-blue-100';
                   }
                 };
@@ -329,13 +338,13 @@ const Dashboard: React.FC = () => {
                       setSelectedCluster(cluster.id);
                       setViewMode('cluster');
                     }}
-                    className="group relative p-4 bg-white border border-neutral-border rounded-xl transition-all duration-300 hover:shadow-lg hover:border-primary-main/30 overflow-hidden"
+                    className="group relative p-3.5 bg-white border border-blue-100 rounded-xl transition-all duration-300 hover:shadow-lg hover:border-blue-200 overflow-hidden"
                   >
                     <div className="flex flex-col items-center text-center relative z-10">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 transition-all duration-300 transform group-hover:-translate-y-1 ${getClusterColorClass(cluster.id)}`}>
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2.5 transition-all duration-300 transform group-hover:-translate-y-1 ${getClusterColorClass(cluster.id)} ring-1 ring-blue-100/60`}>
                         {getClusterIcon(cluster.id)}
                       </div>
-                      <span className="text-[13px] font-bold text-neutral-text-main group-hover:text-primary-main transition-colors titlecase tracking-tight">{cluster.name}</span>
+                      <span className="text-[12px] font-bold text-neutral-text-main group-hover:text-blue-700 transition-colors titlecase tracking-tight">{cluster.name}</span>
                       <div className="flex flex-col items-center mt-1">
                         <span className="text-[9px] text-neutral-text-muted font-bold opacity-60 titlecase">{cluster.region || 'Active Node'}</span>
                         {cluster.gcpProject && (
@@ -724,7 +733,7 @@ const Dashboard: React.FC = () => {
                     )}
                     <td className="px-6 py-4 text-xs font-semibold text-neutral-text-secondary">{merchant.email || 'N/A'}</td>
                     <td className="px-6 py-4">
-                      <span className={`text-[10px] font-bold uppercase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
+                      <span className={`text-[10px] font-bold titlecase tracking-widest ${merchant.status?.toLowerCase() === 'active' ? 'text-green-600' : 'text-red-500'}`}>
                         {merchant.status || 'Active'}
                       </span>
                     </td>

@@ -212,16 +212,22 @@ const MerchantList: React.FC<MerchantListProps> = ({
   };
 
   return (
-    <div className="p-3 md:p-5 lg:p-6 mx-auto space-y-4 pb-20">
+    <div className="p-3 md:p-4 lg:p-5 mx-auto space-y-4 pb-12">
       {/* Header */}
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-          <h2 className="text-xl font-bold text-neutral-text-main titlecase tracking-tight">
-            {viewMode === 'overall' ? 'Global Merchants' : 'Merchants'}
-          </h2>
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-neutral-text-main tracking-tight">
+              {viewMode === 'overall' ? 'Global Merchants' : 'Merchants'}
+            </h2>
+            <p className="text-xs text-neutral-text-muted mt-1">
+              {filteredMerchants.length} merchant{filteredMerchants.length !== 1 ? 's' : ''} shown
+              {statusFilter !== 'all' || clusterFilter !== 'all' || searchQuery ? ' (filtered)' : ''}
+            </p>
+          </div>
           <button
             onClick={onCreate}
-            className="flex items-center gap-2 bg-genx-500 text-white px-4 py-2 rounded-lg hover:opacity-95 transition"
+            className="flex items-center gap-2 bg-genx-500 text-white px-4 py-2.5 rounded-xl hover:opacity-95 transition shadow-sm"
           >
             <FiPlus size={18} />
             <span className="font-medium">Create New Merchant</span>
@@ -230,8 +236,8 @@ const MerchantList: React.FC<MerchantListProps> = ({
       </div>
 
       {/* Search Bar and Filters */}
-      <div className="border-b border-gray-100 px-6 py-4">
-        <div className="flex flex-col sm:flex-row gap-4">
+      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm px-5 py-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -239,7 +245,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
               placeholder={searchHint} // Updated placeholder to include hint
               value={searchQuery}
               onChange={handleSearch}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 bg-white"
             />
           </div>
           {/* 1. Changed gap-2 to relative and removed items-center from wrapper */}
@@ -254,7 +260,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
                 setCurrentPage(1);
               }}
               /* 3. Added pl-10 (Padding Left) to make room for the icon and appearance-none */
-              className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-lg text-gray-700 cursor-pointer"  >
+              className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 bg-white text-[14px] text-gray-700 cursor-pointer">
               <option value="all">All Status</option>
               {uniqueStatuses.map(status => (
                 <option key={status} value={status}>
@@ -281,7 +287,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
                   setClusterFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-lg text-gray-700 cursor-pointer"
+                className="appearance-none block w-full pl-10 pr-10 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 bg-white text-[14px] text-gray-700 cursor-pointer"
               >
                 <option value="all">All Clusters</option>
                 {clusters.map(cluster => (
@@ -307,7 +313,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
                 setIsSearchMode(false);
                 setCurrentPage(1);
               }}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white text-red-600 border border-red-100 rounded-lg hover:bg-red-50 transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2 bg-white text-red-600 border border-red-100 rounded-xl hover:bg-red-50 transition-all shadow-sm active:scale-95"
               title="Reset All Filters"
             >
               <FiRotateCcw size={14} />
@@ -319,7 +325,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
 
       {/* Search Results Indicator */}
       {isSearchMode && searchQuery && (
-        <div className="px-6 py-3 bg-blue-50 border-b border-blue-100">
+        <div className="px-6 py-3 bg-blue-50 border border-blue-100 rounded-xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <FiSearch className="text-blue-600" size={16} />
@@ -343,7 +349,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm">
         {loading ? (
           <div className="p-8 text-center">
             <div className="inline-block animate-spin">
@@ -357,8 +363,8 @@ const MerchantList: React.FC<MerchantListProps> = ({
           </div>
         ) : (
           <>
-            <table className="w-full">
-              <thead className="bg-genx-50 border-b border-gray-100">
+            <table className="w-full border-separate border-spacing-y-1.5">
+              <thead className="bg-genx-50/70 border-b border-gray-100 sticky top-0 z-10 backdrop-blur">
                 <tr>
                   <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Actions</th>
                   <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Name</th>
@@ -371,7 +377,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
                   <th className="px-4 py-3 text-left text-[10px] font-bold text-neutral-text-muted titlecase tracking-wider">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y-0">
                 {paginatedMerchants.map((merchant, index) => (
                   <MerchantRow
                     key={merchant.id || `merchant-${index}`}
@@ -389,7 +395,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
             </table>
 
             {/* Pagination Controls */}
-            <div className="flex justify-between items-center p-4 border-t border-gray-100">
+            <div className="flex justify-between items-center p-3 border-t border-gray-100 bg-gray-50/40">
               <div className="flex items-center gap-2">
                 <label htmlFor="itemsPerPage" className="text-sm text-gray-600">
                   Show:
@@ -398,7 +404,7 @@ const MerchantList: React.FC<MerchantListProps> = ({
                   id="itemsPerPage"
                   value={itemsPerPage}
                   onChange={handleItemsPerPageChange}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="px-3 py-1.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 bg-white"
                   disabled={isSearchMode}
                 >
                   <option value={10}>10</option>
@@ -501,8 +507,8 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
 
   return (
     <>
-      <tr className="transition-colors hover:bg-neutral-bg/30">
-        <td className="px-4 py-2.5 whitespace-nowrap">
+      <tr className="bg-white shadow-sm hover:shadow-md transition-shadow ring-1 ring-gray-100 hover:ring-gray-200">
+        <td className="px-4 py-3 whitespace-nowrap rounded-l-xl">
           <div className="flex items-center gap-2">
             <button
               onClick={() => onEdit(merchant)}
@@ -589,11 +595,11 @@ const MerchantRow: React.FC<MerchantRowProps> = ({
             )}
           </div>
         </td>
-        <td className="px-6 py-4 whitespace-nowrap">
+        <td className="px-6 py-4 whitespace-nowrap rounded-r-xl">
           <div className="relative inline-block" ref={statusDropdownRef}>
             <button
               onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ${statusColors[(merchant.status || 'unknown').toLowerCase()] || 'bg-gray-100 text-gray-700'}`}
+              className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium cursor-pointer hover:opacity-80 transition ${statusColors[(merchant.status || 'unknown').toLowerCase()] || 'bg-gray-100 text-gray-700'} shadow-sm`}
               disabled={merchant.status === 'suspended' || !merchant.status}
               title={merchant.status === 'suspended' ? 'Cannot change suspended status' : !merchant.status ? 'No status available' : 'Click to change status'}
             >

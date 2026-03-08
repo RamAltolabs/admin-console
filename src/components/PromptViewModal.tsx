@@ -114,7 +114,7 @@ const PromptViewModal: React.FC<PromptViewModalProps> = ({ isOpen, prompt, onClo
 
           {/* Title */}
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Title</label>
+            <label className="block text-xs font-bold text-gray-400 titlecase tracking-wider mb-2">Title</label>
             {isEditing ? (
               <input
                 type="text"
@@ -132,7 +132,7 @@ const PromptViewModal: React.FC<PromptViewModalProps> = ({ isOpen, prompt, onClo
 
           {/* Prompt Description */}
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Prompt Description</label>
+            <label className="block text-xs font-bold text-gray-400 titlecase tracking-wider mb-2">Prompt Description</label>
             {isEditing ? (
               <textarea
                 value={formData.promptText || ''}
@@ -152,7 +152,7 @@ const PromptViewModal: React.FC<PromptViewModalProps> = ({ isOpen, prompt, onClo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Type */}
             <div>
-              <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Prompt Type</label>
+              <label className="block text-xs font-bold text-gray-400 titlecase tracking-wider mb-2">Prompt Type</label>
               {isEditing ? (
                 <select
                   value={formData.type || ''}

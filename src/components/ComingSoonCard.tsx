@@ -29,7 +29,7 @@ const ComingSoonCard: React.FC<ComingSoonCardProps> = ({ title, description, ico
                 {description}
             </p>
 
-            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-100 text-[10px] font-bold text-blue-900 uppercase tracking-widest">
+            <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-blue-100 text-[10px] font-bold text-blue-900 titlecase tracking-widest">
                 <FiClock size={12} className="animate-spin" /> Coming Soon in V2.0
             </div>
         </div>

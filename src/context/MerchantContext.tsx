@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { Merchant, Cluster } from '../types/merchant';
 import merchantService from '../services/merchantService';
 
@@ -29,6 +29,7 @@ export const MerchantProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [viewMode, setViewMode] = useState<'overall' | 'cluster'>('cluster');
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const lastFetchKeyRef = useRef<string>('');
 
   const fetchMerchants = useCallback(async () => {
     // If in overall mode, fetch from all clusters
@@ -39,21 +40,29 @@ export const MerchantProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setError(null);
       try {
         console.log('Fetching all merchants for global view');
-        const results = await Promise.allSettled(
-          clusters.map(cluster => merchantService.getMerchants(cluster.id))
-        );
+        const fetchKey = `overall:${clusters.map(c => c.id).join(',')}`;
+        const shouldForce = lastFetchKeyRef.current !== fetchKey;
+        lastFetchKeyRef.current = fetchKey;
 
         let allMerchants: Merchant[] = [];
-        results.forEach((result, index) => {
-          if (result.status === 'fulfilled') {
-            // Assign cluster ID to each merchant if not present
-            const merchantsWithCluster = result.value.map((m: Merchant) => ({
+        for (const cluster of clusters) {
+          try {
+            await merchantService.fetchAccessToken(cluster.id);
+          } catch (tokenError) {
+            console.warn('Failed to fetch token for cluster', cluster.id, tokenError);
+          }
+
+          try {
+            const data = await merchantService.getMerchants(cluster.id, 0, 100, shouldForce);
+            const merchantsWithCluster = data.map((m: Merchant) => ({
               ...m,
-              cluster: m.cluster || clusters[index].id
+              cluster: m.cluster || cluster.id
             }));
             allMerchants = [...allMerchants, ...merchantsWithCluster];
+          } catch (err) {
+            console.error('Failed to fetch merchants for cluster', cluster.id, err);
           }
-        });
+        }
 
         console.log('Fetched all merchants:', allMerchants.length);
         setMerchants(allMerchants);
@@ -82,7 +91,15 @@ export const MerchantProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setError(null);
     try {
       console.log('Fetching merchants for cluster:', selectedCluster);
-      const data = await merchantService.getMerchants(selectedCluster);
+      try {
+        await merchantService.fetchAccessToken(selectedCluster);
+      } catch (tokenError) {
+        console.warn('Failed to fetch token for cluster', selectedCluster, tokenError);
+      }
+      const fetchKey = `cluster:${selectedCluster}`;
+      const shouldForce = lastFetchKeyRef.current !== fetchKey;
+      lastFetchKeyRef.current = fetchKey;
+      const data = await merchantService.getMerchants(selectedCluster, 0, 100, shouldForce);
       console.log('Fetched merchants:', data);
       setMerchants(data);
       if (data.length === 0) {
@@ -96,6 +113,12 @@ export const MerchantProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setLoading(false);
     }
   }, [selectedCluster, viewMode, clusters]);
+
+  useEffect(() => {
+    if (selectedCluster || viewMode === 'overall') {
+      fetchMerchants();
+    }
+  }, [selectedCluster, viewMode, fetchMerchants]);
 
   const fetchClusters = useCallback(async () => {
     setLoading(true);

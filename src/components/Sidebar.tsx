@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
 
   const toggleMenu = (menuName: string) => {
     if (isMinimized) return; // Don't expand menus when minimized
-    setExpandedMenu(expandedMenu === menuName ? null : menuName);
+    setExpandedMenu(prev => (prev === menuName ? null : menuName));
   };
 
   return (
@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-14 h-[calc(100vh-3.5rem)] bg-white border-r border-neutral-border transition-all duration-300 z-30 lg:relative lg:top-0 lg:translate-x-0 flex flex-col ${isMinimized ? 'w-20' : 'w-64'
+        className={`fixed left-0 top-14 h-[calc(100vh-3.5rem)] bg-gradient-to-b from-white via-white to-slate-50/70 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950/80 border-r border-neutral-border transition-all duration-300 z-30 lg:relative lg:top-0 lg:translate-x-0 flex flex-col ${isMinimized ? 'w-20' : 'w-72'
           } ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* Mobile Close Button */}
@@ -52,26 +52,39 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
 
         <nav className="flex flex-col h-full overflow-hidden">
           {/* Main Navigation Scrollable Area */}
-          <div className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar pt-6 pb-4">
-            <div className={`space-y-1.5 ${isMinimized ? 'px-2' : 'px-4'}`}>
+          <div className="flex-1 overflow-x-hidden overflow-y-auto custom-scrollbar pt-5 pb-4 dark:bg-transparent">
+            <div className={`space-y-4 ${isMinimized ? 'px-2' : 'px-4'}`}>
 
               {/* Proper Header with Toggle Icon */}
-              <div className={`flex items-center ${isMinimized ? 'justify-center' : 'justify-between px-4'} mb-4 h-8`}>
+              <div className={`flex items-center ${isMinimized ? 'justify-center' : 'justify-between px-3'} mb-5 h-9`}>
                 {!isMinimized && (
-                  <h2 className="text-[10px] font-bold tracking-[0.2em] text-neutral-text-muted title-case opacity-70 truncate">
-                    Admin Console
-                  </h2>
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl bg-blue-900/10 text-blue-900 dark:bg-blue-500/10 dark:text-blue-300 flex items-center justify-center shadow-sm">
+                      <FiGrid size={16} />
+                    </div>
+                    <div className="leading-tight">
+                      <h2 className="text-[11px] font-bold tracking-[0.2em] text-neutral-text-muted titlecase opacity-70 truncate">
+                        Admin Console
+                      </h2>
+                      <p className="text-[10px] text-neutral-text-muted/70">Control Center</p>
+                    </div>
+                  </div>
                 )}
                 <button
                   onClick={onToggleMinimize}
-                  className={`p-1.5 rounded-lg transition-all ${isMinimized ? 'bg-primary-main/10 text-primary-main shadow-sm' : 'text-neutral-text-muted hover:bg-neutral-bg hover:text-primary-main'}`}
+                  className={`p-2 rounded-xl transition-all ${isMinimized ? 'bg-primary-main/10 text-primary-main shadow-sm' : 'text-neutral-text-muted hover:bg-neutral-bg hover:text-primary-main'}`}
                   title={isMinimized ? "Expand Menu" : "Collapse Menu"}
                 >
                   <FiMenu size={18} />
                 </button>
               </div>
 
-              {/* Home Navigation */}
+              {/* Core */}
+              {!isMinimized && (
+                <div className="px-2">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-neutral-text-muted titlecase opacity-60">Core</p>
+                </div>
+              )}
               <NavLink
                 to="/"
                 onClick={() => {
@@ -82,21 +95,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
                 }}
                 title={isMinimized ? "Home" : ""}
                 className={({ isActive }) =>
-                  `flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all font-bold text-[12px] relative group ${isActive && !selectedCluster && expandedMenu !== 'dashboard'
+                  `flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2.5 rounded-xl transition-all font-bold text-[12px] relative group ${isActive && !selectedCluster && expandedMenu !== 'dashboard'
                     ? 'bg-blue-900 text-white shadow-md active-nav-indicator'
-                    : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
+                    : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-blue-300'
                   }`
                 }
               >
                 {({ isActive }) => (
                   <>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isActive && !selectedCluster && expandedMenu !== 'dashboard' ? 'bg-white/10' : 'bg-gray-100'}`}>
+                    {isActive && !selectedCluster && expandedMenu !== 'dashboard' && (
+                      <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-blue-500"></span>
+                    )}
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shadow-sm transition-all flex-shrink-0 ${isActive && !selectedCluster && expandedMenu !== 'dashboard'
+                      ? 'bg-white/15 text-white'
+                      : 'bg-gradient-to-br from-slate-100 to-white text-slate-600 group-hover:from-blue-50 group-hover:to-white group-hover:text-blue-700 dark:from-slate-800 dark:to-slate-900 dark:text-slate-300 dark:group-hover:from-slate-800 dark:group-hover:to-slate-900 dark:group-hover:text-blue-300'
+                      }`}>
                       <FiGrid size={18} />
                     </div>
                     {!isMinimized && <span>Home</span>}
                   </>
                 )}
               </NavLink>
+
+              {/* Manage */}
+              {!isMinimized && (
+                <div className="px-2 pt-1">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-neutral-text-muted titlecase opacity-60">Manage</p>
+                </div>
+              )}
 
               {/* Dashboard Menu with Clusters */}
               <NavMenuWithClusters
@@ -109,6 +135,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
                 setSelectedCluster={setSelectedCluster}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                setExpandedMenu={setExpandedMenu}
                 expandedMenu={expandedMenu}
                 toggleMenu={toggleMenu}
                 onClose={onClose}
@@ -126,6 +153,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
                 setSelectedCluster={setSelectedCluster}
                 viewMode={viewMode}
                 setViewMode={setViewMode}
+                setExpandedMenu={setExpandedMenu}
                 expandedMenu={expandedMenu}
                 toggleMenu={toggleMenu}
                 onClose={onClose}
@@ -136,14 +164,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose, isMinimized, onToggl
           </div>
 
           {/* Bottom Actions Fixed Area */}
-          <div className={`mt-auto ${isMinimized ? 'px-2' : 'px-4'} pt-6 pb-6 space-y-1.5 border-t border-gray-200 bg-gray-50/50`}>
-            <NavItem
-              icon={<FiSettings size={18} />}
-              label="Settings"
-              to="/settings"
-              onClose={onClose}
-              isMinimized={isMinimized}
-            />
+          <div className={`mt-auto ${isMinimized ? 'px-2' : 'px-4'} pt-5 pb-6 space-y-2 border-t border-gray-200 bg-gray-50/70 dark:border-slate-800 dark:bg-slate-900/40`}>
+            {!isMinimized && (
+              <div className="px-2">
+                <p className="text-[10px] font-bold tracking-[0.2em] text-neutral-text-muted titlecase opacity-60">System</p>
+              </div>
+            )}
+              <NavItem
+                icon={<FiSettings size={18} />}
+                label="Settings"
+                to="/settings"
+                onClose={onClose}
+                onNavigate={() => {
+                  setSelectedCluster('');
+                  setViewMode('cluster');
+                  setExpandedMenu(null);
+                }}
+                isMinimized={isMinimized}
+              />
 
             <button
               onClick={logout}
@@ -167,24 +205,32 @@ interface NavItemProps {
   label: string;
   to: string;
   onClose: () => void;
+  onNavigate?: () => void;
   isMinimized: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ icon, label, to, onClose, isMinimized }) => (
+const NavItem: React.FC<NavItemProps> = ({ icon, label, to, onClose, onNavigate, isMinimized }) => (
   <NavLink
     to={to}
-    onClick={onClose}
+    onClick={() => {
+      onNavigate?.();
+      onClose();
+    }}
     title={isMinimized ? label : ""}
     className={({ isActive }) =>
-      `flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all font-bold text-[12px] relative group ${isActive
+      `flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2.5 rounded-xl transition-all font-bold text-[12px] relative group ${isActive
         ? 'bg-blue-900 text-white shadow-md active-nav-indicator'
-        : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
+        : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-blue-300'
       }`
     }
   >
     {({ isActive }) => (
       <>
-        <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isActive ? 'bg-white/10' : 'bg-gray-100'}`}>
+        {isActive && <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-blue-500"></span>}
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm transition-all flex-shrink-0 ${isActive
+          ? 'bg-white/15 text-white'
+          : 'bg-gradient-to-br from-slate-100 to-white text-slate-600 group-hover:from-blue-50 group-hover:to-white group-hover:text-blue-700 dark:from-slate-800 dark:to-slate-900 dark:text-slate-300 dark:group-hover:from-slate-800 dark:group-hover:to-slate-900 dark:group-hover:text-blue-300'
+          }`}>
           {icon}
         </div>
         {!isMinimized && <span>{label}</span>}
@@ -203,6 +249,7 @@ interface NavMenuWithClustersProps {
   setSelectedCluster: (clusterId: string) => void;
   viewMode: 'overall' | 'cluster';
   setViewMode: (mode: 'overall' | 'cluster') => void;
+  setExpandedMenu: React.Dispatch<React.SetStateAction<string | null>>;
   expandedMenu: string | null;
   toggleMenu: (menuKey: string) => void;
   onClose: () => void;
@@ -219,6 +266,7 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
   setSelectedCluster,
   viewMode,
   setViewMode,
+  setExpandedMenu,
   expandedMenu,
   toggleMenu,
   onClose,
@@ -226,39 +274,54 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
 }) => {
   const navigate = useNavigate();
   const isExpanded = expandedMenu === menuKey;
+  const clusterCount = clusters.length;
 
   const handleMenuClick = () => {
     setSelectedCluster('');
     setViewMode('cluster');
+    setExpandedMenu(prev => (prev === menuKey ? null : menuKey));
     navigate(to);
     onClose();
-    if (!isExpanded) {
-      toggleMenu(menuKey);
-    }
   };
 
   const handleClusterSelect = (clusterId: string) => {
     setSelectedCluster(clusterId);
+    setViewMode('cluster');
+    setExpandedMenu(menuKey);
     navigate(to);
     onClose();
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       <div className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-1'} group`}>
         <button
           onClick={handleMenuClick}
           title={isMinimized ? label : ""}
-          className={`flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2 rounded-lg transition-all flex-1 text-left font-bold text-[12px] ${isExpanded && !selectedCluster
+          className={`relative flex items-center ${isMinimized ? 'justify-center' : 'gap-3 px-3'} py-2.5 rounded-xl transition-all flex-1 text-left font-bold text-[12px] ${isExpanded && !selectedCluster
             ? 'bg-blue-900 text-white shadow-md'
-            : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900'
+            : 'text-neutral-text-secondary hover:bg-blue-50 hover:text-blue-900 dark:text-slate-300 dark:hover:bg-slate-800/60 dark:hover:text-blue-300'
             }`}
         >
-          <div className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors flex-shrink-0 ${isExpanded && !selectedCluster ? 'bg-white/10' : 'bg-gray-100'
+          {isExpanded && !selectedCluster && (
+            <span className="absolute left-0 top-2.5 bottom-2.5 w-1 rounded-full bg-blue-500"></span>
+          )}
+          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm transition-all flex-shrink-0 ${isExpanded && !selectedCluster
+            ? 'bg-white/15 text-white'
+            : 'bg-gradient-to-br from-slate-100 to-white text-slate-600 group-hover:from-blue-50 group-hover:to-white group-hover:text-blue-700 dark:from-slate-800 dark:to-slate-900 dark:text-slate-300 dark:group-hover:from-slate-800 dark:group-hover:to-slate-900 dark:group-hover:text-blue-300'
             }`}>
             {icon}
           </div>
-          {!isMinimized && <span>{label}</span>}
+          {!isMinimized && (
+            <div className="flex items-center gap-2">
+              <span>{label}</span>
+              {clusterCount > 0 && (
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isExpanded && !selectedCluster ? 'bg-white/20 text-white' : 'bg-blue-50 text-blue-700'}`}>
+                  {clusterCount}
+                </span>
+              )}
+            </div>
+          )}
         </button>
         {!isMinimized && (
           <button
@@ -273,18 +336,21 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
 
       {/* Clusters Submenu */}
       {isExpanded && !isMinimized && (
-        <div className="ml-8 pl-4 border-l-2 border-blue-100 space-y-1 py-1 animate-in slide-in-from-left-2 duration-300">
+        <div className="ml-8 pl-4 border-l-2 border-blue-100/70 space-y-1 py-1 animate-in slide-in-from-left-2 duration-300">
           {clusters.map(cluster => {
             const getClusterIcon = (id: string) => {
-              switch (id.toLowerCase()) {
-                case 'it-app': return <FiServer size={12} />;
-                case 'app6a': return <FiGlobe size={12} />;
-                case 'app30a': return <FiDatabase size={12} />;
-                case 'app30b': return <FiCpu size={12} />;
-                case 'app6e': return <FiTerminal size={12} />;
-                default: return <div className={`w-1.5 h-1.5 rounded-full ${selectedCluster === cluster.id ? 'bg-white' : 'bg-gray-300 group-hover/cluster:bg-blue-900'}`} />;
-              }
+                switch (id.toLowerCase()) {
+                  case 'app30a': return <FiDatabase size={12} />;
+                  case 'app30b': return <FiCpu size={12} />;
+                  case 'app30d': return <FiGrid size={12} />;
+                  case 'dev-instance': return <FiGlobe size={12} />;
+                  default: return <div className={`w-1.5 h-1.5 rounded-full ${selectedCluster === cluster.id ? 'bg-white' : 'bg-gray-300 group-hover/cluster:bg-blue-900'}`} />;
+                }
             };
+
+            const chipClass = selectedCluster === cluster.id
+              ? 'bg-white/15 text-white'
+              : 'bg-gradient-to-br from-slate-100 to-white text-slate-600 group-hover/cluster:from-blue-50 group-hover/cluster:to-white group-hover/cluster:text-blue-700';
 
             return (
               <button
@@ -296,14 +362,12 @@ const NavMenuWithClusters: React.FC<NavMenuWithClustersProps> = ({
                   }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <div className={`transition-all duration-300 ${selectedCluster === cluster.id ? 'text-white' : 'text-gray-400 group-hover/cluster:text-blue-600'}`}>
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shadow-sm transition-all duration-300 ${chipClass}`}>
                     {getClusterIcon(cluster.id)}
                   </div>
                   <span className="truncate">{cluster.name}</span>
                 </div>
-                {selectedCluster === cluster.id && (
-                  <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse"></div>
-                )}
+                <div className={`w-2 h-2 rounded-full ${selectedCluster === cluster.id ? 'bg-green-400 animate-pulse' : 'bg-gray-300 group-hover/cluster:bg-blue-300'}`}></div>
               </button>
             );
           })}
