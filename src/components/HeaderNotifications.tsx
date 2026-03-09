@@ -16,6 +16,11 @@ interface NotificationFeedItem {
     statusText?: string;
     url?: string;
     payload?: string;
+    requestHeaders?: Record<string, string>;
+    requestParams?: any;
+    requestBody?: any;
+    responseHeaders?: Record<string, string>;
+    responseBody?: any;
   };
 }
 
@@ -112,6 +117,26 @@ const readAppHistory = (): NotificationFeedItem[] => {
     }));
   } catch {
     return [];
+  }
+};
+
+const formatMetaValue = (value: any): string => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+      try {
+        return JSON.stringify(JSON.parse(trimmed), null, 2);
+      } catch {
+        return value;
+      }
+    }
+    return value;
+  }
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
   }
 };
 
@@ -228,6 +253,28 @@ const HeaderNotifications: React.FC = () => {
     }
   };
 
+  const persistHistory = (items: NotificationFeedItem[]) => {
+    setAppItems(items);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 200)));
+    window.dispatchEvent(new Event('app-notification'));
+  };
+
+  const clearAllAlerts = () => {
+    persistHistory([]);
+    setExpandedItems({});
+  };
+
+  const clearAlert = (id: string) => {
+    const next = appItems.filter(item => item.id !== id);
+    persistHistory(next);
+    setExpandedItems(prev => {
+      if (!prev[id]) return prev;
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
+  };
+
   return (
     <div className="relative" ref={panelRef}>
       <div className="flex items-center gap-2">
@@ -278,7 +325,17 @@ const HeaderNotifications: React.FC = () => {
         <div className="absolute right-0 mt-2 w-[360px] max-w-[90vw] bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
             <h3 className="text-xs font-black tracking-wider text-gray-900 uppercase">Notifications & Alerts</h3>
-            <span className="text-[10px] font-bold text-gray-500">{filteredItems.length} shown</span>
+            <div className="flex items-center gap-2">
+              {appItems.length > 0 && (
+                <button
+                  onClick={clearAllAlerts}
+                  className="text-[10px] font-bold uppercase tracking-wider text-red-700 hover:text-red-900"
+                >
+                  Clear All
+                </button>
+              )}
+              <span className="text-[10px] font-bold text-gray-500">{filteredItems.length} shown</span>
+            </div>
           </div>
           <div className="px-3 py-2 border-b border-gray-100 bg-white flex gap-1 overflow-x-auto">
             {visibleCategories.map((category) => (
@@ -306,18 +363,26 @@ const HeaderNotifications: React.FC = () => {
             ) : (
               <div className="p-2 space-y-2">
                 {filteredItems.map(item => (
-                  <div key={item.id} className="border border-gray-200 rounded-lg p-3 bg-white">
-                    <div className="flex items-start gap-2">
-                      <div className={`mt-0.5 inline-flex p-1 rounded border ${getTypeStyles(item.type)}`}>
-                        {getTypeIcon(item.type)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-start justify-between gap-2">
-                          <p className="text-xs font-bold text-gray-900">{item.title}</p>
-                          <span className="text-[10px] text-gray-500 whitespace-nowrap">
-                            {new Date(item.createdAt).toLocaleTimeString()}
-                          </span>
+                    <div key={item.id} className="border border-gray-200 rounded-lg p-3 bg-white">
+                      <div className="flex items-start gap-2">
+                        <div className={`mt-0.5 inline-flex p-1 rounded border ${getTypeStyles(item.type)}`}>
+                          {getTypeIcon(item.type)}
                         </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-xs font-bold text-gray-900">{item.title}</p>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-gray-500 whitespace-nowrap">
+                                {new Date(item.createdAt).toLocaleTimeString()}
+                              </span>
+                              <button
+                                onClick={() => clearAlert(item.id)}
+                                className="text-[10px] font-bold uppercase tracking-wider text-red-700 hover:text-red-900"
+                              >
+                                Clear
+                              </button>
+                            </div>
+                          </div>
                         {item.message && <p className="text-[11px] text-gray-600 mt-1 break-words">{item.message}</p>}
                         <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide">{item.source}</p>
                         <div className="mt-2">
@@ -332,11 +397,31 @@ const HeaderNotifications: React.FC = () => {
                               <div><span className="font-bold text-gray-700">Type:</span> {item.type}</div>
                               <div><span className="font-bold text-gray-700">Time:</span> {new Date(item.createdAt).toLocaleString()}</div>
                               <div><span className="font-bold text-gray-700">Source:</span> {item.source}</div>
-                              {item.meta?.method && <div><span className="font-bold text-gray-700">Method:</span> {item.meta.method}</div>}
-                              {item.meta?.status && <div><span className="font-bold text-gray-700">Status:</span> {item.meta.status}</div>}
-                              {item.meta?.statusText && <div><span className="font-bold text-gray-700">Status Text:</span> {item.meta.statusText}</div>}
-                              {item.meta?.url && <div><span className="font-bold text-gray-700">Endpoint:</span> {item.meta.url}</div>}
-                              {item.meta?.payload && <div><span className="font-bold text-gray-700">Response:</span> {item.meta.payload}</div>}
+                              {item.meta?.url && <div><span className="font-bold text-gray-700">URL:</span> {item.meta.url}</div>}
+                              {item.meta?.requestHeaders && (
+                                <div>
+                                  <div className="font-bold text-gray-700">Request Headers:</div>
+                                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-white border border-gray-200 p-2 text-[10px] text-gray-700">{formatMetaValue(item.meta.requestHeaders)}</pre>
+                                </div>
+                              )}
+                              {item.meta?.requestParams && (
+                                <div>
+                                  <div className="font-bold text-gray-700">Request Params:</div>
+                                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-white border border-gray-200 p-2 text-[10px] text-gray-700">{formatMetaValue(item.meta.requestParams)}</pre>
+                                </div>
+                              )}
+                              {item.meta?.requestBody && (
+                                <div>
+                                  <div className="font-bold text-gray-700">Request Payload:</div>
+                                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-white border border-gray-200 p-2 text-[10px] text-gray-700">{formatMetaValue(item.meta.requestBody)}</pre>
+                                </div>
+                              )}
+                              {item.meta?.responseBody && (
+                                <div>
+                                  <div className="font-bold text-gray-700">Response Body:</div>
+                                  <pre className="mt-1 max-h-40 overflow-auto whitespace-pre-wrap break-words rounded bg-white border border-gray-200 p-2 text-[10px] text-gray-700">{formatMetaValue(item.meta.responseBody)}</pre>
+                                </div>
+                              )}
                               <div><span className="font-bold text-gray-700">Message:</span> {item.message || 'No additional details.'}</div>
                             </div>
                           )}

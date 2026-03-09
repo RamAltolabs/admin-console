@@ -115,13 +115,81 @@ class MerchantApiService {
     }
   }
 
+  private sanitizeHeaders(headers: any): Record<string, string> | undefined {
+    if (!headers) return undefined;
+    try {
+      const result: Record<string, string> = {};
+      Object.entries(headers).forEach(([key, value]) => {
+        const lower = key.toLowerCase();
+        if (lower === 'authorization' || lower === 'x-api-key' || lower === 'api-key') {
+          result[key] = '***';
+          return;
+        }
+        if (Array.isArray(value)) {
+          result[key] = value.join(', ');
+          return;
+        }
+        result[key] = String(value);
+      });
+      return Object.keys(result).length ? result : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private redactSecrets(value: any, depth: number = 0): any {
+    if (value === null || value === undefined) return value;
+    if (depth > 6) return value;
+    if (typeof value !== 'object') return value;
+    if (Array.isArray(value)) return value.map(item => this.redactSecrets(item, depth + 1));
+    const redacted: Record<string, any> = {};
+    Object.entries(value).forEach(([key, val]) => {
+      const lower = key.toLowerCase();
+      if (lower.includes('token') || lower.includes('authorization') || (lower.includes('api') && lower.includes('key'))) {
+        redacted[key] = '***';
+      } else {
+        redacted[key] = this.redactSecrets(val, depth + 1);
+      }
+    });
+    return redacted;
+  }
+
+  private sanitizeValue(value: any, maxLen: number = 2000): any {
+    if (value === undefined || value === null) return undefined;
+    try {
+      const cloned = typeof value === 'string' ? value : JSON.parse(JSON.stringify(value));
+      const redacted = typeof cloned === 'string' ? cloned : this.redactSecrets(cloned);
+      const asString = typeof redacted === 'string' ? redacted : JSON.stringify(redacted);
+      if (asString.length > maxLen) {
+        return `${asString.slice(0, maxLen)}â€¦`;
+      }
+      return redacted;
+    } catch {
+      try {
+        const asString = String(value);
+        return asString.length > maxLen ? `${asString.slice(0, maxLen)}â€¦` : asString;
+      } catch {
+        return undefined;
+      }
+    }
+  }
+
   private recordApiFailure(error: any): void {
     try {
       const status = error?.response?.status;
       const method = String(error?.config?.method || 'GET').toUpperCase();
       const rawUrl = String(error?.config?.url || '');
-      const safeUrl = this.sanitizeUrl(rawUrl);
+      const baseUrl = String(error?.config?.baseURL || this.baseURL || '');
+      const fullUrl = rawUrl.startsWith('http')
+        ? rawUrl
+        : `${this.normalizeBaseURL(baseUrl)}${rawUrl.replace(/^\/+/, '')}`;
+      const safeUrl = this.sanitizeUrl(fullUrl);
       const errorPayload = this.sanitizeErrorPayload(error?.response?.data);
+      const requestHeaders = this.sanitizeHeaders(error?.config?.headers);
+      const responseHeaders = this.sanitizeHeaders(error?.response?.headers);
+      const requestParams = this.sanitizeValue(error?.config?.params);
+      const requestBody = this.sanitizeValue(error?.config?.data);
+      const responseBody = this.sanitizeValue(error?.response?.data);
       const key = `${method}:${safeUrl}:${status || 'network'}`;
       const now = Date.now();
       const last = this.apiFailureCache.get(key) || 0;
@@ -133,23 +201,30 @@ class MerchantApiService {
       const prev = raw ? JSON.parse(raw) : [];
       const next = Array.isArray(prev) ? prev : [];
       const type = status && status >= 500 ? 'error' : status && status >= 400 ? 'warning' : 'error';
+      const title = `API Failure${status ? ` (${status})` : ''}`;
+      const message = `${method} ${safeUrl}${error?.response?.statusText ? ` - ${error.response.statusText}` : ''}`;
       next.unshift({
         id: `api-failure-${now}-${Math.random()}`,
         source: 'app',
         type,
-        title: `API Failure${status ? ` (${status})` : ''}`,
-        message: `${method} ${safeUrl}${error?.response?.statusText ? ` - ${error.response.statusText}` : ''}`,
+        title,
+        message,
         meta: {
           method,
           status: status || undefined,
           statusText: error?.response?.statusText,
           url: safeUrl,
-          payload: errorPayload
+          payload: errorPayload,
+          requestHeaders,
+          requestParams,
+          requestBody,
+          responseHeaders,
+          responseBody
         },
         createdAt: new Date(now).toISOString()
       });
       localStorage.setItem(historyKey, JSON.stringify(next.slice(0, 200)));
-      window.dispatchEvent(new Event('app-notification'));
+      window.dispatchEvent(new CustomEvent('app-notification', { detail: { toast: { type, title, message } } }));
     } catch {
       // no-op
     }

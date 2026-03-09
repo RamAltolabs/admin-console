@@ -97,6 +97,11 @@ const App: React.FC = () => {
   }, []);
 
   // Notification helper functions
+  const addToast = (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string, duration: number = 5000) => {
+    const id = `notification-${Date.now()}-${Math.random()}`;
+    setNotifications(prev => [...prev, { id, type, title, message, duration }]);
+  };
+
   const addNotification = (type: 'success' | 'error' | 'warning' | 'info', title: string, message?: string) => {
     const id = `notification-${Date.now()}-${Math.random()}`;
     setNotifications(prev => [...prev, { id, type, title, message, duration: 5000 }]);
@@ -122,6 +127,19 @@ const App: React.FC = () => {
   const removeNotification = (id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   };
+
+  useEffect(() => {
+    const handleAppNotification = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (detail?.toast) {
+        addToast(detail.toast.type, detail.toast.title, detail.toast.message, 5000);
+      }
+    };
+    window.addEventListener('app-notification', handleAppNotification as EventListener);
+    return () => {
+      window.removeEventListener('app-notification', handleAppNotification as EventListener);
+    };
+  }, []);
 
   // Initialize
   useEffect(() => {
